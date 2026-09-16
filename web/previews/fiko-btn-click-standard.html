@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fiko Btn 点击规范</title>
+    <style>
+      :root {
+        --phone-width: 393px;
+        --phone-height: 852px;
+        --ink: #050505;
+        --font-rounded: "Yuanti SC", "YouYuan", "PingFang SC", sans-serif;
+        --press-scale: 0.965;
+        --press-y: 1.5px;
+        --press-dim: 0.96;
+        --press-over: 1;
+        --press-down-ms: 90ms;
+        --press-up-ms: 320ms;
+        --press-down-ease: cubic-bezier(0.2, 0, 0.2, 1);
+        --press-up-ease: cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        background: #111;
+        font-family: var(--font-rounded);
+      }
+
+      button {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        font: inherit;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100vw, var(--phone-width));
+        height: min(100vh, var(--phone-height));
+        aspect-ratio: 393 / 852;
+        overflow: hidden;
+        border-radius: 32px;
+        background: #fff;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+        color: var(--ink);
+      }
+
+      .bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .brand-logo {
+        position: absolute;
+        left: 11px;
+        top: 53px;
+        z-index: 2;
+        width: 112px;
+        height: 52px;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background:
+          radial-gradient(circle, rgba(207, 207, 207, 0.48) 0 0.75px, transparent 0.9px)
+          1px 0 / 13px 13px,
+          #fff;
+        pointer-events: none;
+      }
+
+      .brand-logo img {
+        display: block;
+        width: 92px;
+        height: auto;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .cat {
+        position: absolute;
+        left: 16px;
+        top: 125px;
+        width: 78px;
+        height: 57px;
+        border-radius: 26px;
+        --press-scale: 0.965;
+        --press-y: 1px;
+        --press-over: 1;
+        --press-overlay: 0.025;
+      }
+
+      .cat img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        user-select: none;
+        -webkit-user-drag: none;
+        pointer-events: none;
+      }
+
+      .pressable {
+        position: absolute;
+        transform-origin: 50% 50%;
+        will-change: transform, filter;
+        transition:
+          transform var(--press-down-ms) var(--press-down-ease),
+          filter var(--press-down-ms) ease;
+      }
+
+      .pressable::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: rgba(0, 0, 0, var(--press-overlay, 0.035));
+        opacity: 0;
+        transition: opacity var(--press-down-ms) ease;
+        pointer-events: none;
+      }
+
+      .pressable.is-pressing {
+        transform: translateY(var(--press-y)) scale(var(--press-scale));
+        filter: brightness(var(--press-dim));
+      }
+
+      .pressable.is-pressing::after {
+        opacity: 1;
+      }
+
+      .pressable.is-releasing {
+        animation: pressRelease var(--press-up-ms) var(--press-up-ease) both;
+      }
+
+      .date-pill {
+        left: 228px;
+        top: 201px;
+        width: 40px;
+        height: 27px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        background: #000;
+        color: #fff;
+        font-size: 17px;
+        line-height: 1;
+        font-weight: 900;
+        --press-scale: 0.94;
+        --press-y: 1px;
+        --press-over: 1;
+        --press-overlay: 0.08;
+      }
+
+      .more {
+        left: 323px;
+        top: 375px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        --press-scale: 0.93;
+        --press-y: 1px;
+        --press-over: 1;
+      }
+
+      .more img,
+      .cta img,
+      .action-card img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        user-select: none;
+        -webkit-user-drag: none;
+        pointer-events: none;
+      }
+
+      .action-card {
+        left: 16px;
+        width: 362px;
+        height: 106px;
+        border-radius: 34px;
+        --press-scale: 0.972;
+        --press-y: 2px;
+        --press-over: 1;
+        --press-overlay: 0.025;
+      }
+
+      .card-1 {
+        top: 426px;
+      }
+
+      .card-2 {
+        top: 542px;
+      }
+
+      .card-3 {
+        top: 658px;
+      }
+
+      .card-4 {
+        top: 746px;
+      }
+
+      .cta {
+        left: 87px;
+        top: 713px;
+        width: 220px;
+        height: 60px;
+        z-index: 3;
+        border-radius: 999px;
+        --press-scale: 0.955;
+        --press-y: 2px;
+        --press-over: 1;
+        --press-dim: 0.94;
+        --press-overlay: 0.1;
+      }
+
+      .cta::after {
+        background: rgba(255, 255, 255, 0.16);
+      }
+
+      .tap-note {
+        position: absolute;
+        left: 50%;
+        bottom: 28px;
+        padding: 7px 11px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.7);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 900;
+        opacity: 0;
+        transform: translate(-50%, 8px);
+        pointer-events: none;
+      }
+
+      .tap-note.is-visible {
+        animation: toastPop 980ms cubic-bezier(0.4, 0, 0.2, 1) both;
+      }
+
+      @keyframes pressRelease {
+        from {
+          transform: translateY(var(--press-y)) scale(var(--press-scale));
+          filter: brightness(var(--press-dim));
+        }
+        to {
+          transform: translateY(0) scale(1);
+          filter: brightness(1);
+        }
+      }
+
+      @keyframes toastPop {
+        0% {
+          opacity: 0;
+          transform: translate(-50%, 8px);
+        }
+        18%,
+        78% {
+          opacity: 1;
+          transform: translate(-50%, 0);
+        }
+        100% {
+          opacity: 0;
+          transform: translate(-50%, -4px);
+        }
+      }
+
+      @media (max-width: 420px) {
+        body {
+          background: #fff;
+        }
+
+        .phone {
+          width: 100vw;
+          height: 100vh;
+          border-radius: 0;
+          box-shadow: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 1ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 1ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" aria-label="Fiko btn 点击动画规范">
+      <img class="bg" src="/assets/11c950b6a24cfc911d23e8e73b128367e4120ed13d68376ec781f94555778c75.png" alt="" />
+      <div class="brand-logo" aria-label="Miko">
+        <img src="/assets/bfb84a40526f2382c989cf4a8c13c9e9ed0db164c3eaf092d3f9960f260d4de7.png" alt="Miko" />
+      </div>
+      <button class="pressable cat" type="button" aria-label="点击小猫">
+        <img src="/assets/180960584fd1d1ca4bc1aa616db4cedf401575ed922746924b2db818ad3410c8.png" alt="" />
+      </button>
+
+      <button class="pressable date-pill" type="button" aria-label="选择今天">今</button>
+      <button class="pressable more" type="button" aria-label="更多">
+        <img src="/assets/a6c5ccf3c929737de7ed554f1313ff12e4fb9d55b97684caefc568da6eb184ee.png" alt="" />
+      </button>
+
+      <button class="pressable action-card card-1" type="button" aria-label="俯卧撑">
+        <img src="/assets/1dffbab20863a8e5cd2f84115e77103b823064c4ae24199aca225928ce4a4fc0.png" alt="" />
+      </button>
+      <button class="pressable action-card card-2" type="button" aria-label="深蹲">
+        <img src="/assets/90cd37bcfe49b9f776f1d648a8b22a7e10768a57db03983d72a4d3beab5eb246.png" alt="" />
+      </button>
+      <button class="pressable action-card card-3" type="button" aria-label="弓步蹲">
+        <img src="/assets/6c81775f59f718a3c64a5615b1a734006152dfc51a489d9ef73551d9016d9006.png" alt="" />
+      </button>
+      <button class="pressable action-card card-4" type="button" aria-label="俯卧撑">
+        <img src="/assets/8a21485c74fe4c382808dfd206b6d1f4eb1d469ba50b5de050cb274a54ebef29.png" alt="" />
+      </button>
+
+      <button class="pressable cta" type="button" aria-label="开始训练">
+        <img src="/assets/69fb29f3d2441c0824b1bc766303a859fbd01701527c2232de1c2df2a6779300.png" alt="" />
+      </button>
+      <span class="tap-note" id="tapNote" aria-hidden="true">已应用统一点击规范</span>
+    </main>
+
+    <script>const embeddedAssetMap={"assets/action-1.png":"/assets/1dffbab20863a8e5cd2f84115e77103b823064c4ae24199aca225928ce4a4fc0.png","assets/action-2.png":"/assets/90cd37bcfe49b9f776f1d648a8b22a7e10768a57db03983d72a4d3beab5eb246.png","assets/action-3.png":"/assets/6c81775f59f718a3c64a5615b1a734006152dfc51a489d9ef73551d9016d9006.png","assets/action-4.png":"/assets/8a21485c74fe4c382808dfd206b6d1f4eb1d469ba50b5de050cb274a54ebef29.png","assets/bg.png":"/assets/11c950b6a24cfc911d23e8e73b128367e4120ed13d68376ec781f94555778c75.png","assets/btn-frame.png":"/assets/69fb29f3d2441c0824b1bc766303a859fbd01701527c2232de1c2df2a6779300.png","assets/btn.png":"/assets/69fb29f3d2441c0824b1bc766303a859fbd01701527c2232de1c2df2a6779300.png","assets/cat.png":"/assets/180960584fd1d1ca4bc1aa616db4cedf401575ed922746924b2db818ad3410c8.png","assets/logo.png":"/assets/bfb84a40526f2382c989cf4a8c13c9e9ed0db164c3eaf092d3f9960f260d4de7.png","assets/more.png":"/assets/a6c5ccf3c929737de7ed554f1313ff12e4fb9d55b97684caefc568da6eb184ee.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const tapNote = document.querySelector("#tapNote");
+      const pressables = document.querySelectorAll(".pressable");
+      const releaseDuration = 320;
+
+      function showTapNote() {
+        tapNote.classList.remove("is-visible");
+        void tapNote.offsetWidth;
+        tapNote.classList.add("is-visible");
+      }
+
+      function releasePressable(target) {
+        if (!target.classList.contains("is-pressing")) return;
+        target.classList.remove("is-pressing", "is-releasing");
+        void target.offsetWidth;
+        target.classList.add("is-releasing");
+        window.setTimeout(() => {
+          target.classList.remove("is-releasing");
+        }, releaseDuration);
+      }
+
+      pressables.forEach((target) => {
+        target.addEventListener("pointerdown", (event) => {
+          if (target.disabled) return;
+          target.classList.remove("is-releasing");
+          target.classList.add("is-pressing");
+          target.setPointerCapture?.(event.pointerId);
+        });
+
+        target.addEventListener("pointerup", () => {
+          releasePressable(target);
+        });
+
+        target.addEventListener("pointercancel", () => {
+          target.classList.remove("is-pressing", "is-releasing");
+        });
+
+        target.addEventListener("pointerleave", () => {
+          target.classList.remove("is-pressing");
+        });
+
+        target.addEventListener("click", showTapNote);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fiko 训练准备倒计时</title>
+    <style>
+      :root {
+        --phone-width: 393px;
+        --phone-height: 852px;
+        --ink: #050505;
+        --muted: rgba(5, 5, 5, 0.36);
+        --soft: cubic-bezier(0.4, 0, 0.2, 1);
+        --font-rounded: "Yuanti SC", "YouYuan", "PingFang SC", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { min-height: 100%; }
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background: #111;
+        color: var(--ink);
+        font-family: var(--font-rounded);
+      }
+
+      button {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100vw, var(--phone-width));
+        height: min(100vh, var(--phone-height));
+        aspect-ratio: 393 / 852;
+        overflow: hidden;
+        border-radius: 32px;
+        background-color: #fff;
+        background-image: radial-gradient(circle, rgba(207, 207, 207, 0.52) 0 1px, transparent 1.15px);
+        background-size: 13px 13px;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+      }
+
+      .status {
+        position: absolute;
+        top: 18px;
+        left: 25px;
+        right: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 15px;
+        font-weight: 800;
+      }
+
+      .system-icons {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13px;
+      }
+
+      .battery {
+        width: 23px;
+        height: 11px;
+        padding: 2px;
+        border: 1.5px solid #050505;
+        border-radius: 3px;
+      }
+
+      .battery::before {
+        content: "";
+        display: block;
+        width: 15px;
+        height: 5px;
+        border-radius: 1px;
+        background: #050505;
+      }
+
+      .top-actions {
+        position: absolute;
+        top: 62px;
+        left: 18px;
+        right: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .icon-button,
+      .text-button {
+        display: grid;
+        place-items: center;
+        height: 42px;
+        border: 1px solid rgba(5, 5, 5, 0.07);
+        background: rgba(248, 248, 248, 0.94);
+        cursor: pointer;
+        transition: transform 110ms ease, filter 110ms ease;
+      }
+
+      .icon-button {
+        width: 42px;
+        border-radius: 15px;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 32px;
+        font-weight: 300;
+        line-height: 1;
+      }
+
+      .action-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .text-button {
+        min-width: 72px;
+        padding: 0 15px;
+        border-radius: 15px;
+        font-size: 15px;
+        font-weight: 800;
+      }
+
+      .more-button {
+        width: 42px;
+        min-width: 42px;
+        letter-spacing: 2px;
+      }
+
+      .icon-button:active,
+      .text-button:active {
+        transform: translateY(1px) scale(0.965);
+        filter: brightness(0.96);
+      }
+
+      .heading {
+        position: absolute;
+        top: 126px;
+        left: 0;
+        width: 100%;
+        text-align: center;
+      }
+
+      .heading h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 900;
+        letter-spacing: 0;
+      }
+
+      .heading p {
+        margin: 10px 0 0;
+        color: var(--muted);
+        font-size: 16px;
+        font-weight: 800;
+      }
+
+      .exercise-window {
+        position: absolute;
+        top: 196px;
+        left: 32px;
+        width: 329px;
+        height: 330px;
+        overflow: hidden;
+        pointer-events: none;
+      }
+
+      .exercise-shot {
+        position: absolute;
+        top: -155px;
+        left: 0;
+        width: 329px;
+        height: auto;
+        user-select: none;
+        -webkit-user-drag: none;
+        mix-blend-mode: multiply;
+      }
+
+      .countdown-button {
+        position: absolute;
+        z-index: 5;
+        left: 50%;
+        top: 650px;
+        width: 240px;
+        height: 120px;
+        transform: translateX(-50%);
+        border-radius: 28px;
+        cursor: pointer;
+      }
+
+      .countdown-stage {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+      }
+
+      .count-item {
+        position: absolute;
+        opacity: 0;
+        transform: translateY(10px) scale(0.82);
+        transform-origin: 50% 58%;
+        font-size: 76px;
+        line-height: 1;
+        font-weight: 900;
+        letter-spacing: 0;
+        will-change: opacity, transform;
+      }
+
+      .count-item.ready {
+        font-size: 44px;
+      }
+
+      .phone.is-playing .count-item {
+        animation: countBeat 850ms var(--soft) both;
+      }
+
+      .phone.is-playing .count-item:nth-child(1) { animation-delay: 280ms; }
+      .phone.is-playing .count-item:nth-child(2) { animation-delay: 1130ms; }
+      .phone.is-playing .count-item:nth-child(3) { animation-delay: 1980ms; }
+      .phone.is-playing .count-item:nth-child(4) {
+        animation-name: countBeatLast;
+        animation-delay: 2830ms;
+      }
+
+      @keyframes countBeat {
+        0% {
+          opacity: 0;
+          transform: translateY(10px) scale(0.82);
+        }
+        23% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+        65% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(-7px) scale(1.12);
+        }
+      }
+
+      @keyframes countBeatLast {
+        0% {
+          opacity: 0;
+          transform: translateY(10px) scale(0.82);
+        }
+        23%, 100% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .phone.is-playing .count-item { animation-duration: 1ms; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" id="phone" aria-label="训练准备倒计时动画">
+      <div class="status">
+        <span>9:41</span>
+        <span class="system-icons" aria-hidden="true"><span>▮▮▮</span><span>⌁</span><span class="battery"></span></span>
+      </div>
+
+      <div class="top-actions">
+        <button class="icon-button" type="button" aria-label="关闭">×</button>
+        <div class="action-group">
+          <button class="text-button" id="replayButton" type="button">重播</button>
+          <button class="text-button more-button" type="button" aria-label="更多">•••</button>
+        </div>
+      </div>
+
+      <section class="heading">
+        <h1>侧蹲腿</h1>
+        <p>第 6/10 个动作</p>
+      </section>
+
+      <div class="exercise-window" aria-hidden="true">
+        <img class="exercise-shot" src="/assets/72bcd501ed5f89df20af35ea6b1ff2a35bc16cbe5c07e1f77854bbadb642dbcd.png" alt="" />
+      </div>
+
+      <button class="countdown-button" id="countdownButton" type="button" aria-label="重播倒计时">
+        <span class="countdown-stage" aria-live="polite">
+          <span class="count-item ready">准备</span>
+          <span class="count-item">3</span>
+          <span class="count-item">2</span>
+          <span class="count-item">1</span>
+        </span>
+      </button>
+    </main>
+
+    <script>const embeddedAssetMap={"assets/exercise-screen.png":"/assets/72bcd501ed5f89df20af35ea6b1ff2a35bc16cbe5c07e1f77854bbadb642dbcd.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const phone = document.querySelector("#phone");
+      const replayButton = document.querySelector("#replayButton");
+      const countdownButton = document.querySelector("#countdownButton");
+
+      function replayCountdown() {
+        phone.classList.remove("is-playing");
+        void phone.offsetWidth;
+        phone.classList.add("is-playing");
+      }
+
+      replayButton.addEventListener("click", replayCountdown);
+      countdownButton.addEventListener("click", replayCountdown);
+      window.addEventListener("load", replayCountdown);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1376 @@
+<!doctype html>
+<html lang="zh-CN">
+  <!--
+    Fish entrance from Animista slide-in-elliptic-top-fwd.
+    Copyright 2017 Ana Travas. FreeBSD / BSD-2-Clause license.
+    Redistribution and use in source and binary forms, with or without modification,
+    are permitted provided that the following conditions are met:
+    1. Redistributions of source code must retain the above copyright notice,
+       this list of conditions and the following disclaimer.
+    2. Redistributions in binary form must reproduce the above copyright notice,
+       this list of conditions and the following disclaimer in the documentation
+       and/or other materials provided with the distribution.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+    DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+    SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+    AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  -->
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Miko 连胜反馈</title>
+    <style>
+      :root {
+        --phone-width: 393px;
+        --phone-height: 852px;
+        --ink: #050505;
+        --muted: rgba(5, 5, 5, 0.45);
+        --soft-ease: cubic-bezier(0.4, 0, 0.2, 1);
+        --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
+        --numeric-ease: linear(0, 0.1052, 0.3155, 0.532, 0.7112, 0.8414, 0.9265, 0.9765, 1.0023, 1.013, 1.0151, 1.0133, 1.01, 1.0068, 1.0041, 1.0022, 1.001, 1);
+        --font-rounded: "Yuanti SC", "STYuanti-SC", "YouYuan", "PingFang SC", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background: #fff;
+        color: var(--ink);
+        font-family: var(--font-rounded);
+      }
+
+      button {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      img {
+        display: block;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .phone {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 393px;
+        height: 852px;
+        overflow: hidden;
+        border: 1px solid #d7d7d7;
+        border-radius: 32px;
+        background: #fff;
+        isolation: isolate;
+        transform: translate(-50%, -50%) scale(var(--phone-scale, 1));
+        transform-origin: center;
+      }
+
+      .screen {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transform: translateX(24px);
+        pointer-events: none;
+        transition:
+          opacity 360ms var(--soft-ease),
+          transform 360ms var(--soft-ease);
+      }
+
+      .screen.is-current {
+        z-index: 2;
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: auto;
+      }
+
+      .screen.is-leaving {
+        opacity: 0;
+        transform: translateX(-24px);
+      }
+
+      .pre-shot,
+      .result-bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .status-bar {
+        position: absolute;
+        z-index: 3;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 44px;
+        object-fit: cover;
+      }
+
+      .feedback-header {
+        position: absolute;
+        z-index: 10;
+        inset: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      .phone:has(.result.is-current, .streak.is-current, .reward.is-current) .feedback-header {
+        visibility: visible;
+      }
+
+      .feedback-header .close-button { pointer-events: auto; }
+
+      .close-button {
+        position: absolute;
+        z-index: 8;
+        left: 16px;
+        top: 48px;
+        width: 40px;
+        height: 40px;
+        border-radius: 14px;
+        transition:
+          transform 90ms cubic-bezier(0.2, 0, 0.2, 1),
+          filter 90ms ease;
+      }
+
+      .close-button img {
+        width: 100%;
+        height: 100%;
+      }
+
+      .close-button:active {
+        transform: translateY(1px) scale(0.93);
+        filter: brightness(0.96);
+      }
+
+      .hero {
+        position: absolute;
+        z-index: 3;
+        left: 50%;
+        top: 147px;
+        width: 200px;
+        height: 248px;
+        transform: translate(-50%, var(--hero-center-offset));
+        text-align: center;
+      }
+
+      .artwork {
+        --hero-start-x: 0px;
+        --hero-start-y: 800px;
+        position: absolute;
+        left: 10px;
+        top: 0;
+        width: 180px;
+        height: 180px;
+        object-fit: contain;
+        opacity: 0;
+        transform-origin: 50% 50%;
+      }
+
+      .hero-copy {
+        position: absolute;
+        left: 0;
+        top: 188px;
+        width: 200px;
+        opacity: 0;
+      }
+
+      .hero-copy h1,
+      .hero-copy p {
+        margin: 0;
+        letter-spacing: 0;
+      }
+
+      .hero-copy h1 {
+        font-size: 20px;
+        line-height: 28px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .hero-copy p {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 24px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .result.is-ready .artwork {
+        animation: roll-in-blurred-random var(--illustration-duration) var(--ease-out-quint) both;
+      }
+
+      .result.is-ready .hero-copy {
+        animation: fade-copy var(--illustration-duration) var(--soft-ease) both;
+      }
+
+      .result.is-ready .hero {
+        animation: settle-hero var(--content-rise-duration) var(--soft-ease) var(--content-start) both;
+      }
+
+      .stats-card {
+        position: absolute;
+        z-index: 3;
+        left: 16px;
+        top: 418px;
+        width: 361px;
+        height: 136px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        align-items: center;
+        gap: 11px;
+        padding: 12px 16px;
+        border: 1px solid rgba(5, 5, 5, 0.06);
+        border-radius: 28px;
+        background: rgba(255, 255, 255, 0.94);
+        opacity: 0;
+        transform: translateY(var(--hero-center-offset));
+      }
+
+      .stat {
+        height: 112px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-align: center;
+      }
+
+      .stat-label {
+        color: rgba(0, 0, 0, 0.62);
+        font-size: 14px;
+        line-height: 20px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .stat-value-row {
+        min-height: 36px;
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+        white-space: nowrap;
+      }
+
+      .numeric {
+        position: relative;
+        min-width: 1ch;
+        display: inline-flex;
+        justify-content: center;
+        font-size: 28px;
+        line-height: 36px;
+        font-weight: 700;
+        white-space: nowrap;
+        opacity: 0;
+        transform: scale(0.82);
+        transform-origin: 50% 72%;
+        filter: blur(0);
+        will-change: transform, filter;
+      }
+
+      .numeric.is-settled::before,
+      .numeric.is-settled::after {
+        content: attr(data-value);
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        text-align: center;
+        transform-origin: 50% 50%;
+        --echo-opacity: 0.16;
+        animation:
+          numeric-settle-echo 600ms cubic-bezier(0.16, 1, 0.3, 1) both,
+          numeric-settle-fade 600ms linear both;
+      }
+
+      .numeric.is-settled::after {
+        --echo-opacity: 0.08;
+        animation-delay: 100ms;
+      }
+
+      @keyframes numeric-settle-echo {
+        from {
+          transform: scale(1);
+          filter: blur(0);
+        }
+        to {
+          transform: scale(1.8);
+          filter: blur(1.5px);
+        }
+      }
+
+      @keyframes numeric-settle-fade {
+        0%, 18% { opacity: var(--echo-opacity); }
+        100% { opacity: 0; }
+      }
+
+      .unit {
+        margin-left: 1px;
+        font-size: 14px;
+        line-height: 20px;
+        font-weight: 700;
+      }
+
+      .stat-icon {
+        width: 24px;
+        height: 24px;
+        object-fit: contain;
+      }
+
+      .actions {
+        position: absolute;
+        z-index: 4;
+        left: 86px;
+        top: 594px;
+        width: 220px;
+        height: 128px;
+        display: grid;
+        grid-template-rows: repeat(2, 60px);
+        gap: 8px;
+        opacity: 0;
+        transform: translateY(var(--hero-center-offset));
+      }
+
+      .action {
+        width: 220px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        border-radius: 26px;
+        font-size: 20px;
+        line-height: 28px;
+        font-weight: 700;
+        transition:
+          transform 90ms cubic-bezier(0.2, 0, 0.2, 1),
+          filter 90ms ease;
+      }
+
+      .action.primary {
+        background: #000;
+        color: #fff;
+      }
+
+      .action.secondary img {
+        width: 24px;
+        height: 24px;
+      }
+
+      .action:active {
+        transform: translateY(2px) scale(0.955);
+        filter: brightness(0.96);
+      }
+
+      .action:disabled { cursor: default; }
+      button:focus-visible { outline: 3px solid #9ec6ff; outline-offset: 4px; }
+
+      .screen.streak {
+        z-index: 0;
+        visibility: hidden;
+        transform: none;
+        transition: none;
+        font-family: "STBaoYuan-SC", var(--font-rounded);
+      }
+
+      .streak.is-current { z-index: 1; visibility: visible; }
+      .result.is-exiting { z-index: 3; pointer-events: none; }
+
+      .streak-video-stage {
+        position: absolute;
+        left: 49.5px;
+        top: 99.5px;
+        width: 294px;
+        height: 294px;
+        transform: translateY(179.5px);
+      }
+
+      .streak-video-stage video,
+      .streak-video-stage > img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        /* The replacement clip is horizontally centered; retain its vertical padding compensation. */
+        transform: translate(0px, -75px);
+      }
+
+      [hidden] { display: none !important; }
+
+      .video-retry {
+        position: absolute;
+        z-index: 1;
+        inset: 70px 25px;
+        border-radius: 26px;
+        background: #000;
+        color: #fff;
+        font-size: 16px;
+      }
+
+      .streak-content {
+        position: absolute;
+        left: 20px;
+        top: 371.5px;
+        width: 354px;
+        height: 340px;
+        opacity: 0;
+        transform: translateY(179.5px);
+        pointer-events: none;
+      }
+
+      .streak-card {
+        position: relative;
+        width: 354px;
+        height: 248px;
+        border: 1px solid #ededed;
+        border-radius: 32px;
+        background: #fff;
+        transform-origin: 50% 100%;
+      }
+
+      .streak-summary {
+        position: absolute;
+        left: 21px;
+        top: 19px;
+        width: 310px;
+        height: 102px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .streak-total { width: 101px; flex: 0 0 101px; }
+      .streak-total-label {
+        display: block;
+        color: #bababa;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 20px;
+      }
+      .streak-count {
+        display: flex;
+        width: max-content;
+        height: 78px;
+        margin-top: 4px;
+        font-size: 68px;
+        font-weight: 700;
+        line-height: 78px;
+        letter-spacing: 0;
+        color: #000;
+        font-variant-numeric: tabular-nums;
+      }
+      .streak-digit-slot { position: relative; width: 1ch; height: 78px; flex: 0 0 1ch; }
+      .streak-digit { position: absolute; inset: 0; text-align: center; transform-origin: center; }
+      .streak-message {
+        width: 168px;
+        margin: 0;
+        font-size: 14px;
+        line-height: 20px;
+        font-weight: 700;
+        text-align: right;
+        color: #bababa;
+      }
+
+      .streak-divider {
+        position: absolute;
+        left: 21px;
+        top: 129px;
+        width: 310px;
+        height: 1px;
+        background: #ededed;
+      }
+
+      .streak-week {
+        position: absolute;
+        left: 13px;
+        top: 137px;
+        width: 326px;
+        height: 100px;
+      }
+
+      .streak-day {
+        position: absolute;
+        left: calc(var(--day) * 46px);
+        top: 0;
+        width: 50px;
+        height: 100px;
+      }
+      .streak-day-label {
+        position: absolute;
+        top: 19px;
+        width: 50px;
+        height: 16px;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 16px;
+        text-align: center;
+        color: #000;
+      }
+      .streak-day.today .streak-day-label {
+        left: 5px;
+        top: 14px;
+        width: 40px;
+        height: 26px;
+        border-radius: 30px;
+        line-height: 26px;
+        color: #fff;
+        background: #000;
+      }
+      .day-stamp {
+        position: absolute;
+        left: 0;
+        top: 46px;
+        width: 50px;
+        height: 50px;
+        opacity: 1;
+        object-fit: contain;
+      }
+      .today-stamp {
+        position: absolute;
+        z-index: 2;
+        left: 0;
+        top: 46px;
+        width: 50px;
+        height: 50px;
+        opacity: 0;
+        transform: perspective(800px) translateZ(640px) rotate(-10deg);
+        transform-origin: 50% 50%;
+      }
+      .today-stamp .day-stamp { top: 0; opacity: 0; }
+      .stamp-dark { position: absolute; inset: 0; width: 50px; height: 50px; object-fit: contain; }
+      .streak-day-dot {
+        position: absolute;
+        left: 23px;
+        top: 69px;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: #bababa;
+      }
+      .streak-continue {
+        position: absolute;
+        left: 51px;
+        top: 280px;
+        width: 252px;
+        height: 60px;
+      }
+
+      .screen.reward {
+        z-index: 0;
+        visibility: hidden;
+        transform: none;
+        transition: none;
+        font-family: "STBaoYuan-SC", var(--font-rounded);
+      }
+
+      .reward.is-current { z-index: 1; visibility: visible; }
+      .streak.is-exiting { z-index: 3; pointer-events: none; }
+
+      .reward-fish-stage {
+        position: absolute;
+        left: 136.5px;
+        top: 274px;
+        width: 120px;
+        height: 120px;
+        transform: translateY(92px);
+      }
+
+      .reward-fish {
+        width: 120px;
+        height: 126px;
+        object-fit: contain;
+        opacity: 0;
+        transform: translateY(-600px) rotateX(-30deg) scale(0);
+        transform-origin: 50% 100%;
+      }
+
+      .reward-content {
+        position: absolute;
+        left: 70.5px;
+        top: 418px;
+        width: 252px;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 32px;
+        opacity: 0;
+        transform: translateY(92px);
+        pointer-events: none;
+      }
+
+      .reward-copy { display: flex; flex-direction: column; gap: 12px; text-align: center; }
+      .reward-copy h2 { margin: 0; font-size: 24px; line-height: 32px; font-weight: 700; }
+      .reward-copy p { margin: 0; font-size: 16px; line-height: 24px; font-weight: 700; color: rgba(0, 0, 0, 0.32); }
+      .reward-collect { width: 252px; height: 60px; flex: 0 0 60px; font-size: 20px; }
+
+      .result.is-ready .stats-card,
+      .result.is-ready .actions {
+        animation: rise-content var(--content-rise-duration) var(--soft-ease) var(--content-start) both;
+      }
+
+      .home-indicator {
+        position: absolute;
+        z-index: 5;
+        left: 132px;
+        bottom: 8px;
+        width: 129px;
+        height: 5px;
+        border-radius: 999px;
+        background: #050505;
+      }
+
+      @keyframes roll-in-blurred-random {
+        0% {
+          opacity: 0;
+          filter: blur(50px);
+          transform: translate(var(--hero-start-x), var(--hero-start-y)) rotate(720deg) scale(1.5);
+        }
+        100% {
+          opacity: 1;
+          filter: blur(0);
+          transform: translateY(0) rotate(0deg) scale(1);
+        }
+      }
+
+      @keyframes fade-copy {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      @keyframes settle-hero {
+        from { transform: translate(-50%, var(--hero-center-offset)); }
+        to { transform: translate(-50%, 0); }
+      }
+
+      @keyframes rise-content {
+        from {
+          opacity: 0;
+          transform: translateY(var(--hero-center-offset));
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .numeric.is-settled::before,
+        .numeric.is-settled::after {
+          display: none;
+        }
+
+        *,
+        *::before,
+        *::after {
+          animation-duration: 1ms !important;
+          animation-delay: 0ms !important;
+          transition-duration: 1ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" aria-label="连胜反馈动画预览">
+      <div class="feedback-header">
+        <img class="status-bar" src="/assets/0edff1c1522f149a308ff45f202b41e19d5d0d2e7d1402c9c1d56e80af98b5c5.png" alt="" />
+        <button class="close-button" id="closeButton" type="button" aria-label="重播动画">
+          <img src="/assets/9b8b08b15166230863223a479492c1a800bc952974689d881d6f541b295f47ab.png" alt="" />
+        </button>
+      </div>
+      <section class="screen pre is-current" id="preScreen" aria-label="训练前置页">
+        <img class="pre-shot" src="/assets/3b9f2794b2cb0026126055cf5750c0c7dd15de79f6fa7d94e2ee3f5fabb21dcb.png" alt="弓步蹲训练完成前置页" />
+      </section>
+
+      <section class="screen result" id="resultScreen" aria-label="训练反馈页">
+        <img class="result-bg" src="/assets/5d7f4babc53d1f276981e38b6e8aa28623f9a3f4744bf2daefbd727149649118.png" alt="" />
+
+        <section class="hero" aria-label="训练反馈">
+          <img class="artwork" src="/assets/576389041c3ecadd1aa98f876205c1040e32b0cd5e00f377337ed06f5a473898.png" alt="戴着耳机休息的猫" />
+          <div class="hero-copy">
+            <h1>运动时长≈ 听完两首歌</h1>
+            <p>歌单翻过两首，运动更进一步</p>
+          </div>
+        </section>
+
+        <section class="stats-card" aria-label="本次训练数据">
+          <div class="stat">
+            <span class="stat-label">运动时长</span>
+            <span class="stat-value-row"><span class="numeric" data-value="11:56"></span></span>
+            <img class="stat-icon" src="/assets/8df09e36939163d564518d099cb612e8190d3ce92e950aab194334020857e112.png" alt="" />
+          </div>
+          <div class="stat">
+            <span class="stat-label">消耗热量</span>
+            <span class="stat-value-row"><span class="numeric" data-value="100"></span><span class="unit">kcal</span></span>
+            <img class="stat-icon" src="/assets/a4fa1407190276bd68a5f4968dbdc6f9c773fc87a6cd6513850a26510a1238e3.png" alt="" />
+          </div>
+          <div class="stat">
+            <span class="stat-label">完成动作</span>
+            <span class="stat-value-row"><span class="numeric" data-value="10"></span><span class="unit">个</span></span>
+            <img class="stat-icon" src="/assets/161a6922959431498426ceb381feeb5c545ba411ecef0f06e859f8ffffcc194c.png" alt="" />
+          </div>
+        </section>
+
+        <div class="actions">
+          <button class="action primary" id="continueButton" type="button" disabled>继续</button>
+          <button class="action secondary" type="button">
+            <img src="/assets/6b8ed30241d844decb464e12573992c5145bf76d94a395e3c4f38e2b908aa7ef.png" alt="" />
+            <span>分享</span>
+          </button>
+        </div>
+        <div class="home-indicator" aria-hidden="true"></div>
+      </section>
+
+      <section class="screen streak" id="streakScreen" aria-label="连胜数字页" aria-hidden="true" inert>
+        <img class="result-bg" src="/assets/5d7f4babc53d1f276981e38b6e8aa28623f9a3f4744bf2daefbd727149649118.png" alt="" />
+        <div class="streak-video-stage" id="streakVideoStage">
+          <video id="streakVideo" src="/assets/1148d00f2e2f650b11364398535a2b936b47303e47ba1a19b30d3cae042b3c8b.webm" preload="auto" playsinline aria-label="连胜顶部动画：换位火"></video>
+          <img id="streakFinal" src="/assets/2f7f012729375df0a408312e4a163436cf63f240a5a352b64ac8aea5dcf365a0.png" alt="小猫托起火苗" hidden />
+          <button class="video-retry" id="videoRetry" type="button" hidden>重新播放</button>
+        </div>
+        <div class="streak-content" id="streakContent">
+          <section class="streak-card" id="streakCard" aria-label="连续打卡记录">
+            <div class="streak-summary">
+              <div class="streak-total">
+                <span class="streak-total-label">连续打卡</span>
+                <span class="streak-count" id="streakCount" aria-live="polite" aria-label="185">
+                  <span aria-hidden="true">18</span><span class="streak-digit-slot" id="streakCountDigit" aria-hidden="true"><span class="streak-digit">5</span></span>
+                </span>
+              </div>
+              <p class="streak-message">“新的连胜已经诞生！坚持每天打卡养成好习惯~”</p>
+            </div>
+            <div class="streak-divider" aria-hidden="true"></div>
+            <div class="streak-week" aria-label="本周打卡">
+              <div class="streak-day" style="--day: 0" aria-label="星期一，已打卡"><span class="streak-day-label">一</span><img class="day-stamp" src="/assets/b84bb5c7eb5fd8a912a66347a5b30d958af614b607018234315af75149d2015b.png" alt="" /></div>
+              <div class="streak-day" style="--day: 1" aria-label="星期二，已打卡"><span class="streak-day-label">二</span><img class="day-stamp" src="/assets/b84bb5c7eb5fd8a912a66347a5b30d958af614b607018234315af75149d2015b.png" alt="" /></div>
+              <div class="streak-day today" id="todayDay" style="--day: 2" aria-label="今天，待盖章">
+                <span class="streak-day-label">今</span>
+                <span class="streak-day-dot" id="todayDot" aria-hidden="true"></span>
+                <span class="today-stamp" id="todayStamp">
+                  <img class="day-stamp" id="stampLight" src="/assets/b84bb5c7eb5fd8a912a66347a5b30d958af614b607018234315af75149d2015b.png" alt="" />
+                  <img class="stamp-dark" id="stampDark" src="/assets/b84bb5c7eb5fd8a912a66347a5b30d958af614b607018234315af75149d2015b.png" alt="" />
+                </span>
+              </div>
+              <div class="streak-day" style="--day: 3"><span class="streak-day-label">四</span><span class="streak-day-dot"></span></div>
+              <div class="streak-day" style="--day: 4"><span class="streak-day-label">五</span><span class="streak-day-dot"></span></div>
+              <div class="streak-day" style="--day: 5"><span class="streak-day-label">六</span><span class="streak-day-dot"></span></div>
+              <div class="streak-day" style="--day: 6"><span class="streak-day-label">日</span><span class="streak-day-dot"></span></div>
+            </div>
+          </section>
+          <button class="action primary streak-continue" id="streakContinue" type="button" disabled>我坚持，不放弃</button>
+        </div>
+        <div class="home-indicator" aria-hidden="true"></div>
+      </section>
+
+      <section class="screen reward" id="rewardScreen" aria-label="补练小鱼干奖励页" aria-hidden="true" inert>
+        <img class="result-bg" src="/assets/5d7f4babc53d1f276981e38b6e8aa28623f9a3f4744bf2daefbd727149649118.png" alt="" />
+        <div class="reward-fish-stage" id="rewardFishStage">
+          <img class="reward-fish" id="rewardFish" src="/assets/3347f9ec968685dd3eaee2fdc3eb35c4d6638b9df26e6a42c31418f70938da70.png" alt="蓝色补练小鱼干" />
+        </div>
+        <div class="reward-content" id="rewardContent">
+          <div class="reward-copy">
+            <h2>补练小鱼干</h2>
+            <p>你可以用小鱼干把漏掉的运动补上</p>
+          </div>
+          <button class="action primary reward-collect" id="rewardCollect" type="button" disabled>收下了</button>
+        </div>
+        <div class="home-indicator" aria-hidden="true"></div>
+      </section>
+    </main>
+
+    <script>const embeddedAssetMap={"assets/alarm.png":"/assets/8df09e36939163d564518d099cb612e8190d3ce92e950aab194334020857e112.png","assets/bg.png":"/assets/5d7f4babc53d1f276981e38b6e8aa28623f9a3f4744bf2daefbd727149649118.png","assets/fire.png":"/assets/a4fa1407190276bd68a5f4968dbdc6f9c773fc87a6cd6513850a26510a1238e3.png","assets/reward-fish.png":"/assets/3347f9ec968685dd3eaee2fdc3eb35c4d6638b9df26e6a42c31418f70938da70.png","assets/rocket-launch.png":"/assets/161a6922959431498426ceb381feeb5c545ba411ecef0f06e859f8ffffcc194c.png","assets/streak-final.png":"/assets/2f7f012729375df0a408312e4a163436cf63f240a5a352b64ac8aea5dcf365a0.png","assets/streak-intro.webm":"/assets/1148d00f2e2f650b11364398535a2b936b47303e47ba1a19b30d3cae042b3c8b.webm","assets/streak-stamp-dark.png":"/assets/b84bb5c7eb5fd8a912a66347a5b30d958af614b607018234315af75149d2015b.png","assets/streak-stamp.png":"/assets/b275fa3614080d4cc2c5040af596209ef9e044d3ec0c56531c2e6300301c87d6.png","assets/关闭.png":"/assets/9b8b08b15166230863223a479492c1a800bc952974689d881d6f541b295f47ab.png","assets/分享.png":"/assets/6b8ed30241d844decb464e12573992c5145bf76d94a395e3c4f38e2b908aa7ef.png","assets/前置页面.png":"/assets/3b9f2794b2cb0026126055cf5750c0c7dd15de79f6fa7d94e2ee3f5fabb21dcb.png","assets/插画.png":"/assets/576389041c3ecadd1aa98f876205c1040e32b0cd5e00f377337ed06f5a473898.png","assets/状态栏.png":"/assets/0edff1c1522f149a308ff45f202b41e19d5d0d2e7d1402c9c1d56e80af98b5c5.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const PRE_PAGE_HOLD_MS = 2000;
+      const PAGE_TRANSITION_MS = 360;
+      const ILLUSTRATION_DURATION_MS = 1000;
+      const CONTENT_RISE_DURATION_MS = 520;
+      const HERO_CENTER_OFFSET_PT = 155; // Center the full group: 852 / 2 - (147 + 248 / 2).
+      const NUMERIC_DURATION_MS = 800;
+      const NUMERIC_STAGGER_MS = 150;
+      const NUMERIC_SCALE_EASING =
+        "linear(0, 0.08 5%, 0.28 10%, 0.68 16%, 1.3 22%, 2.05 29%, 2.667 36%, 2.55 43%, 2.25 51%, 1.9 60%, 1.58 70%, 1.31 80%, 1.13 89%, 1.04 95%, 1)";
+
+      const preScreen = document.querySelector("#preScreen");
+      const resultScreen = document.querySelector("#resultScreen");
+      const closeButton = document.querySelector("#closeButton");
+      const continueButton = document.querySelector("#continueButton");
+      const artwork = document.querySelector(".artwork");
+      const numericNodes = [...document.querySelectorAll(".numeric")];
+      let timers = [];
+      let animationFrames = [];
+      const numericDelayMs = ILLUSTRATION_DURATION_MS + CONTENT_RISE_DURATION_MS;
+
+      resultScreen.style.setProperty("--content-start", `${ILLUSTRATION_DURATION_MS}ms`);
+      resultScreen.style.setProperty("--illustration-duration", `${ILLUSTRATION_DURATION_MS}ms`);
+      resultScreen.style.setProperty("--content-rise-duration", `${CONTENT_RISE_DURATION_MS}ms`);
+      resultScreen.style.setProperty("--hero-center-offset", `${HERO_CENTER_OFFSET_PT}px`);
+
+      function setRandomArtworkOrigin() {
+        const angle = Math.random() * Math.PI * 2;
+        const radius = 800;
+        const startX = Math.cos(angle) * radius;
+        const startY = Math.sin(angle) * radius;
+        artwork.style.setProperty("--hero-start-x", `${startX.toFixed(2)}px`);
+        artwork.style.setProperty("--hero-start-y", `${startY.toFixed(2)}px`);
+        artwork.dataset.entryAngle = String(Math.round((angle * 180) / Math.PI));
+      }
+
+      function later(callback, delay) {
+        const timer = window.setTimeout(callback, delay);
+        timers.push(timer);
+        return timer;
+      }
+
+      function clearTimeline() {
+        timers.forEach(window.clearTimeout);
+        timers = [];
+        animationFrames.forEach(window.cancelAnimationFrame);
+        animationFrames = [];
+        document.getAnimations().forEach((animation) => animation.cancel());
+      }
+
+      function targetNumber(node) {
+        const value = node.dataset.value || "0";
+        if (!value.includes(":")) return Number(value);
+        const [minutes, seconds] = value.split(":").map(Number);
+        return minutes * 60 + seconds;
+      }
+
+      function formatNumber(node, value) {
+        if (!(node.dataset.value || "").includes(":")) return String(value);
+        const minutes = Math.floor(value / 60);
+        const seconds = value % 60;
+        return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+      }
+
+      function prepareNumbers() {
+        numericNodes.forEach((node) => {
+          node.classList.remove("is-settled");
+          const value = node.dataset.value || "";
+          node.setAttribute("aria-label", value);
+          node.textContent = formatNumber(node, 0);
+          node.style.opacity = "0";
+          node.style.transform = "scale(0.82)";
+          node.style.filter = "blur(0)";
+        });
+      }
+
+      function revealNumbers() {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          numericNodes.forEach((node) => {
+            node.textContent = node.dataset.value || "0";
+            node.style.opacity = "1";
+            node.style.transform = "scale(1)";
+            node.style.filter = "blur(0)";
+          });
+          return;
+        }
+
+        numericNodes.forEach((node, index) => {
+          later(() => revealNumber(node), index * NUMERIC_STAGGER_MS);
+        });
+      }
+
+      function revealNumber(node) {
+        const target = targetNumber(node);
+        const start = performance.now();
+        try {
+          node.animate(
+            [{ transform: "scale(0.82)" }, { transform: "scale(1)" }],
+            {
+              duration: NUMERIC_DURATION_MS,
+              easing: NUMERIC_SCALE_EASING,
+              fill: "forwards",
+            },
+          );
+        } catch (_error) {
+          node.animate(
+            [
+              { transform: "scale(0.82)", offset: 0 },
+              { transform: "scale(1.3)", offset: 0.36 },
+              { transform: "scale(1.225)", offset: 0.51 },
+              { transform: "scale(1.104)", offset: 0.7 },
+              { transform: "scale(1.023)", offset: 0.89 },
+              { transform: "scale(1)", offset: 1 },
+            ],
+            { duration: NUMERIC_DURATION_MS, easing: "linear", fill: "forwards" },
+          );
+        }
+
+        function update(now) {
+          const progress = Math.min(1, (now - start) / NUMERIC_DURATION_MS);
+          const easedProgress = 1 - Math.pow(1 - progress, 3);
+          const speedFactor = Math.pow(1 - progress, 2);
+          // Reserve the target value for the final frame so small totals do not finish early.
+          const value = progress < 1
+            ? Math.min(Math.max(0, target - 1), Math.round(target * easedProgress))
+            : target;
+          node.textContent = formatNumber(node, value);
+          node.style.opacity = String(progress);
+          node.style.filter = `blur(${(4.2 * speedFactor).toFixed(2)}px)`;
+          if (progress < 1) {
+            animationFrames.push(window.requestAnimationFrame(update));
+          } else {
+            node.textContent = node.dataset.value || "0";
+            node.style.opacity = "1";
+            node.style.transform = "scale(1)";
+            node.style.filter = "blur(0)";
+            if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+              node.classList.add("is-settled");
+            }
+          }
+        }
+
+        animationFrames.push(window.requestAnimationFrame(update));
+      }
+
+      function showResult() {
+        preScreen.classList.add("is-leaving");
+        resultScreen.classList.add("is-current");
+        later(() => {
+          preScreen.classList.remove("is-current", "is-leaving");
+          resultScreen.classList.add("is-ready");
+          later(revealNumbers, numericDelayMs);
+          later(() => { continueButton.disabled = false; }, numericDelayMs + NUMERIC_DURATION_MS + NUMERIC_STAGGER_MS * 2);
+        }, PAGE_TRANSITION_MS);
+      }
+
+      function replay() {
+        clearTimeline();
+        window.resetStreakFollowup?.();
+        continueButton.disabled = true;
+        resultScreen.classList.remove("is-current", "is-ready");
+        preScreen.classList.remove("is-leaving");
+        preScreen.classList.add("is-current");
+        setRandomArtworkOrigin();
+        prepareNumbers();
+        later(showResult, PRE_PAGE_HOLD_MS);
+      }
+
+      closeButton.addEventListener("click", replay);
+      setRandomArtworkOrigin();
+      prepareNumbers();
+      later(showResult, PRE_PAGE_HOLD_MS);
+    </script>
+    <script>
+      (() => {
+        const EXIT_MS = 440;
+        const VIDEO_MOVE_MS = 800;
+        const RISE_MS = VIDEO_MOVE_MS;
+        const STAMP_MS = 640;
+        const STAMP_CONTACT_PROGRESS = 0.6;
+        const STAMP_START_TRANSFORM = "perspective(800px) translateZ(640px) rotate(-10deg)";
+        const CARD_IMPACT_MS = 520;
+        const CARD_REST = "translateY(0px) scale(1, 1)";
+        const CARD_FRAMES = [
+          { transform: CARD_REST, offset: 0, easing: "cubic-bezier(0.37, 0, 0.63, 1)" },
+          { transform: "translateY(2px) scale(1.004, 0.985)", offset: 0.32, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
+          { transform: "translateY(-0.3px) scale(0.999, 1.003)", offset: 0.76, easing: "cubic-bezier(0.37, 0, 0.63, 1)" },
+          { transform: CARD_REST, offset: 1 },
+        ];
+        const COUNT_MS = 800;
+        const FISH_ENTRANCE_MS = 700;
+        const FISH_RISE_MS = 520;
+        const FISH_RISE_DELAY_MS = FISH_ENTRANCE_MS - 200;
+        const FISH_OFFSET_PT = 92;
+        const FISH_INITIAL_TRANSFORM = "translateY(-600px) rotateX(-30deg) scale(0)";
+        const FISH_INITIAL_ORIGIN = "50% 100%";
+        const FISH_REST_TRANSFORM = "translateY(0px) rotateX(0deg) scale(1)";
+        const FISH_REST_ORIGIN = "50% 1400px";
+        const NUMERIC_EASING = "linear(0,.1052,.3155,.532,.7112,.8414,.9265,.9765,1.0023,1.013,1.0151,1.0133,1.01,1.0068,1.0041,1.0022,1.001,1)";
+        const ease = "cubic-bezier(0.4, 0, 0.2, 1)";
+        const phone = document.querySelector(".phone");
+        const result = document.querySelector("#resultScreen");
+        const next = document.querySelector("#streakScreen");
+        const video = document.querySelector("#streakVideo");
+        const videoStage = document.querySelector("#streakVideoStage");
+        const finalFrame = document.querySelector("#streakFinal");
+        const retry = document.querySelector("#videoRetry");
+        const content = document.querySelector("#streakContent");
+        const card = document.querySelector("#streakCard");
+        const stamp = document.querySelector("#todayStamp");
+        const stampDark = document.querySelector("#stampDark");
+        const stampLight = document.querySelector("#stampLight");
+        const dot = document.querySelector("#todayDot");
+        const today = document.querySelector("#todayDay");
+        const count = document.querySelector("#streakCount");
+        const countDigit = document.querySelector("#streakCountDigit");
+        const continueButton = document.querySelector("#continueButton");
+        const finishButton = document.querySelector("#streakContinue");
+        const reward = document.querySelector("#rewardScreen");
+        const fishStage = document.querySelector("#rewardFishStage");
+        const fish = document.querySelector("#rewardFish");
+        const rewardContent = document.querySelector("#rewardContent");
+        const collectButton = document.querySelector("#rewardCollect");
+        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+        let phase = "result";
+        let generation = 0;
+        let activeAnimations = [];
+        let stampTimer = 0;
+        let videoFrameRequest = null;
+        let settlePromise = null;
+        let countPromise = null;
+        let ending = false;
+
+        function setPhase(value) {
+          phase = value;
+          phone.dataset.followupPhase = value;
+        }
+
+        function fitPhone() {
+          const scale = Math.min(1, window.innerWidth / 393, window.innerHeight / 852);
+          document.documentElement.style.setProperty("--phone-scale", scale.toFixed(4));
+        }
+
+        async function animate(element, frames, duration, easing = ease, delay = 0) {
+          const currentGeneration = generation;
+          const finalStyle = frames[frames.length - 1];
+          if (reducedMotion.matches) {
+            for (const [key, value] of Object.entries(finalStyle)) {
+              if (key !== "offset" && key !== "easing") element.style[key] = value;
+            }
+            return true;
+          }
+          let animation;
+          try {
+            animation = element.animate(frames, { duration, easing, delay, fill: "both" });
+          } catch (_error) {
+            animation = element.animate(frames, { duration, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)", delay, fill: "both" });
+          }
+          activeAnimations.push(animation);
+          try { await animation.finished; } catch (_error) { return false; }
+          if (generation !== currentGeneration) return false;
+          // Commit the settled frame before removing the animation's temporary styles.
+          for (const [key, value] of Object.entries(finalStyle)) {
+            if (key !== "offset" && key !== "easing") element.style[key] = value;
+          }
+          animation.cancel();
+          activeAnimations = activeAnimations.filter((item) => item !== animation);
+          return true;
+        }
+
+        function digit(value) {
+          const element = document.createElement("span");
+          element.className = "streak-digit";
+          element.textContent = value;
+          return element;
+        }
+
+        function setCount(value) {
+          countDigit.replaceChildren(digit(String(value).slice(-1)));
+          count.setAttribute("aria-label", String(value));
+        }
+
+        async function rollCount() {
+          const currentGeneration = generation;
+          const outgoing = countDigit.firstElementChild;
+          const incoming = digit("6");
+          countDigit.append(incoming);
+          // Match Feedback 2.0: only the changing character rolls, blurs and settles.
+          const completed = await Promise.all([
+            animate(outgoing, [
+              { opacity: 1, transform: "none", filter: "blur(0)" },
+              { opacity: 0, transform: "translateY(-0.35em) scale(0.6) rotateZ(2deg)", filter: "blur(0.1em)" },
+            ], COUNT_MS, NUMERIC_EASING),
+            animate(incoming, [
+              { opacity: 0, transform: "translateY(0.35em) scale(0.6) rotateZ(2deg)", filter: "blur(0.1em)" },
+              { opacity: 1, transform: "none", filter: "blur(0)" },
+            ], COUNT_MS, NUMERIC_EASING),
+          ]);
+          if (generation !== currentGeneration || !completed.every(Boolean)) return false;
+          setCount(186);
+          return true;
+        }
+
+        function markToday() {
+          dot.hidden = true;
+          today.setAttribute("aria-label", "今天，已打卡");
+          if (!countPromise) countPromise = rollCount();
+        }
+
+        function stopVideoWatch() {
+          if (videoFrameRequest !== null) video.cancelVideoFrameCallback?.(videoFrameRequest);
+          videoFrameRequest = null;
+        }
+
+        function settleVideo() {
+          if (settlePromise) return settlePromise;
+          setPhase("settling");
+          settlePromise = Promise.all([
+            animate(videoStage, [{ transform: "translateY(179.5px)" }, { transform: "translateY(0)" }], VIDEO_MOVE_MS),
+            animate(content, [{ opacity: 0, transform: "translateY(179.5px)" }, { opacity: 1, transform: "translateY(0)" }], RISE_MS),
+          ]).then((completed) => completed.every(Boolean));
+          return settlePromise;
+        }
+
+        function checkVideoProgress() {
+          if (phase === "video" && Number.isFinite(video.duration) && video.duration > 0 &&
+              video.duration - video.currentTime <= VIDEO_MOVE_MS / 1000) settleVideo();
+        }
+
+        function watchVideo() {
+          if (!video.requestVideoFrameCallback || videoFrameRequest !== null) return;
+          const currentGeneration = generation;
+          videoFrameRequest = video.requestVideoFrameCallback(() => {
+            videoFrameRequest = null;
+            if (generation !== currentGeneration) return;
+            checkVideoProgress();
+            if (phase === "video") watchVideo();
+          });
+        }
+
+        function revealFinalFrame() {
+          video.pause();
+          finalFrame.hidden = false;
+          video.hidden = true;
+          retry.hidden = true;
+        }
+
+        function completeImmediately() {
+          generation++;
+          stopVideoWatch();
+          window.clearTimeout(stampTimer);
+          activeAnimations.forEach((animation) => animation.cancel());
+          activeAnimations = [];
+          result.classList.remove("is-current", "is-exiting");
+          result.inert = true;
+          result.setAttribute("aria-hidden", "true");
+          next.classList.add("is-current");
+          next.inert = false;
+          next.setAttribute("aria-hidden", "false");
+          revealFinalFrame();
+          videoStage.style.transform = "translateY(0)";
+          Object.assign(content.style, { opacity: "1", transform: "translateY(0)", pointerEvents: "auto" });
+          card.style.transform = CARD_REST;
+          Object.assign(stamp.style, { opacity: "1", transform: "perspective(800px) translateZ(0)" });
+          stampDark.style.opacity = "0";
+          stampLight.style.opacity = "1";
+          setCount(186);
+          dot.hidden = true;
+          today.setAttribute("aria-label", "今天，已打卡");
+          finishButton.disabled = false;
+          setPhase("complete");
+        }
+
+        async function afterVideo() {
+          if ((phase !== "video" && phase !== "settling") || ending) return;
+          ending = true;
+          const currentGeneration = generation;
+          stopVideoWatch();
+          revealFinalFrame();
+          if (!await settleVideo() || generation !== currentGeneration) return;
+          setPhase("stamping");
+          dot.hidden = true;
+          stampTimer = window.setTimeout(markToday, STAMP_MS * STAMP_CONTACT_PROGRESS);
+          // React at contact on the card itself, independently of the content's entrance.
+          const cardImpact = animate(card, CARD_FRAMES, CARD_IMPACT_MS, "linear", STAMP_MS * STAMP_CONTACT_PROGRESS);
+          const stamped = await Promise.all([
+            // Keep the dark ink through contact, then squash and recover as it settles.
+            animate(stamp, [
+              { opacity: 0, transform: STAMP_START_TRANSFORM, offset: 0, easing: "cubic-bezier(0.25, 0.46, 0.45, 0.94)" },
+              { opacity: 1, transform: "perspective(800px) translateZ(600px) rotate(-8deg)", offset: 0.12, easing: "cubic-bezier(0.55, 0.055, 0.675, 0.19)" },
+              { opacity: 1, transform: "perspective(800px) translateZ(0) rotate(0deg) scale(1.12, 0.84)", offset: STAMP_CONTACT_PROGRESS, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
+              { opacity: 1, transform: "perspective(800px) translateZ(0) rotate(0deg) scale(0.96, 1.08)", offset: 0.78, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
+              { opacity: 1, transform: "perspective(800px) translateZ(0)", offset: 1 },
+            ], STAMP_MS, "linear"),
+            animate(stampDark, [{ opacity: 1, offset: 0 }, { opacity: 1, offset: STAMP_CONTACT_PROGRESS }, { opacity: 0, offset: 0.88 }, { opacity: 0, offset: 1 }], STAMP_MS, "linear"),
+            animate(stampLight, [{ opacity: 0, offset: 0 }, { opacity: 0, offset: STAMP_CONTACT_PROGRESS }, { opacity: 1, offset: 0.88 }, { opacity: 1, offset: 1 }], STAMP_MS, "linear"),
+          ]);
+          if (!stamped.every(Boolean) || generation !== currentGeneration) return;
+          window.clearTimeout(stampTimer);
+          markToday();
+          setPhase("counting");
+          const settled = await Promise.all([countPromise, cardImpact]);
+          if (!settled.every(Boolean) || generation !== currentGeneration) return;
+          content.style.pointerEvents = "auto";
+          finishButton.disabled = false;
+          setPhase("complete");
+        }
+
+        async function playVideo() {
+          if (phase !== "video" && phase !== "settling") return;
+          const currentGeneration = generation;
+          retry.hidden = true;
+          try {
+            await video.play();
+          } catch (_error) {
+            if (generation !== currentGeneration || (phase !== "video" && phase !== "settling")) return;
+            // Some preview frames restrict sound after an asynchronous page transition.
+            video.muted = true;
+            try { await video.play(); } catch (_retryError) {
+              if (generation === currentGeneration && (phase === "video" || phase === "settling")) retry.hidden = false;
+            }
+          }
+          if (generation === currentGeneration && phase === "video" && !video.paused) watchVideo();
+        }
+
+        async function showStreak() {
+          if (phase !== "result" || continueButton.disabled) return;
+          continueButton.disabled = true;
+          result.inert = true;
+          result.setAttribute("aria-hidden", "true");
+          next.classList.add("is-current");
+          next.inert = false;
+          next.setAttribute("aria-hidden", "false");
+          setPhase("exiting");
+          if (reducedMotion.matches) { completeImmediately(); return; }
+          result.classList.add("is-exiting");
+          if (!await animate(result, [{ opacity: 1, transform: "translateY(0)" }, { opacity: 0, transform: "translateY(64px)" }], EXIT_MS)) return;
+          result.classList.remove("is-current", "is-exiting");
+          setPhase("video");
+          await playVideo();
+        }
+
+        function completeRewardImmediately() {
+          generation++;
+          stopVideoWatch();
+          window.clearTimeout(stampTimer);
+          activeAnimations.forEach((animation) => animation.cancel());
+          activeAnimations = [];
+          next.classList.remove("is-current", "is-exiting");
+          next.inert = true;
+          next.setAttribute("aria-hidden", "true");
+          reward.classList.add("is-current");
+          reward.inert = false;
+          reward.setAttribute("aria-hidden", "false");
+          Object.assign(fish.style, { opacity: "1", transform: FISH_REST_TRANSFORM, transformOrigin: FISH_REST_ORIGIN });
+          fishStage.style.transform = "translateY(0)";
+          Object.assign(rewardContent.style, { opacity: "1", transform: "translateY(0)", pointerEvents: "auto" });
+          finishButton.disabled = true;
+          collectButton.disabled = false;
+          setPhase("reward-complete");
+        }
+
+        async function showReward() {
+          if (phase !== "complete" || finishButton.disabled) return;
+          const currentGeneration = generation;
+          finishButton.disabled = true;
+          next.inert = true;
+          next.setAttribute("aria-hidden", "true");
+          reward.classList.add("is-current");
+          reward.setAttribute("aria-hidden", "false");
+          setPhase("reward-exiting");
+          if (reducedMotion.matches) { completeRewardImmediately(); return; }
+          next.classList.add("is-exiting");
+          if (!await animate(next, [{ opacity: 1, transform: "translateY(0)" }, { opacity: 0, transform: "translateY(64px)" }], EXIT_MS)) return;
+          if (generation !== currentGeneration) return;
+          next.classList.remove("is-current", "is-exiting");
+          setPhase("reward-entering");
+          // The parent rise overlaps the entrance tail without replacing the fish transform.
+          const entering = animate(fish, [
+            { opacity: 0, transform: FISH_INITIAL_TRANSFORM, transformOrigin: FISH_INITIAL_ORIGIN, offset: 0 },
+            { opacity: 1, transform: FISH_REST_TRANSFORM, transformOrigin: FISH_REST_ORIGIN, offset: 1 },
+          ], FISH_ENTRANCE_MS, "cubic-bezier(0.25, 0.46, 0.45, 0.94)");
+          const rising = Promise.all([
+            animate(fishStage, [{ transform: `translateY(${FISH_OFFSET_PT}px)` }, { transform: "translateY(0)" }], FISH_RISE_MS, ease, FISH_RISE_DELAY_MS),
+            animate(rewardContent, [{ opacity: 0, transform: `translateY(${FISH_OFFSET_PT}px)` }, { opacity: 1, transform: "translateY(0)" }], FISH_RISE_MS, ease, FISH_RISE_DELAY_MS),
+          ]);
+          if (!await entering || generation !== currentGeneration) return;
+          setPhase("reward-settling");
+          const risen = await rising;
+          if (generation !== currentGeneration || !risen.every(Boolean)) return;
+          rewardContent.style.pointerEvents = "auto";
+          reward.inert = false;
+          collectButton.disabled = false;
+          setPhase("reward-complete");
+        }
+
+        function reset() {
+          generation++;
+          stopVideoWatch();
+          setPhase("result");
+          settlePromise = null;
+          countPromise = null;
+          ending = false;
+          window.clearTimeout(stampTimer);
+          activeAnimations.forEach((animation) => animation.cancel());
+          activeAnimations = [];
+          video.pause();
+          video.currentTime = 0;
+          video.muted = false;
+          video.hidden = false;
+          finalFrame.hidden = true;
+          retry.hidden = true;
+          videoStage.style.transform = "translateY(179.5px)";
+          next.classList.remove("is-current", "is-exiting");
+          next.style.opacity = "";
+          next.style.transform = "";
+          next.inert = true;
+          next.setAttribute("aria-hidden", "true");
+          result.classList.remove("is-exiting");
+          result.style.opacity = "";
+          result.style.transform = "";
+          result.inert = false;
+          result.removeAttribute("aria-hidden");
+          Object.assign(content.style, { opacity: "0", transform: "translateY(179.5px)", pointerEvents: "none" });
+          card.style.transform = CARD_REST;
+          Object.assign(stamp.style, { opacity: "0", transform: STAMP_START_TRANSFORM });
+          stampDark.style.opacity = "1";
+          stampLight.style.opacity = "0";
+          setCount(185);
+          dot.hidden = false;
+          today.setAttribute("aria-label", "今天，待盖章");
+          finishButton.disabled = true;
+          reward.classList.remove("is-current");
+          reward.inert = true;
+          reward.setAttribute("aria-hidden", "true");
+          Object.assign(fish.style, { opacity: "0", transform: FISH_INITIAL_TRANSFORM, transformOrigin: FISH_INITIAL_ORIGIN });
+          fishStage.style.transform = `translateY(${FISH_OFFSET_PT}px)`;
+          Object.assign(rewardContent.style, { opacity: "0", transform: `translateY(${FISH_OFFSET_PT}px)`, pointerEvents: "none" });
+          collectButton.disabled = true;
+        }
+
+        continueButton.addEventListener("click", showStreak);
+        video.addEventListener("ended", afterVideo);
+        video.addEventListener("timeupdate", checkVideoProgress);
+        video.addEventListener("error", () => {
+          if (phase === "video" || phase === "settling") { stopVideoWatch(); retry.hidden = false; }
+        });
+        retry.addEventListener("click", () => {
+          video.load();
+          video.muted = false;
+          playVideo();
+        });
+        finishButton.addEventListener("click", showReward);
+        collectButton.addEventListener("click", () => {
+          if (phase === "reward-complete" && !collectButton.disabled) replay();
+        });
+        reducedMotion.addEventListener("change", () => {
+          if (!reducedMotion.matches || phase === "result") return;
+          if (phase.startsWith("reward-")) completeRewardImmediately();
+          else completeImmediately();
+        });
+        window.resetStreakFollowup = reset;
+        window.addEventListener("resize", fitPhone);
+        fitPhone();
+        reset();
+      })();
+    </script>
+  </body>
+</html>

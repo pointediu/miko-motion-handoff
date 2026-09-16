@@ -1,0 +1,342 @@
+{
+  "id": "fiko-21day-reward-popup-v4",
+  "durationMs": 1500,
+  "figmaNode": "37:28417",
+  "canvas": {
+    "widthPt": 393,
+    "heightPt": 852
+  },
+  "layout": {
+    "card": {
+      "x": 36.5,
+      "y": 219,
+      "width": 321,
+      "height": 415,
+      "radius": 32
+    },
+    "heading": {
+      "x": 76.5,
+      "y": 251,
+      "width": 241,
+      "height": 24
+    },
+    "title": {
+      "x": 76.5,
+      "y": 283,
+      "width": 241,
+      "height": 36
+    },
+    "stage": {
+      "x": 97,
+      "y": 335,
+      "width": 200,
+      "height": 200,
+      "radius": 26.556
+    },
+    "prize": {
+      "x": 107.283203125,
+      "y": 345,
+      "width": 180,
+      "height": 180
+    },
+    "button": {
+      "x": 88,
+      "y": 554,
+      "width": 220,
+      "height": 60,
+      "radius": 26
+    },
+    "close": {
+      "x": 301.5,
+      "y": 235,
+      "width": 40,
+      "height": 40
+    }
+  },
+  "easing": {
+    "name": "easeOutCubic",
+    "formula": "1 - (1 - progress)^3",
+    "swiftUI": "Animation.timingCurve(0.333333, 1, 0.666667, 1, duration: seconds)"
+  },
+  "tracks": {
+    "maskOpacity": [
+      [
+        0,
+        0
+      ],
+      [
+        160,
+        0.18
+      ],
+      [
+        760,
+        0.18
+      ],
+      [
+        1060,
+        0.5
+      ]
+    ],
+    "cardOpacity": [
+      [
+        0,
+        0
+      ],
+      [
+        100,
+        1
+      ]
+    ],
+    "cardScale": [
+      [
+        0,
+        1
+      ]
+    ],
+    "cardY": [
+      [
+        0,
+        0
+      ]
+    ],
+    "shellWidth": [
+      [
+        0,
+        196
+      ],
+      [
+        760,
+        196
+      ],
+      [
+        1040,
+        321
+      ]
+    ],
+    "shellHeight": [
+      [
+        0,
+        68
+      ],
+      [
+        760,
+        68
+      ],
+      [
+        1140,
+        415
+      ]
+    ],
+    "shellRadius": [
+      [
+        0,
+        20
+      ],
+      [
+        760,
+        20
+      ],
+      [
+        1140,
+        32
+      ]
+    ],
+    "contentOpacity": [
+      [
+        0,
+        0
+      ],
+      [
+        960,
+        0
+      ],
+      [
+        1100,
+        1
+      ]
+    ],
+    "toastOpacity": [
+      [
+        0,
+        0
+      ],
+      [
+        100,
+        1
+      ]
+    ],
+    "headingOpacity": [
+      [
+        0,
+        0
+      ]
+    ],
+    "headingY": [
+      [
+        0,
+        0
+      ]
+    ],
+    "titleOpacity": [
+      [
+        0,
+        0
+      ],
+      [
+        1060,
+        0
+      ],
+      [
+        1220,
+        1
+      ]
+    ],
+    "titleY": [
+      [
+        0,
+        6
+      ],
+      [
+        1060,
+        6
+      ],
+      [
+        1220,
+        0
+      ]
+    ],
+    "buttonOpacity": [
+      [
+        0,
+        0
+      ],
+      [
+        1120,
+        0
+      ],
+      [
+        1320,
+        1
+      ]
+    ],
+    "buttonY": [
+      [
+        0,
+        12
+      ],
+      [
+        1120,
+        12
+      ],
+      [
+        1320,
+        -1.5
+      ],
+      [
+        1480,
+        0
+      ]
+    ],
+    "buttonScale": [
+      [
+        0,
+        0.97
+      ],
+      [
+        1120,
+        0.97
+      ],
+      [
+        1320,
+        1.02
+      ],
+      [
+        1480,
+        1
+      ]
+    ],
+    "closeOpacity": [
+      [
+        0,
+        0
+      ],
+      [
+        1020,
+        0
+      ],
+      [
+        1180,
+        1
+      ]
+    ],
+    "toastY": [
+      [
+        0,
+        0
+      ],
+      [
+        760,
+        0
+      ],
+      [
+        1140,
+        -163.5
+      ]
+    ]
+  },
+  "confetti": {
+    "count": 0
+  },
+  "interaction": {
+    "autoplay": true,
+    "replay": "交付页「重播 / 刷新」；关闭后点击原活动页礼物入口",
+    "closeDurationMs": 160,
+    "buttonPress": {
+      "downMs": 90,
+      "releaseMs": 200,
+      "scale": 0.97,
+      "translateYPt": 1.5
+    },
+    "viewPrize": "dispatch reward:view-prize; production navigation supplied by host",
+    "buttonReadyMs": 1220
+  },
+  "reducedMotion": {
+    "durationMs": 180,
+    "particles": false,
+    "scale": false,
+    "rotation": false,
+    "translation": false
+  },
+  "haptics": {
+    "enabledInWebPreview": false,
+    "recommendation": "optional, supplied by host"
+  },
+  "sourceOfValues": {
+    "layout": "Figma 37:28417",
+    "animation": "V4 revision: 196 x 68pt rounded rectangle, 240ms readable hold after entrance, persistent achievement label moves into final heading, then CTA lifts with a single gentle overshoot."
+  },
+  "version": 4,
+  "name": "弹跳展开",
+  "imagePolicy": "No independent image transform, fade, curl or particles. Original image is fixed in the content group and only revealed by its parent.",
+  "curveByTrack": {
+    "shellWidth": "easeInOutCubic",
+    "shellHeight": "easeInOutCubic",
+    "shellRadius": "easeInOutCubic",
+    "toastY": "easeInOutCubic"
+  },
+  "spring": {
+    "startMs": 0,
+    "endMs": 520,
+    "mass": 1,
+    "stiffness": 360,
+    "damping": 25,
+    "fromYPt": 530,
+    "toYPt": 0,
+    "formula": "Underdamped spring step response, normalized to the value at 520ms; clamp to endpoint after 520ms."
+  },
+  "reference": {
+    "url": "https://60fps.design/shots/duolingo-copy-link-toast-bounce-interaction",
+    "observed": "Toast slides up, overshoots and settles.",
+    "adaptation": "Reward pill bounces upward, then expands into the approved modal; expansion and timings are newly authored."
+  }
+}

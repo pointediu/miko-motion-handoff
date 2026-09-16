@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fiko Building Stack</title>
+    <style>
+      :root {
+        --phone-width: 393px;
+        --phone-height: 852px;
+        --ink: #050505;
+        --muted: rgba(5, 5, 5, 0.32);
+        --soft: cubic-bezier(0.4, 0, 0.2, 1);
+        --fall: cubic-bezier(0.22, 0.76, 0.2, 1);
+        --font-rounded: "Yuanti SC", "YouYuan", "PingFang SC", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        background: #111;
+        font-family: var(--font-rounded);
+      }
+
+      button {
+        font: inherit;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100vw, var(--phone-width));
+        height: min(100vh, var(--phone-height));
+        aspect-ratio: 393 / 852;
+        overflow: hidden;
+        border-radius: 32px;
+        background: #fff;
+        color: var(--ink);
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+      }
+
+      .screen {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+
+      .intro {
+        z-index: 2;
+        opacity: 1;
+        transform: translateX(0);
+        transition:
+          opacity 360ms var(--soft),
+          transform 360ms var(--soft);
+      }
+
+      .phone.is-detail .intro {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(-34px);
+      }
+
+      .intro-shot,
+      .detail-bg,
+      .status-bar,
+      .back-icon,
+      .other-action,
+      .floor-piece,
+      .impact-effect img {
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .intro-shot,
+      .detail-bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .stat-hotspot {
+        position: absolute;
+        left: 203px;
+        top: 255px;
+        width: 179px;
+        height: 180px;
+        border: 0;
+        border-radius: 32px;
+        background: transparent;
+        cursor: pointer;
+      }
+
+      .stat-hotspot::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: rgba(0, 0, 0, 0.04);
+        opacity: 0;
+        transform: scale(0.985);
+        transition:
+          opacity 160ms ease,
+          transform 320ms var(--soft);
+      }
+
+      .stat-hotspot.is-pressing::after {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .detail {
+        z-index: 1;
+        opacity: 0;
+        transform: translateX(30px);
+        transition:
+          opacity 360ms var(--soft),
+          transform 360ms var(--soft);
+      }
+
+      .phone.is-detail .detail {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      .status-bar {
+        position: absolute;
+        z-index: 3;
+        left: 0;
+        top: 0;
+        width: 393px;
+        height: 44px;
+        object-fit: cover;
+      }
+
+      .back-button {
+        position: absolute;
+        z-index: 6;
+        left: 15px;
+        top: 55px;
+        width: 48px;
+        height: 48px;
+        padding: 0;
+        border: 0;
+        border-radius: 17px;
+        background: rgba(246, 246, 246, 0.92);
+        cursor: pointer;
+        --press-y: 1px;
+        --press-scale: 0.93;
+      }
+
+      .back-icon {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+      }
+
+      .other-action {
+        position: absolute;
+        z-index: 5;
+        right: 17px;
+        top: 57px;
+        width: 73px;
+        height: 40px;
+        object-fit: contain;
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      .detail.is-loaded .other-action {
+        animation: uiRiseIn 360ms var(--soft) 180ms both;
+      }
+
+      .result-copy {
+        position: absolute;
+        z-index: 4;
+        left: 18px;
+        right: 18px;
+        top: 146px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        column-gap: 10px;
+        align-items: end;
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      .detail.is-loaded .result-copy {
+        animation: uiRiseIn 360ms var(--soft) 130ms both;
+      }
+
+      .label {
+        margin: 0 0 8px;
+        color: var(--muted);
+        font-size: 17px;
+        font-weight: 900;
+        line-height: 1;
+      }
+
+      .count-row,
+      .floor-copy {
+        display: flex;
+        align-items: baseline;
+        color: var(--ink);
+        font-weight: 900;
+        letter-spacing: 0;
+      }
+
+      .count-number {
+        font-size: 52px;
+        line-height: 0.95;
+      }
+
+      .count-unit {
+        margin-left: 2px;
+        font-size: 24px;
+        line-height: 1;
+      }
+
+      .floor-copy {
+        margin: 0 0 8px;
+        font-size: 21px;
+        line-height: 1;
+        white-space: nowrap;
+        text-align: right;
+      }
+
+      .building-stage {
+        position: absolute;
+        z-index: 2;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+
+      .impact-preload {
+        display: none;
+      }
+
+      .floor-piece {
+        position: absolute;
+        left: var(--left);
+        top: var(--top);
+        width: 114px;
+        height: auto;
+        opacity: 0;
+        transform: translateY(calc(-1 * (var(--top) + 190px))) rotate(var(--rot)) scale(0.998);
+        transform-origin: 50% 92%;
+        filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.035));
+      }
+
+      .detail.is-loaded .floor-piece {
+        animation: floorDrop 660ms var(--fall) var(--delay) both;
+      }
+
+      .floor-6 {
+        --left: 134px;
+        --top: 287px;
+        --rot: -1.4deg;
+        --delay: 1500ms;
+        z-index: 6;
+      }
+
+      .floor-5 {
+        --left: 145px;
+        --top: 377px;
+        --rot: 1.1deg;
+        --delay: 1290ms;
+        z-index: 5;
+      }
+
+      .floor-4 {
+        --left: 137px;
+        --top: 467px;
+        --rot: -0.8deg;
+        --delay: 1080ms;
+        z-index: 4;
+      }
+
+      .floor-3 {
+        --left: 148px;
+        --top: 557px;
+        --rot: 1.3deg;
+        --delay: 870ms;
+        z-index: 3;
+      }
+
+      .floor-2 {
+        --left: 139px;
+        --top: 647px;
+        --rot: -1deg;
+        --delay: 660ms;
+        z-index: 2;
+      }
+
+      .floor-1 {
+        --left: 144px;
+        --top: 737px;
+        --rot: 0.6deg;
+        --delay: 450ms;
+        z-index: 1;
+      }
+
+      .floor-tag {
+        position: absolute;
+        z-index: 7;
+        left: 246px;
+        top: 332px;
+        color: var(--ink);
+        font-size: 27px;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: 0;
+        opacity: 0;
+        transform: translateY(10px) rotate(-12deg) scale(0.92);
+      }
+
+      .detail.is-loaded .floor-tag {
+        animation: floorTagIn 420ms var(--soft) 2210ms both;
+      }
+
+      .impact-effect {
+        position: absolute;
+        z-index: 8;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+
+      .detail.is-loaded .impact-sprite {
+        animation: impactPop 420ms var(--soft) var(--impact-delay) both;
+      }
+
+      .impact-sprite {
+        position: absolute;
+        display: block;
+        left: var(--impact-left);
+        top: var(--impact-top);
+        width: var(--impact-width);
+        height: auto;
+        object-fit: contain;
+        opacity: 0;
+        transform: translateY(8px) rotate(var(--impact-rot)) scaleX(var(--impact-flip)) scale(0.78);
+      }
+
+      .impact-1 .impact-left {
+        --impact-left: 96px;
+        --impact-top: 804px;
+        --impact-width: 39px;
+        --impact-delay: 833ms;
+        --impact-rot: -12deg;
+        --impact-flip: 1;
+      }
+
+      .impact-1 .impact-right {
+        --impact-left: 253px;
+        --impact-top: 803px;
+        --impact-width: 39px;
+        --impact-delay: 853ms;
+        --impact-rot: 11deg;
+        --impact-flip: 1;
+      }
+
+      .impact-1 .impact-accent {
+        --impact-left: 237px;
+        --impact-top: 820px;
+        --impact-width: 30px;
+        --impact-delay: 868ms;
+        --impact-rot: -8deg;
+        --impact-flip: 1;
+      }
+
+      .impact-2 .impact-left {
+        --impact-left: 92px;
+        --impact-top: 714px;
+        --impact-width: 40px;
+        --impact-delay: 1043ms;
+        --impact-rot: -14deg;
+        --impact-flip: 1;
+      }
+
+      .impact-2 .impact-right {
+        --impact-left: 254px;
+        --impact-top: 712px;
+        --impact-width: 38px;
+        --impact-delay: 1063ms;
+        --impact-rot: 10deg;
+        --impact-flip: 1;
+      }
+
+      .impact-2 .impact-accent {
+        --impact-left: 111px;
+        --impact-top: 731px;
+        --impact-width: 30px;
+        --impact-delay: 1078ms;
+        --impact-rot: -8deg;
+        --impact-flip: 1;
+      }
+
+      .impact-3 .impact-left {
+        --impact-left: 94px;
+        --impact-top: 624px;
+        --impact-width: 38px;
+        --impact-delay: 1253ms;
+        --impact-rot: 9deg;
+        --impact-flip: 1;
+      }
+
+      .impact-3 .impact-right {
+        --impact-left: 255px;
+        --impact-top: 623px;
+        --impact-width: 40px;
+        --impact-delay: 1273ms;
+        --impact-rot: -11deg;
+        --impact-flip: 1;
+      }
+
+      .impact-3 .impact-accent {
+        --impact-left: 236px;
+        --impact-top: 641px;
+        --impact-width: 32px;
+        --impact-delay: 1288ms;
+        --impact-rot: 13deg;
+        --impact-flip: 1;
+      }
+
+      .impact-4 .impact-left {
+        --impact-left: 92px;
+        --impact-top: 534px;
+        --impact-width: 39px;
+        --impact-delay: 1463ms;
+        --impact-rot: -10deg;
+        --impact-flip: 1;
+      }
+
+      .impact-4 .impact-right {
+        --impact-left: 253px;
+        --impact-top: 532px;
+        --impact-width: 38px;
+        --impact-delay: 1483ms;
+        --impact-rot: 12deg;
+        --impact-flip: 1;
+      }
+
+      .impact-4 .impact-accent {
+        --impact-left: 109px;
+        --impact-top: 553px;
+        --impact-width: 29px;
+        --impact-delay: 1498ms;
+        --impact-rot: -16deg;
+        --impact-flip: 1;
+      }
+
+      .impact-5 .impact-left {
+        --impact-left: 95px;
+        --impact-top: 444px;
+        --impact-width: 40px;
+        --impact-delay: 1673ms;
+        --impact-rot: 12deg;
+        --impact-flip: 1;
+      }
+
+      .impact-5 .impact-right {
+        --impact-left: 253px;
+        --impact-top: 443px;
+        --impact-width: 40px;
+        --impact-delay: 1693ms;
+        --impact-rot: -10deg;
+        --impact-flip: 1;
+      }
+
+      .impact-5 .impact-accent {
+        --impact-left: 237px;
+        --impact-top: 462px;
+        --impact-width: 31px;
+        --impact-delay: 1708ms;
+        --impact-rot: 8deg;
+        --impact-flip: 1;
+      }
+
+      .impact-6 .impact-left {
+        --impact-left: 94px;
+        --impact-top: 354px;
+        --impact-width: 40px;
+        --impact-delay: 1883ms;
+        --impact-rot: 12deg;
+        --impact-flip: 1;
+      }
+
+      .impact-6 .impact-right {
+        --impact-left: 251px;
+        --impact-top: 353px;
+        --impact-width: 39px;
+        --impact-delay: 1903ms;
+        --impact-rot: -13deg;
+        --impact-flip: 1;
+      }
+
+      .impact-6 .impact-accent {
+        --impact-left: 111px;
+        --impact-top: 372px;
+        --impact-width: 33px;
+        --impact-delay: 1918ms;
+        --impact-rot: -9deg;
+        --impact-flip: 1;
+      }
+
+      .pressable {
+        transition:
+          transform 90ms ease,
+          filter 90ms ease;
+      }
+
+      .pressable.is-pressing {
+        transform: translateY(var(--press-y, 1px)) scale(var(--press-scale, 0.96));
+        filter: brightness(0.96);
+      }
+
+      .pressable.is-releasing {
+        animation: pressRelease 320ms var(--soft) both;
+      }
+
+      @keyframes floorDrop {
+        0% {
+          opacity: 0;
+          transform: translateY(calc(-1 * (var(--top) + 190px))) rotate(var(--rot)) scaleX(0.998) scaleY(0.998);
+          filter: drop-shadow(0 14px 12px rgba(0, 0, 0, 0.02));
+        }
+        58% {
+          opacity: 1;
+          transform: translateY(9px) rotate(var(--rot)) scaleX(1.018) scaleY(0.976);
+          filter: drop-shadow(0 5px 5px rgba(0, 0, 0, 0.045));
+        }
+        74% {
+          opacity: 1;
+          transform: translateY(-4px) rotate(var(--rot)) scaleX(0.992) scaleY(1.012);
+          filter: drop-shadow(0 7px 7px rgba(0, 0, 0, 0.038));
+        }
+        88% {
+          opacity: 1;
+          transform: translateY(2px) rotate(var(--rot)) scaleX(1.006) scaleY(0.996);
+          filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.04));
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0) rotate(var(--rot)) scaleX(1) scaleY(1);
+          filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.035));
+        }
+      }
+
+      @keyframes floorTagIn {
+        0% {
+          opacity: 0;
+          transform: translateY(10px) rotate(-12deg) scale(0.92);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0) rotate(-12deg) scale(1);
+        }
+      }
+
+      @keyframes impactPop {
+        0% {
+          opacity: 0;
+          transform: translateY(8px) rotate(var(--impact-rot)) scaleX(var(--impact-flip)) scale(0.78);
+        }
+        28% {
+          opacity: 0.95;
+          transform: translateY(0) rotate(var(--impact-rot)) scaleX(var(--impact-flip)) scale(1);
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(-8px) rotate(var(--impact-rot)) scaleX(var(--impact-flip)) scale(1.08);
+        }
+      }
+
+      @keyframes uiRiseIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pressRelease {
+        0% {
+          transform: translateY(var(--press-y, 1px)) scale(var(--press-scale, 0.96));
+          filter: brightness(0.96);
+        }
+        100% {
+          transform: translateY(0) scale(1);
+          filter: brightness(1);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .intro,
+        .detail,
+        .pressable,
+        .detail.is-loaded .other-action,
+        .detail.is-loaded .result-copy,
+        .detail.is-loaded .floor-piece,
+        .detail.is-loaded .impact-sprite,
+        .detail.is-loaded .floor-tag {
+          transition: none;
+          animation-duration: 1ms;
+          animation-delay: 0ms;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" id="phone" aria-label="楼堆砌动画">
+      <section class="screen intro" aria-label="个人页入口">
+        <img class="intro-shot" src="/assets/c1f089fedb80b54dbcbe36ac785743c738a814be8e1f12147a6af89d6db1f00c.png" alt="" />
+        <button class="stat-hotspot pressable" id="statHotspot" aria-label="查看高抬腿累计楼层"></button>
+      </section>
+
+      <section class="screen detail" id="detail" aria-label="楼层详情页">
+        <img class="detail-bg" src="/assets/22eb13830760cfffc94efe05a7e7938731a3617e119384bab6a2a54037e824c8.png" alt="" />
+        <img class="status-bar" src="/assets/0edff1c1522f149a308ff45f202b41e19d5d0d2e7d1402c9c1d56e80af98b5c5.png" alt="" />
+        <button class="back-button pressable" id="backButton" aria-label="返回">
+          <img class="back-icon" src="/assets/00d8e77e8c7441a4d73ae28c8dcb0742b4751e3c4a4f1518ec2b2f56ebf4396e.png" alt="" />
+        </button>
+        <img class="other-action" src="/assets/77b9eb1827a82f8e0c79efc33bb8bacd9c55247df3b6e7396a3ecc9678f43578.png" alt="其他动作" />
+
+        <section class="result-copy" aria-label="累计高抬腿">
+          <div>
+            <p class="label">累计「高抬腿」</p>
+            <div class="count-row">
+              <span class="count-number">100</span>
+              <span class="count-unit">次</span>
+            </div>
+          </div>
+          <p class="floor-copy">≈爬上16层楼</p>
+        </section>
+
+        <section class="building-stage" aria-label="楼层逐层落下">
+          <img class="impact-preload" src="/assets/351d3170940d9d464ebedbea418d27192130ffac22da9c64078f58cfdb3c01ab.png" alt="" />
+          <img class="impact-preload" src="/assets/612cd85c86ac6204d42cdd2a80bd101c67378ae4cde4d8a1dcdcb5a113b55009.png" alt="" />
+          <img class="impact-preload" src="/assets/36569155bdbfda7b85ab0143065a9d8d4b9fb9cc59c4fdc0b090ecfffad1afe9.png" alt="" />
+          <img class="impact-preload" src="/assets/2505d23444152a4dd676498fa0afe9a36377ac524906eb684a56b79f98d53ef7.png" alt="" />
+          <img class="impact-preload" src="/assets/901af893466038a979355f9cb536153a37a5de4f2e3797af620c9ed6234f1740.png" alt="" />
+          <img class="floor-piece floor-1" src="/assets/7e0f8b2e605b93c999b588a13e252ea7475837ab4a3fbf0783b8a3278f8a1f5f.png" alt="" />
+          <img class="floor-piece floor-2" src="/assets/1b858af949b72e2b36da0fcb0b6a43f91037f960a8f19597af26f406962b27a8.png" alt="" />
+          <img class="floor-piece floor-3" src="/assets/a32739da32b534346ffc9e236482430af40bfa5d9425de3babe082c74b64de28.png" alt="" />
+          <img class="floor-piece floor-4" src="/assets/c2066119fcce074e51e3b6167a8a9903385abf0eed3f787f0635a1b0927d0610.png" alt="" />
+          <img class="floor-piece floor-5" src="/assets/4578e2eb3cc72eb7fa70d294542c5a6a74b51b1e5e0da08eff1ed38821b62c23.png" alt="" />
+          <img class="floor-piece floor-6" src="/assets/871a25db4034e654df6302f4fee06fe3d6490f57ee58e85617a64c6c6d652027.png" alt="" />
+          <div class="impact-effect impact-1" aria-hidden="true">
+            <img class="impact-sprite impact-left" data-slot="left" alt="" />
+            <img class="impact-sprite impact-right" data-slot="right" alt="" />
+            <img class="impact-sprite impact-accent" data-slot="accent" alt="" />
+          </div>
+          <div class="impact-effect impact-2" aria-hidden="true">
+            <img class="impact-sprite impact-left" data-slot="left" alt="" />
+            <img class="impact-sprite impact-right" data-slot="right" alt="" />
+            <img class="impact-sprite impact-accent" data-slot="accent" alt="" />
+          </div>
+          <div class="impact-effect impact-3" aria-hidden="true">
+            <img class="impact-sprite impact-left" data-slot="left" alt="" />
+            <img class="impact-sprite impact-right" data-slot="right" alt="" />
+            <img class="impact-sprite impact-accent" data-slot="accent" alt="" />
+          </div>
+          <div class="impact-effect impact-4" aria-hidden="true">
+            <img class="impact-sprite impact-left" data-slot="left" alt="" />
+            <img class="impact-sprite impact-right" data-slot="right" alt="" />
+            <img class="impact-sprite impact-accent" data-slot="accent" alt="" />
+          </div>
+          <div class="impact-effect impact-5" aria-hidden="true">
+            <img class="impact-sprite impact-left" data-slot="left" alt="" />
+            <img class="impact-sprite impact-right" data-slot="right" alt="" />
+            <img class="impact-sprite impact-accent" data-slot="accent" alt="" />
+          </div>
+          <div class="impact-effect impact-6" aria-hidden="true">
+            <img class="impact-sprite impact-left" data-slot="left" alt="" />
+            <img class="impact-sprite impact-right" data-slot="right" alt="" />
+            <img class="impact-sprite impact-accent" data-slot="accent" alt="" />
+          </div>
+          <div class="floor-tag">16F</div>
+        </section>
+      </section>
+    </main>
+
+    <script>const embeddedAssetMap={"assets/1.png":"/assets/351c563a82c59c55b31ed98bf648ba21e15ace3608d0de1ab817cea85211d216.png","assets/2.png":"/assets/16291aba6a5fe3ec566614fc0c40472c8295bde51bd40578733a531241871ec7.png","assets/3.png":"/assets/c06f8648ab55efb591a4d5e9e05bba63e2e0fa1d3cd2c98549fca7e1b87b0830.png","assets/4.png":"/assets/7496bcc44a01e88c9b6fda0c7fae50ec92834f3b8895fe6bd9290075ff76a7b4.png","assets/5.png":"/assets/09bc02cdecdee15098fdc79bde73362c4eda6df00d49416ce2ab7b42ce0810fe.png","assets/6.png":"/assets/6653ccbbb9d61e5c3a97880bee1e1fce2943a5d613a5ed621e7e8e0438e1804e.png","assets/bg.png":"/assets/22eb13830760cfffc94efe05a7e7938731a3617e119384bab6a2a54037e824c8.png","assets/其他.png":"/assets/77b9eb1827a82f8e0c79efc33bb8bacd9c55247df3b6e7396a3ecc9678f43578.png","assets/冲击效果1.png":"/assets/351d3170940d9d464ebedbea418d27192130ffac22da9c64078f58cfdb3c01ab.png","assets/冲击效果2.png":"/assets/612cd85c86ac6204d42cdd2a80bd101c67378ae4cde4d8a1dcdcb5a113b55009.png","assets/冲击效果3.png":"/assets/36569155bdbfda7b85ab0143065a9d8d4b9fb9cc59c4fdc0b090ecfffad1afe9.png","assets/冲击效果4.png":"/assets/2505d23444152a4dd676498fa0afe9a36377ac524906eb684a56b79f98d53ef7.png","assets/冲击效果5.png":"/assets/901af893466038a979355f9cb536153a37a5de4f2e3797af620c9ed6234f1740.png","assets/前置页面.png":"/assets/c1f089fedb80b54dbcbe36ac785743c738a814be8e1f12147a6af89d6db1f00c.png","assets/楼1.png":"/assets/7e0f8b2e605b93c999b588a13e252ea7475837ab4a3fbf0783b8a3278f8a1f5f.png","assets/楼2.png":"/assets/1b858af949b72e2b36da0fcb0b6a43f91037f960a8f19597af26f406962b27a8.png","assets/楼3.png":"/assets/a32739da32b534346ffc9e236482430af40bfa5d9425de3babe082c74b64de28.png","assets/楼4.png":"/assets/c2066119fcce074e51e3b6167a8a9903385abf0eed3f787f0635a1b0927d0610.png","assets/楼5.png":"/assets/4578e2eb3cc72eb7fa70d294542c5a6a74b51b1e5e0da08eff1ed38821b62c23.png","assets/楼6.png":"/assets/871a25db4034e654df6302f4fee06fe3d6490f57ee58e85617a64c6c6d652027.png","assets/状态栏.png":"/assets/0edff1c1522f149a308ff45f202b41e19d5d0d2e7d1402c9c1d56e80af98b5c5.png","assets/返回.png":"/assets/00d8e77e8c7441a4d73ae28c8dcb0742b4751e3c4a4f1518ec2b2f56ebf4396e.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const phone = document.querySelector("#phone");
+      const detail = document.querySelector("#detail");
+      const statHotspot = document.querySelector("#statHotspot");
+      const backButton = document.querySelector("#backButton");
+      const impactPool = [...document.querySelectorAll(".impact-preload")].map((image) => image.src);
+      const impactSprites = [...document.querySelectorAll(".impact-sprite")];
+
+      function pick(list) {
+        return list[Math.floor(Math.random() * list.length)];
+      }
+
+      function randomBetween(min, max) {
+        return min + Math.random() * (max - min);
+      }
+
+      function readBaseValue(image, name) {
+        const dataKey = `base${name[0].toUpperCase()}${name.slice(1)}`;
+
+        if (!image.dataset[dataKey]) {
+          image.dataset[dataKey] = getComputedStyle(image).getPropertyValue(`--impact-${name}`).trim();
+        }
+
+        return parseFloat(image.dataset[dataKey]);
+      }
+
+      function assignImpactImages() {
+        const leftFacing = [
+          { src: impactPool[4], flip: 1 },
+          { src: impactPool[0], flip: -1 },
+        ];
+        const rightFacing = [
+          { src: impactPool[0], flip: 1 },
+          { src: impactPool[4], flip: -1 },
+        ];
+        const neutral = [
+          { src: impactPool[1], flip: 1 },
+          { src: impactPool[2], flip: 1 },
+          { src: impactPool[3], flip: Math.random() > 0.5 ? 1 : -1 },
+        ];
+
+        impactSprites.forEach((image) => {
+          const slot = image.dataset.slot;
+          const group = image.closest(".impact-effect");
+          const baseLeft = readBaseValue(image, "left");
+          const baseTop = readBaseValue(image, "top");
+          const baseWidth = readBaseValue(image, "width");
+          const baseDelay = readBaseValue(image, "delay");
+          const baseRot = readBaseValue(image, "rot");
+          const shouldShow = slot !== "accent" || Math.random() > 0.34;
+          const asset = slot === "left" ? pick(leftFacing) : slot === "right" ? pick(rightFacing) : pick(neutral);
+
+          image.hidden = !shouldShow;
+          image.src = asset.src;
+          image.style.setProperty("--impact-flip", asset.flip);
+          image.style.setProperty("--impact-left", `${baseLeft + randomBetween(-6, 6)}px`);
+          image.style.setProperty("--impact-top", `${baseTop + randomBetween(-3, 4)}px`);
+          image.style.setProperty("--impact-width", `${baseWidth * randomBetween(0.82, 1.22)}px`);
+          image.style.setProperty("--impact-delay", `${baseDelay + randomBetween(-12, 36)}ms`);
+          image.style.setProperty("--impact-rot", `${baseRot + randomBetween(-14, 14)}deg`);
+
+          if (group) {
+            group.dataset.variant = Math.random() > 0.5 ? "loose" : "tight";
+          }
+        });
+      }
+
+      function addPressFeedback(button, onClick) {
+        button.addEventListener("pointerdown", () => {
+          button.classList.remove("is-releasing");
+          button.classList.add("is-pressing");
+        });
+
+        const release = () => {
+          if (!button.classList.contains("is-pressing")) return;
+          button.classList.remove("is-pressing");
+          button.classList.add("is-releasing");
+          window.setTimeout(() => button.classList.remove("is-releasing"), 340);
+        };
+
+        button.addEventListener("pointerup", release);
+        button.addEventListener("pointercancel", release);
+        button.addEventListener("pointerleave", release);
+        button.addEventListener("click", onClick);
+      }
+
+      function playDetail() {
+        assignImpactImages();
+        detail.classList.remove("is-loaded");
+        phone.classList.add("is-detail");
+        window.setTimeout(() => {
+          detail.classList.add("is-loaded");
+        }, 330);
+      }
+
+      function resetToIntro() {
+        detail.classList.remove("is-loaded");
+        phone.classList.remove("is-detail");
+      }
+
+      addPressFeedback(statHotspot, playDetail);
+      addPressFeedback(backButton, resetToIntro);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,954 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fiko 练完之后交互动画</title>
+    <style>
+      :root {
+        --phone-width: 393px;
+        --phone-height: 852px;
+        --ink: #050505;
+        --muted: rgba(5, 5, 5, 0.38);
+        --line: rgba(5, 5, 5, 0.08);
+        --cream: #fffdf0;
+        --soft-ease: cubic-bezier(0.4, 0, 0.2, 1);
+        --press-down-ease: cubic-bezier(0.2, 0, 0.2, 1);
+        --font-rounded: "Yuanti SC", "YouYuan", "PingFang SC", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        background: #111;
+        color: var(--ink);
+        font-family: var(--font-rounded);
+      }
+
+      button {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100vw, var(--phone-width));
+        height: min(100vh, var(--phone-height));
+        aspect-ratio: 393 / 852;
+        overflow: hidden;
+        border-radius: 32px;
+        background: #fff;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+        isolation: isolate;
+      }
+
+      .screen {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        opacity: 0;
+        transform: translateX(34px);
+        pointer-events: none;
+        transition:
+          opacity 360ms var(--soft-ease),
+          transform 360ms var(--soft-ease);
+      }
+
+      .screen.is-current {
+        z-index: 3;
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: auto;
+      }
+
+      .screen.is-leaving-forward {
+        z-index: 2;
+        opacity: 0;
+        transform: translateX(-34px);
+      }
+
+      .screen.is-entering-back {
+        transform: translateX(-28px);
+      }
+
+      .screen.is-leaving-back {
+        z-index: 2;
+        opacity: 0;
+        transform: translateX(34px);
+      }
+
+      .shot,
+      .bg,
+      .asset-img,
+      .icon-img {
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .shot,
+      .bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .sticker {
+        background: #f8f8f8;
+      }
+
+      .sticker-wave-grid {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+
+      .finish-hotspot {
+        position: absolute;
+        left: 150px;
+        bottom: 86px;
+        z-index: 4;
+        width: 94px;
+        height: 94px;
+        border-radius: 999px;
+        --press-scale: 0.93;
+        --press-y: 1px;
+      }
+
+      .finish-hotspot::after,
+      .soft-hotspot::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: rgba(0, 0, 0, 0.05);
+        opacity: 0;
+        transition:
+          opacity 90ms ease,
+          transform 320ms var(--soft-ease);
+        transform: scale(0.92);
+      }
+
+      .finish-hotspot.is-pressing::after,
+      .soft-hotspot.is-pressing::after {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .close-button {
+        position: absolute;
+        left: 16px;
+        top: 58px;
+        z-index: 8;
+        width: 44px;
+        height: 44px;
+        border-radius: 16px;
+        --press-scale: 0.93;
+        --press-y: 1px;
+      }
+
+      .close-button img {
+        display: block;
+        width: 40px;
+        height: 40px;
+        pointer-events: none;
+      }
+
+      .content {
+        position: absolute;
+        inset: 0;
+        padding: 74px 28px 0;
+      }
+
+      .complete-hero {
+        position: absolute;
+        left: 50%;
+        top: 70px;
+        width: 158px;
+        margin-left: -79px;
+        mix-blend-mode: multiply;
+        transform-origin: 50% 58%;
+      }
+
+      .headline {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 265px;
+        margin: 0;
+        text-align: center;
+        font-size: 25px;
+        line-height: 1.16;
+        font-weight: 900;
+        letter-spacing: 0;
+      }
+
+      .subline {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 305px;
+        margin: 0;
+        text-align: center;
+        font-size: 17px;
+        line-height: 1.2;
+        font-weight: 900;
+      }
+
+      .stats-card {
+        position: absolute;
+        left: 27px;
+        right: 27px;
+        top: 366px;
+        min-height: 91px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        align-items: center;
+        gap: 0;
+        padding: 16px 14px;
+        border-radius: 19px;
+        background: var(--cream);
+        border: 1px solid rgba(5, 5, 5, 0.06);
+      }
+
+      .stat {
+        display: grid;
+        justify-items: center;
+        gap: 6px;
+        font-weight: 900;
+        text-align: center;
+      }
+
+      .stat span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .stat strong {
+        font-size: 24px;
+        line-height: 0.95;
+      }
+
+      .stat small {
+        font-size: 12px;
+      }
+
+      .stat img {
+        width: 18px;
+        height: 18px;
+      }
+
+      .primary-cta {
+        position: absolute;
+        left: 86px;
+        top: 497px;
+        z-index: 5;
+        width: 222px;
+        height: 60px;
+        border-radius: 999px;
+        background: #000;
+        color: #fff;
+        font-size: 21px;
+        line-height: 1;
+        font-weight: 900;
+        --press-scale: 0.955;
+        --press-y: 2px;
+      }
+
+      .secondary-action {
+        position: absolute;
+        left: 50%;
+        top: 577px;
+        width: 80px;
+        margin-left: -40px;
+        text-align: center;
+        color: #050505;
+        font-size: 15px;
+        font-weight: 900;
+        --press-scale: 0.96;
+        --press-y: 1px;
+      }
+
+      .sticker-title {
+        position: absolute;
+        top: 170px;
+        left: 0;
+        right: 0;
+        margin: 0;
+        text-align: center;
+        font-size: 24px;
+        line-height: 1.18;
+        font-weight: 900;
+      }
+
+      .sticker-title span {
+        display: block;
+        margin-top: 7px;
+        font-size: 18px;
+      }
+
+      .sticker-stage {
+        position: absolute;
+        left: 50%;
+        top: 250px;
+        width: 172px;
+        height: 197px;
+        margin-left: -86px;
+        perspective: 700px;
+        transform-style: preserve-3d;
+        transform-origin: 50% 58%;
+        filter: drop-shadow(0 18px 20px rgba(0, 0, 0, 0.14));
+        opacity: 0;
+      }
+
+      .sticker-piece {
+        position: absolute;
+        inset: 0;
+        transform-style: preserve-3d;
+        pointer-events: none;
+      }
+
+      .sticker-piece img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .sticker-piece {
+        transform-origin: 50% 58%;
+      }
+
+      .feedback-title {
+        position: absolute;
+        top: 178px;
+        left: 0;
+        right: 0;
+        margin: 0;
+        text-align: center;
+        font-size: 23px;
+        line-height: 1.18;
+        font-weight: 900;
+      }
+
+      .mood-row {
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        top: 264px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+
+      .mood {
+        height: 96px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 19px;
+        padding-top: 14px;
+        border: 1.5px solid transparent;
+        border-radius: 16px;
+        background: #fff;
+        font-size: 20px;
+        line-height: 1;
+        font-weight: 900;
+        transform-origin: 50% 50%;
+        --press-scale: 0.965;
+        --press-y: 1.5px;
+      }
+
+      .mood img {
+        width: 44px;
+        height: 44px;
+        object-fit: contain;
+        pointer-events: none;
+      }
+
+      .mood.is-selected {
+        border-color: #050505;
+      }
+
+      .feedback-copy {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 393px;
+        margin: 0;
+        text-align: center;
+        font-size: 13px;
+        line-height: 1.3;
+        font-weight: 900;
+      }
+
+      .feedback-submit {
+        top: 477px;
+        color: rgba(255, 255, 255, 0.72);
+        background: rgba(0, 0, 0, 0.26);
+        pointer-events: none;
+      }
+
+      .feedback-submit.is-enabled {
+        color: #fff;
+        background: #000;
+        pointer-events: auto;
+      }
+
+      .home-toast {
+        position: absolute;
+        left: 241px;
+        top: 284px;
+        z-index: 5;
+        min-width: 72px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        background: #050505;
+        color: #fff;
+        font-size: 12px;
+        line-height: 1;
+        font-weight: 900;
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      .home.is-current .home-toast {
+        animation: toastIn 420ms var(--soft-ease) 180ms both;
+      }
+
+      .anim-in {
+        opacity: 0;
+        transform: translateY(34px);
+      }
+
+      .screen.is-current .anim-in {
+        animation: riseIn 520ms var(--soft-ease) both;
+      }
+
+      .screen.is-current .complete-hero.anim-in {
+        animation: heroCelebrateIn 720ms cubic-bezier(0.25, 0.78, 0.28, 1) both;
+      }
+
+      .screen.is-current .delay-1 {
+        animation-delay: 90ms;
+      }
+
+      .screen.is-current .delay-2 {
+        animation-delay: 160ms;
+      }
+
+      .screen.is-current .delay-3 {
+        animation-delay: 230ms;
+      }
+
+      .screen.is-current .sticker-stage {
+        animation: stickerStickIn 980ms cubic-bezier(0.32, 0.72, 0.26, 1) 120ms both;
+      }
+
+      .screen.is-current .sticker-piece {
+        animation: stickerSurfaceSettle 980ms cubic-bezier(0.32, 0.72, 0.26, 1) 120ms both;
+      }
+
+      .pressable {
+        transition:
+          transform 90ms var(--press-down-ease),
+          filter 90ms ease;
+        transform-origin: 50% 50%;
+      }
+
+      .pressable.is-pressing {
+        transform: translateY(var(--press-y, 1.5px)) scale(var(--press-scale, 0.965));
+        filter: brightness(0.96);
+      }
+
+      .pressable.is-releasing {
+        animation: pressRelease 320ms var(--soft-ease) both;
+      }
+
+      @keyframes riseIn {
+        from {
+          opacity: 0;
+          transform: translateY(34px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes heroCelebrateIn {
+        0% {
+          opacity: 0;
+          transform: translateY(30px) scale(0.78) rotate(-5deg);
+        }
+        46% {
+          opacity: 1;
+          transform: translateY(-4px) scale(1.06) rotate(2deg);
+        }
+        72% {
+          opacity: 1;
+          transform: translateY(1px) scale(0.99) rotate(-0.8deg);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0) scale(1) rotate(0deg);
+        }
+      }
+
+      @keyframes stickerStickIn {
+        0% {
+          opacity: 0;
+          transform: translate3d(-28px, 24px, 0) rotate(-10deg) scale(0.86);
+          filter: drop-shadow(0 26px 28px rgba(0, 0, 0, 0.18));
+        }
+        22% {
+          opacity: 1;
+          transform: translate3d(-11px, 9px, 0) rotate(-6deg) scale(0.94);
+        }
+        54% {
+          opacity: 1;
+          transform: translate3d(3px, -2px, 0) rotate(1.4deg) scale(1.018);
+          filter: drop-shadow(0 18px 18px rgba(0, 0, 0, 0.12));
+        }
+        78% {
+          opacity: 1;
+          transform: translate3d(0, 1px, 0) rotate(-0.5deg) scale(0.996);
+        }
+        100% {
+          opacity: 1;
+          transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+          filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.08));
+        }
+      }
+
+      @keyframes stickerSurfaceSettle {
+        0% {
+          transform: rotateX(8deg) rotateZ(-1deg) scale(0.985);
+        }
+        42% {
+          transform: rotateX(3deg) rotateZ(0.4deg) scale(1.008);
+        }
+        100% {
+          transform: rotateX(0deg) rotateZ(0deg) scale(1);
+        }
+      }
+
+      @keyframes toastIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pressRelease {
+        from {
+          transform: translateY(var(--press-y, 1.5px)) scale(var(--press-scale, 0.965));
+          filter: brightness(0.96);
+        }
+        to {
+          transform: translateY(0) scale(1);
+          filter: brightness(1);
+        }
+      }
+
+      @media (max-width: 420px) {
+        body {
+          background: #fff;
+        }
+
+        .phone {
+          width: 100vw;
+          height: 100vh;
+          border-radius: 0;
+          box-shadow: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 1ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 1ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" id="phone" aria-label="练完之后交互动画">
+      <section class="screen follow is-current" data-screen="follow" aria-label="跟练中">
+        <img class="shot" src="/assets/72bcd501ed5f89df20af35ea6b1ff2a35bc16cbe5c07e1f77854bbadb642dbcd.png" alt="" />
+        <button class="pressable finish-hotspot" type="button" data-next="complete" aria-label="完成当前动作"></button>
+      </section>
+
+      <section class="screen complete" data-screen="complete" aria-label="完成祝贺">
+        <img class="bg" src="/assets/80676366eaf6215308a3d48c5f82e58a2eb85789244849466b630d17e413c851.png" alt="" />
+        <button class="pressable close-button soft-hotspot" type="button" data-reset aria-label="关闭">
+          <img src="/assets/9b8b08b15166230863223a479492c1a800bc952974689d881d6f541b295f47ab.png" alt="" />
+        </button>
+        <img class="asset-img complete-hero anim-in delay-1" src="/assets/fd4c92a8604e2fc2fe9e4f4d607a2b05111cfd69466ffcec3db39b6d21566843.png" alt="" />
+        <h1 class="headline anim-in delay-2">祝贺你</h1>
+        <p class="subline anim-in delay-2">今天又运动了一点点！</p>
+        <section class="stats-card anim-in delay-3" aria-label="训练数据">
+          <div class="stat">
+            <span>运动时长</span>
+            <strong>13:56</strong>
+            <img src="/assets/8df09e36939163d564518d099cb612e8190d3ce92e950aab194334020857e112.png" alt="" />
+          </div>
+          <div class="stat">
+            <span>完成动作</span>
+            <strong>12<small>个</small></strong>
+            <img src="/assets/161a6922959431498426ceb381feeb5c545ba411ecef0f06e859f8ffffcc194c.png" alt="" />
+          </div>
+          <div class="stat">
+            <span>消耗热量</span>
+            <strong>180<small>kcal</small></strong>
+            <img src="/assets/ef16038e326800c1dc18371056721672108906c9c164f24fa5522f44c5fec570.png" alt="" />
+          </div>
+        </section>
+        <button class="pressable primary-cta anim-in delay-3" type="button" data-next="sticker">继续</button>
+        <button class="pressable secondary-action anim-in delay-3" type="button">分享</button>
+      </section>
+
+      <section class="screen sticker" data-screen="sticker" aria-label="解锁贴纸">
+        <svg class="sticker-wave-grid" id="stickerDotGrid" width="393" height="852" viewBox="0 0 393 852" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="393" height="852" fill="#F8F8F8" />
+          <g id="stickerDots"></g>
+        </svg>
+        <button class="pressable close-button soft-hotspot" type="button" data-reset aria-label="关闭">
+          <img src="/assets/9b8b08b15166230863223a479492c1a800bc952974689d881d6f541b295f47ab.png" alt="" />
+        </button>
+        <h1 class="sticker-title anim-in delay-1">解锁新贴纸<span>“暗夜行者”</span></h1>
+        <div class="sticker-stage" aria-hidden="true">
+          <div class="sticker-piece">
+            <img class="asset-img" src="/assets/35d7c9a23e80fa80624bd1a58c52d48d8697609f7adbd6bdd6d3c4f3bfebce71.png" alt="" />
+          </div>
+        </div>
+        <button class="pressable primary-cta anim-in delay-3" type="button" data-next="feedback">收下贴纸</button>
+        <button class="pressable secondary-action anim-in delay-3" type="button">分享</button>
+      </section>
+
+      <section class="screen feedback" data-screen="feedback" aria-label="训练反馈">
+        <img class="bg" src="/assets/80676366eaf6215308a3d48c5f82e58a2eb85789244849466b630d17e413c851.png" alt="" />
+        <button class="pressable close-button soft-hotspot" type="button" data-reset aria-label="关闭">
+          <img src="/assets/9b8b08b15166230863223a479492c1a800bc952974689d881d6f541b295f47ab.png" alt="" />
+        </button>
+        <h1 class="feedback-title anim-in delay-1">练完感觉怎么样</h1>
+        <div class="mood-row anim-in delay-2" role="group" aria-label="选择训练感受">
+          <button class="pressable mood" type="button" data-mood="easy">
+            <span>很轻松</span>
+            <img src="/assets/eccdf81e69e333418499ca720f3851403863d248c4d4a6afe0b8ed4c1868c041.png" alt="" />
+          </button>
+          <button class="pressable mood" type="button" data-mood="good">
+            <span>刚刚好</span>
+            <img src="/assets/eb98a143b68f72024b67ca0fb4ac7afd304adb522301cefc5202804b58db644d.png" alt="" />
+          </button>
+          <button class="pressable mood" type="button" data-mood="tired">
+            <span>有点累</span>
+            <img src="/assets/c4c01fb653e176219eaf7fb8fd9e2f038989a9c19a03cffd9621c2811f70a3a4.png" alt="" />
+          </button>
+        </div>
+        <p class="feedback-copy anim-in delay-3">收到！下次会提高一点难度哦～</p>
+        <button class="pressable primary-cta feedback-submit anim-in delay-3" id="submitFeedback" type="button" data-next="home">
+          提交反馈
+        </button>
+      </section>
+
+      <section class="screen home" data-screen="home" aria-label="回到首页">
+        <img class="shot" src="/assets/cfcbe2f8a0a38dd115b040a543ed6ea71fa13cb1f0fde25c71ba2e59cca0df00.png" alt="" />
+        <div class="home-toast">训练完成</div>
+      </section>
+    </main>
+
+    <script>const embeddedAssetMap={"assets/alarm.png":"/assets/8df09e36939163d564518d099cb612e8190d3ce92e950aab194334020857e112.png","assets/bg.png":"/assets/80676366eaf6215308a3d48c5f82e58a2eb85789244849466b630d17e413c851.png","assets/fire.png":"/assets/ef16038e326800c1dc18371056721672108906c9c164f24fa5522f44c5fec570.png","assets/rocket-launch.png":"/assets/161a6922959431498426ceb381feeb5c545ba411ecef0f06e859f8ffffcc194c.png","assets/关闭.png":"/assets/9b8b08b15166230863223a479492c1a800bc952974689d881d6f541b295f47ab.png","assets/刚刚好.png":"/assets/eb98a143b68f72024b67ca0fb4ac7afd304adb522301cefc5202804b58db644d.png","assets/完成页插图.png":"/assets/fd4c92a8604e2fc2fe9e4f4d607a2b05111cfd69466ffcec3db39b6d21566843.png","assets/很轻松.png":"/assets/eccdf81e69e333418499ca720f3851403863d248c4d4a6afe0b8ed4c1868c041.png","assets/有点累.png":"/assets/c4c01fb653e176219eaf7fb8fd9e2f038989a9c19a03cffd9621c2811f70a3a4.png","assets/贴纸.png":"/assets/35d7c9a23e80fa80624bd1a58c52d48d8697609f7adbd6bdd6d3c4f3bfebce71.png","assets/跟练.png":"/assets/72bcd501ed5f89df20af35ea6b1ff2a35bc16cbe5c07e1f77854bbadb642dbcd.png","assets/首页.png":"/assets/cfcbe2f8a0a38dd115b040a543ed6ea71fa13cb1f0fde25c71ba2e59cca0df00.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const SVG_NS = "http://www.w3.org/2000/svg";
+      const screens = [...document.querySelectorAll(".screen")];
+      const pressables = document.querySelectorAll(".pressable");
+      const submitFeedback = document.querySelector("#submitFeedback");
+      const moods = document.querySelectorAll(".mood");
+      const stickerDotsGroup = document.querySelector("#stickerDots");
+      const screenOrder = ["follow", "complete", "sticker", "feedback", "home"];
+      let currentScreen = "follow";
+      let isTransitioning = false;
+      const releaseMs = 320;
+      const stickerWaveCenter = { x: 196.5, y: 348.5 };
+      const stickerDotItems = [];
+      const stickerBaseRadius = 1;
+      const stickerBaseColor = { r: 207, g: 207, b: 207 };
+      const stickerPeakColor = { r: 188, g: 218, b: 255 };
+      const stickerWaveConfig = {
+        waveStartDelayMs: 840,
+        repeatDelayMs: 700,
+        propagationMsPerPx: 2.9,
+        pulseMs: 2320,
+        radiusAdd: 2.6,
+        opacityBase: 1,
+        opacityPeak: 0.1,
+        visibleThreshold: 0.68,
+        globalEaseMix: 0.35,
+        rippleLayers: [
+          { delayMs: 0, strength: 1 },
+        ],
+      };
+      let stickerWaveRaf = 0;
+      let stickerWaveStart = 0;
+      let stickerWaveTimer = 0;
+
+      function lerp(a, b, t) {
+        return a + (b - a) * t;
+      }
+
+      function easeInOutSine(t) {
+        return -(Math.cos(Math.PI * t) - 1) / 2;
+      }
+
+      function smoothstep(edge0, edge1, value) {
+        const t = Math.max(0, Math.min(1, (value - edge0) / (edge1 - edge0)));
+        return t * t * (3 - 2 * t);
+      }
+
+      function stickerColorAt(amount) {
+        const r = Math.round(lerp(stickerBaseColor.r, stickerPeakColor.r, amount));
+        const g = Math.round(lerp(stickerBaseColor.g, stickerPeakColor.g, amount));
+        const b = Math.round(lerp(stickerBaseColor.b, stickerPeakColor.b, amount));
+        return `rgb(${r}, ${g}, ${b})`;
+      }
+
+      function createStickerDotGrid() {
+        if (!stickerDotsGroup || stickerDotItems.length) return;
+
+        const fragment = document.createDocumentFragment();
+
+        for (let y = 3.5; y <= 848.5; y += 13) {
+          for (let x = 1.5; x <= 391.5; x += 13) {
+            const circle = document.createElementNS(SVG_NS, "circle");
+            circle.setAttribute("cx", x);
+            circle.setAttribute("cy", y);
+            circle.setAttribute("r", stickerBaseRadius);
+            circle.setAttribute("fill", "#CFCFCF");
+            circle.setAttribute("fill-opacity", stickerWaveConfig.opacityBase);
+            fragment.append(circle);
+
+            stickerDotItems.push({
+              node: circle,
+              distance: Math.hypot(x - stickerWaveCenter.x, y - stickerWaveCenter.y),
+            });
+          }
+        }
+
+        stickerDotsGroup.append(fragment);
+      }
+
+      function resetStickerDots() {
+        stickerDotItems.forEach(({ node }) => {
+          node.setAttribute("r", stickerBaseRadius);
+          node.setAttribute("fill", "#CFCFCF");
+          node.setAttribute("fill-opacity", stickerWaveConfig.opacityBase);
+        });
+      }
+
+      function stopStickerWave(reset = false) {
+        window.clearTimeout(stickerWaveTimer);
+        cancelAnimationFrame(stickerWaveRaf);
+        stickerWaveStart = 0;
+
+        if (reset) {
+          resetStickerDots();
+        }
+      }
+
+      function animateStickerWave(now) {
+        if (!stickerWaveStart) stickerWaveStart = now;
+        const elapsed = now - stickerWaveStart;
+        const maxDistance = 560;
+        const maxLayerDelay = Math.max(...stickerWaveConfig.rippleLayers.map((layer) => layer.delayMs));
+        const totalDuration = maxDistance * stickerWaveConfig.propagationMsPerPx + maxLayerDelay + stickerWaveConfig.pulseMs;
+        const linearProgress = Math.min(1, elapsed / totalDuration);
+        const easedElapsed = lerp(
+          elapsed,
+          totalDuration * easeInOutSine(linearProgress),
+          stickerWaveConfig.globalEaseMix
+        );
+        const { propagationMsPerPx, pulseMs, radiusAdd, opacityBase, opacityPeak, rippleLayers } = stickerWaveConfig;
+
+        stickerDotItems.forEach(({ node, distance }) => {
+          const waveAmount = rippleLayers.reduce((amount, layer) => {
+            const local = easedElapsed - distance * propagationMsPerPx - layer.delayMs;
+
+            if (local < 0 || local > pulseMs) {
+              return amount;
+            }
+
+            const progress = local / pulseMs;
+            const bell = Math.sin(Math.PI * easeInOutSine(progress)) * layer.strength;
+            return Math.max(amount, bell);
+          }, 0);
+
+          const visibleAmount = smoothstep(stickerWaveConfig.visibleThreshold, 1, waveAmount);
+
+          if (visibleAmount <= 0) {
+            node.setAttribute("r", stickerBaseRadius);
+            node.setAttribute("fill", "#CFCFCF");
+            node.setAttribute("fill-opacity", opacityBase);
+            return;
+          }
+
+          const radius = stickerBaseRadius + radiusAdd * visibleAmount;
+          const opacity = lerp(opacityBase, opacityPeak, visibleAmount);
+
+          node.setAttribute("r", radius.toFixed(3));
+          node.setAttribute("fill", stickerColorAt(visibleAmount));
+          node.setAttribute("fill-opacity", opacity.toFixed(3));
+        });
+
+        if (elapsed < totalDuration) {
+          stickerWaveRaf = requestAnimationFrame(animateStickerWave);
+        } else {
+          resetStickerDots();
+          stickerWaveStart = 0;
+          if (currentScreen === "sticker") {
+            stickerWaveTimer = window.setTimeout(startStickerWave, stickerWaveConfig.repeatDelayMs);
+          }
+        }
+      }
+
+      function startStickerWave() {
+        if (currentScreen !== "sticker") return;
+
+        stickerWaveStart = 0;
+        stickerWaveRaf = requestAnimationFrame(animateStickerWave);
+      }
+
+      function playStickerWave() {
+        stopStickerWave(true);
+
+        stickerWaveTimer = window.setTimeout(() => {
+          startStickerWave();
+        }, stickerWaveConfig.waveStartDelayMs);
+      }
+
+      function getScreen(name) {
+        return screens.find((screen) => screen.dataset.screen === name);
+      }
+
+      function releasePressable(target) {
+        if (!target.classList.contains("is-pressing")) return;
+        target.classList.remove("is-pressing", "is-releasing");
+        void target.offsetWidth;
+        target.classList.add("is-releasing");
+        window.setTimeout(() => target.classList.remove("is-releasing"), releaseMs);
+      }
+
+      function bindPressables() {
+        pressables.forEach((target) => {
+          target.addEventListener("pointerdown", (event) => {
+            if (target.disabled) return;
+            target.classList.remove("is-releasing");
+            target.classList.add("is-pressing");
+            target.setPointerCapture?.(event.pointerId);
+          });
+          target.addEventListener("pointerup", () => releasePressable(target));
+          target.addEventListener("pointercancel", () => target.classList.remove("is-pressing", "is-releasing"));
+          target.addEventListener("pointerleave", () => target.classList.remove("is-pressing"));
+        });
+      }
+
+      function resetAnimationState(screen) {
+        screen.querySelectorAll(".anim-in, .sticker-stage, .sticker-piece").forEach((node) => {
+          node.style.animation = "none";
+          void node.offsetWidth;
+          node.style.animation = "";
+        });
+      }
+
+      function goTo(nextName) {
+        if (isTransitioning || nextName === currentScreen) return;
+        isTransitioning = true;
+        stopStickerWave(true);
+        const current = getScreen(currentScreen);
+        const next = getScreen(nextName);
+        const direction =
+          screenOrder.indexOf(nextName) >= screenOrder.indexOf(currentScreen) ? "forward" : "back";
+
+        resetAnimationState(next);
+        next.classList.toggle("is-entering-back", direction === "back");
+        next.classList.add("is-current");
+        if (nextName === "sticker") {
+          playStickerWave();
+        }
+        current.classList.add(direction === "forward" ? "is-leaving-forward" : "is-leaving-back");
+
+        window.setTimeout(() => {
+          current.classList.remove("is-current", "is-leaving-forward", "is-leaving-back");
+          next.classList.remove("is-entering-back");
+          currentScreen = nextName;
+          isTransitioning = false;
+        }, 380);
+      }
+
+      function resetToStart() {
+        stopStickerWave(true);
+        screens.forEach((screen) => {
+          screen.classList.remove("is-current", "is-leaving-forward", "is-leaving-back", "is-entering-back");
+        });
+        getScreen("follow").classList.add("is-current");
+        currentScreen = "follow";
+        isTransitioning = false;
+        moods.forEach((mood) => mood.classList.remove("is-selected"));
+        submitFeedback.classList.remove("is-enabled");
+      }
+
+      document.addEventListener("click", (event) => {
+        const reset = event.target.closest("[data-reset]");
+        if (reset) {
+          resetToStart();
+          return;
+        }
+
+        const nextTrigger = event.target.closest("[data-next]");
+        if (!nextTrigger) return;
+        if (nextTrigger.classList.contains("feedback-submit") && !nextTrigger.classList.contains("is-enabled")) return;
+        goTo(nextTrigger.dataset.next);
+      });
+
+      moods.forEach((mood) => {
+        mood.addEventListener("click", () => {
+          moods.forEach((item) => item.classList.toggle("is-selected", item === mood));
+          submitFeedback.classList.add("is-enabled");
+        });
+      });
+
+      createStickerDotGrid();
+      bindPressables();
+    </script>
+  </body>
+</html>

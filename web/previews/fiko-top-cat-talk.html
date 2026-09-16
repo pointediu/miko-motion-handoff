@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fiko Top Cat Talk</title>
+    <style>
+      :root {
+        --phone-width: 393px;
+        --phone-height: 852px;
+        --ink: #050505;
+        --font-rounded: "Yuanti SC", "YouYuan", "PingFang SC", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        margin: 0;
+        display: grid;
+        min-height: 100vh;
+        place-items: center;
+        background: #111;
+        font-family: var(--font-rounded);
+      }
+
+      button {
+        font: inherit;
+        transform-origin: 50% 50%;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100vw, var(--phone-width));
+        height: min(100vh, var(--phone-height));
+        aspect-ratio: 393 / 852;
+        overflow: hidden;
+        border-radius: 32px;
+        background: #fff;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+      }
+
+      .background {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .talk-hotspot {
+        position: absolute;
+        left: 22px;
+        top: 126px;
+        width: 350px;
+        height: 64px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+        --press-scale: 0.985;
+        --press-y: 1px;
+        --press-over: 1;
+      }
+
+      .talk-hotspot::after {
+        content: "";
+        position: absolute;
+        inset: -4px;
+        border-radius: 24px;
+        background: rgba(0, 0, 0, 0.035);
+        opacity: 0;
+        transition: opacity 90ms ease;
+      }
+
+      .talk-hotspot.is-pressing {
+        transform: translateY(var(--press-y)) scale(var(--press-scale));
+        filter: brightness(0.98);
+        transition:
+          transform 90ms cubic-bezier(0.2, 0, 0.2, 1),
+          filter 90ms ease;
+      }
+
+      .talk-hotspot.is-pressing::after {
+        opacity: 1;
+      }
+
+      .talk-hotspot.is-releasing {
+        animation: pressRelease 320ms cubic-bezier(0.4, 0, 0.2, 1) both;
+      }
+
+      .mouth-cover,
+      .mouth {
+        position: absolute;
+        left: 59px;
+        top: 164px;
+        pointer-events: none;
+      }
+
+      .mouth-cover {
+        width: 16px;
+        height: 18px;
+        border-radius: 50%;
+        background: #fff;
+        transform: translate(-50%, -50%);
+      }
+
+      .mouth {
+        width: 8px;
+        height: 12px;
+        border-radius: 999px;
+        background: var(--ink);
+        transform: translate(-50%, -50%) scaleY(0.92);
+        transform-origin: center;
+      }
+
+      .talk-hotspot.is-speaking ~ .mouth {
+        animation: mouthTalk 190ms steps(2, end) infinite;
+      }
+
+      .bubble-text {
+        position: absolute;
+        left: 119px;
+        top: 140px;
+        width: 258px;
+        margin: 0;
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 900;
+        line-height: 1.35;
+        letter-spacing: 0;
+        white-space: normal;
+        pointer-events: none;
+      }
+
+      .char {
+        display: inline-block;
+        opacity: 0;
+        transform: translateY(4px);
+        transition:
+          opacity 130ms ease,
+          transform 130ms ease;
+      }
+
+      .char.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      @keyframes mouthTalk {
+        0% {
+          width: 9px;
+          height: 5px;
+          border-radius: 999px;
+          transform: translate(-50%, -50%) scaleY(0.75);
+        }
+        50% {
+          width: 10px;
+          height: 13px;
+          border-radius: 50%;
+          transform: translate(-50%, -50%) scaleY(1);
+        }
+        100% {
+          width: 7px;
+          height: 9px;
+          border-radius: 50%;
+          transform: translate(-50%, -50%) scaleY(0.9);
+        }
+      }
+
+      @keyframes pressRelease {
+        from {
+          transform: translateY(var(--press-y, 1.5px)) scale(var(--press-scale, 0.965));
+          filter: brightness(0.98);
+        }
+        to {
+          transform: translateY(0) scale(1);
+          filter: brightness(1);
+        }
+      }
+
+      @media (max-width: 420px) {
+        body {
+          background: #fff;
+        }
+
+        .phone {
+          width: 100vw;
+          height: 100vh;
+          border-radius: 0;
+          box-shadow: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 1ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 1ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" aria-label="Fiko top cat talk animation">
+      <img class="background" src="/assets/81cb77af35c30b13670a287860840b843a533d878862136ebb9877a509ca99fc.png" alt="" />
+      <button class="talk-hotspot is-speaking" type="button" aria-label="重播小猫说话"></button>
+      <span class="mouth-cover" aria-hidden="true"></span>
+      <span class="mouth" aria-hidden="true"></span>
+      <p class="bubble-text" id="bubbleText"></p>
+    </main>
+
+    <script>const embeddedAssetMap={"assets/background.png":"/assets/81cb77af35c30b13670a287860840b843a533d878862136ebb9877a509ca99fc.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const talkHotspot = document.querySelector(".talk-hotspot");
+      const bubbleText = document.querySelector("#bubbleText");
+      const copy = "还没有动起来吗？躺平不如动起来！今\n日运动计划已准备！";
+      const typeDelay = 72;
+      let timers = [];
+      const pressReleaseMs = 320;
+
+      function clearTimers() {
+        timers.forEach((timer) => window.clearTimeout(timer));
+        timers = [];
+      }
+
+      function buildText() {
+        bubbleText.textContent = "";
+
+        Array.from(copy).forEach((char) => {
+          if (char === "\n") {
+            bubbleText.appendChild(document.createElement("br"));
+            return;
+          }
+
+          const span = document.createElement("span");
+          span.className = "char";
+          span.textContent = char;
+          bubbleText.appendChild(span);
+        });
+      }
+
+      function playTalk() {
+        clearTimers();
+        buildText();
+        talkHotspot.classList.add("is-speaking");
+
+        const chars = bubbleText.querySelectorAll(".char");
+        chars.forEach((char, index) => {
+          timers.push(
+            window.setTimeout(() => {
+              char.classList.add("is-visible");
+            }, 240 + index * typeDelay)
+          );
+        });
+
+        timers.push(
+          window.setTimeout(() => {
+            talkHotspot.classList.remove("is-speaking");
+          }, 700 + chars.length * typeDelay)
+        );
+      }
+
+      function releasePressable(target) {
+        if (!target.classList.contains("is-pressing")) return;
+        target.classList.remove("is-pressing", "is-releasing");
+        void target.offsetWidth;
+        target.classList.add("is-releasing");
+        window.setTimeout(() => target.classList.remove("is-releasing"), pressReleaseMs);
+      }
+
+      talkHotspot.addEventListener("pointerdown", (event) => {
+        talkHotspot.classList.remove("is-releasing");
+        talkHotspot.classList.add("is-pressing");
+        talkHotspot.setPointerCapture?.(event.pointerId);
+      });
+
+      talkHotspot.addEventListener("pointerup", () => releasePressable(talkHotspot));
+      talkHotspot.addEventListener("pointercancel", () => {
+        talkHotspot.classList.remove("is-pressing", "is-releasing");
+      });
+      talkHotspot.addEventListener("pointerleave", () => {
+        talkHotspot.classList.remove("is-pressing");
+      });
+
+      talkHotspot.addEventListener("click", playTalk);
+      window.addEventListener("load", playTalk);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fiko 贴纸网格波浪</title>
+    <style>
+      :root {
+        --phone-width: 393px;
+        --phone-height: 852px;
+        --ink: #050505;
+        --bg: #f8f8f8;
+        --dot: #bababa;
+        --font-rounded: "Yuanti SC", "YouYuan", "PingFang SC", sans-serif;
+        --soft-ease: cubic-bezier(0.4, 0, 0.2, 1);
+        --stick-ease: cubic-bezier(0.32, 0.72, 0.26, 1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        background: #111;
+        color: var(--ink);
+        font-family: var(--font-rounded);
+      }
+
+      button {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        font: inherit;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100vw, var(--phone-width));
+        height: min(100vh, var(--phone-height));
+        aspect-ratio: 393 / 852;
+        overflow: hidden;
+        border-radius: 32px;
+        background: var(--bg);
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+        isolation: isolate;
+      }
+
+      .dot-grid {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+      }
+
+      .dot-grid circle {
+        transform-box: fill-box;
+        transform-origin: center;
+        will-change: r, fill-opacity;
+      }
+
+      .sticker-stage {
+        position: absolute;
+        left: 50%;
+        top: 369px;
+        z-index: 4;
+        width: 116px;
+        height: 127px;
+        margin-left: -58px;
+        border-radius: 22px;
+        perspective: 720px;
+        transform-style: preserve-3d;
+        transform-origin: 50% 60%;
+        opacity: 0;
+        filter: drop-shadow(0 18px 18px rgba(0, 0, 0, 0.16));
+      }
+
+      .sticker-stage.is-playing {
+        animation: stickerStickIn 980ms var(--stick-ease) 130ms both;
+      }
+
+      .sticker-piece {
+        position: absolute;
+        inset: 0;
+        transform-style: preserve-3d;
+        pointer-events: none;
+      }
+
+      .sticker-piece img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .sticker-stage.is-playing .sticker-piece {
+        animation: stickerSurfaceSettle 980ms var(--stick-ease) 130ms both;
+      }
+
+      .replay-hint {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 30px;
+        z-index: 5;
+        text-align: center;
+        color: rgba(5, 5, 5, 0.34);
+        font-size: 12px;
+        line-height: 1;
+        font-weight: 900;
+        opacity: 0;
+        transform: translateY(6px);
+        animation: hintIn 420ms var(--soft-ease) 2100ms both;
+        pointer-events: none;
+      }
+
+      @keyframes stickerStickIn {
+        0% {
+          opacity: 0;
+          transform: translate3d(-28px, 24px, 0) rotate(-10deg) scale(0.86);
+          filter: drop-shadow(0 26px 28px rgba(0, 0, 0, 0.18));
+        }
+        22% {
+          opacity: 1;
+          transform: translate3d(-11px, 9px, 0) rotate(-6deg) scale(0.94);
+        }
+        54% {
+          opacity: 1;
+          transform: translate3d(3px, -2px, 0) rotate(1.4deg) scale(1.018);
+          filter: drop-shadow(0 18px 18px rgba(0, 0, 0, 0.12));
+        }
+        78% {
+          opacity: 1;
+          transform: translate3d(0, 1px, 0) rotate(-0.5deg) scale(0.996);
+        }
+        100% {
+          opacity: 1;
+          transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+          filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.08));
+        }
+      }
+
+      @keyframes stickerSurfaceSettle {
+        0% {
+          transform: rotateX(8deg) rotateZ(-1deg) scale(0.985);
+        }
+        42% {
+          transform: rotateX(3deg) rotateZ(0.4deg) scale(1.008);
+        }
+        100% {
+          transform: rotateX(0deg) rotateZ(0deg) scale(1);
+        }
+      }
+
+      @keyframes hintIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 420px) {
+        body {
+          background: #fff;
+        }
+
+        .phone {
+          width: 100vw;
+          height: 100vh;
+          border-radius: 0;
+          box-shadow: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 1ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 1ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" id="phone" aria-label="贴纸网格波浪动画">
+      <svg class="dot-grid" id="dotGrid" width="393" height="852" viewBox="0 0 393 852" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="393" height="852" fill="#F8F8F8" />
+        <g id="dots"></g>
+      </svg>
+
+      <button class="sticker-stage" id="sticker" type="button" aria-label="重播贴纸与网格波浪">
+        <div class="sticker-piece">
+          <img src="/assets/b9a9f282b23c341f053ff088e668647f170751e0b808f3e84bdcd19de58a00e9.png" alt="" />
+        </div>
+      </button>
+
+      <div class="replay-hint">点击贴纸重播</div>
+    </main>
+
+    <script>const embeddedAssetMap={"assets/点格背景.svg":"/assets/ece3e3442f78369bfd669f85e33061e784ddb5017a688a15d85c685924664c09.svg","assets/贴纸.png":"/assets/b9a9f282b23c341f053ff088e668647f170751e0b808f3e84bdcd19de58a00e9.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const SVG_NS = "http://www.w3.org/2000/svg";
+      const phone = document.querySelector("#phone");
+      const dotsGroup = document.querySelector("#dots");
+      const sticker = document.querySelector("#sticker");
+      const center = { x: 196.5, y: 432 };
+      const dotItems = [];
+      const baseRadius = 1;
+      const baseColor = { r: 207, g: 207, b: 207 };
+      const peakColor = { r: 188, g: 218, b: 255 };
+      const waveConfig = {
+        stickerDurationMs: 980,
+        waveStartDelayMs: 840,
+        repeatDelayMs: 700,
+        propagationMsPerPx: 2.9,
+        pulseMs: 2320,
+        radiusAdd: 2.6,
+        opacityBase: 1,
+        opacityPeak: 0.1,
+        visibleThreshold: 0.68,
+        globalEaseMix: 0.35,
+        rippleLayers: [
+          { delayMs: 0, strength: 1 },
+        ],
+      };
+      let waveRaf = 0;
+      let waveStart = 0;
+      let waveTimer = 0;
+
+      function lerp(a, b, t) {
+        return a + (b - a) * t;
+      }
+
+      function easeInOutSine(t) {
+        return -(Math.cos(Math.PI * t) - 1) / 2;
+      }
+
+      function smoothstep(edge0, edge1, value) {
+        const t = Math.max(0, Math.min(1, (value - edge0) / (edge1 - edge0)));
+        return t * t * (3 - 2 * t);
+      }
+
+      function colorAt(amount) {
+        const r = Math.round(lerp(baseColor.r, peakColor.r, amount));
+        const g = Math.round(lerp(baseColor.g, peakColor.g, amount));
+        const b = Math.round(lerp(baseColor.b, peakColor.b, amount));
+        return `rgb(${r}, ${g}, ${b})`;
+      }
+
+      function createDotGrid() {
+        const fragment = document.createDocumentFragment();
+
+        for (let y = 3.5; y <= 848.5; y += 13) {
+          for (let x = 1.5; x <= 391.5; x += 13) {
+            const circle = document.createElementNS(SVG_NS, "circle");
+            circle.setAttribute("cx", x);
+            circle.setAttribute("cy", y);
+            circle.setAttribute("r", baseRadius);
+            circle.setAttribute("fill", "#CFCFCF");
+            circle.setAttribute("fill-opacity", waveConfig.opacityBase);
+            fragment.append(circle);
+
+            dotItems.push({
+              node: circle,
+              distance: Math.hypot(x - center.x, y - center.y),
+            });
+          }
+        }
+
+        dotsGroup.append(fragment);
+      }
+
+      function resetDots() {
+        dotItems.forEach(({ node }) => {
+          node.setAttribute("r", baseRadius);
+          node.setAttribute("fill", "#CFCFCF");
+          node.setAttribute("fill-opacity", waveConfig.opacityBase);
+        });
+      }
+
+      function animateWave(now) {
+        if (!waveStart) waveStart = now;
+        const elapsed = now - waveStart;
+        const maxDistance = 520;
+        const maxLayerDelay = Math.max(...waveConfig.rippleLayers.map((layer) => layer.delayMs));
+        const totalDuration = maxDistance * waveConfig.propagationMsPerPx + maxLayerDelay + waveConfig.pulseMs;
+        const linearProgress = Math.min(1, elapsed / totalDuration);
+        const easedElapsed = lerp(
+          elapsed,
+          totalDuration * easeInOutSine(linearProgress),
+          waveConfig.globalEaseMix
+        );
+        const { propagationMsPerPx, pulseMs, radiusAdd, opacityBase, opacityPeak, rippleLayers } = waveConfig;
+
+        dotItems.forEach(({ node, distance }) => {
+          const waveAmount = rippleLayers.reduce((amount, layer) => {
+            const local = easedElapsed - distance * propagationMsPerPx - layer.delayMs;
+
+            if (local < 0 || local > pulseMs) {
+              return amount;
+            }
+
+            const progress = local / pulseMs;
+            const bell = Math.sin(Math.PI * easeInOutSine(progress)) * layer.strength;
+            return Math.max(amount, bell);
+          }, 0);
+
+          const visibleAmount = smoothstep(waveConfig.visibleThreshold, 1, waveAmount);
+
+          if (visibleAmount <= 0) {
+            node.setAttribute("r", baseRadius);
+            node.setAttribute("fill", "#CFCFCF");
+            node.setAttribute("fill-opacity", opacityBase);
+            return;
+          }
+
+          const radius = baseRadius + radiusAdd * visibleAmount;
+          const opacity = lerp(opacityBase, opacityPeak, visibleAmount);
+
+          node.setAttribute("r", radius.toFixed(3));
+          node.setAttribute("fill", colorAt(visibleAmount));
+          node.setAttribute("fill-opacity", opacity.toFixed(3));
+        });
+
+        if (elapsed < totalDuration) {
+          waveRaf = requestAnimationFrame(animateWave);
+        } else {
+          phone.classList.remove("is-waving");
+          resetDots();
+          waveStart = 0;
+          waveTimer = window.setTimeout(startWave, waveConfig.repeatDelayMs);
+        }
+      }
+
+      function startWave() {
+        phone.classList.remove("is-waving");
+        void phone.offsetWidth;
+        phone.classList.add("is-waving");
+        waveStart = 0;
+        waveRaf = requestAnimationFrame(animateWave);
+      }
+
+      function replay() {
+        window.clearTimeout(waveTimer);
+        cancelAnimationFrame(waveRaf);
+        phone.classList.remove("is-waving");
+        sticker.classList.remove("is-playing");
+        resetDots();
+        void sticker.offsetWidth;
+        sticker.classList.add("is-playing");
+
+        waveTimer = window.setTimeout(() => {
+          startWave();
+        }, waveConfig.waveStartDelayMs);
+      }
+
+      createDotGrid();
+      sticker.addEventListener("click", replay);
+      window.addEventListener("load", replay);
+    </script>
+  </body>
+</html>

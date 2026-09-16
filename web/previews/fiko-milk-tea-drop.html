@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fiko Milk Tea Drop</title>
+    <style>
+      :root {
+        --phone-width: 393px;
+        --phone-height: 852px;
+        --ink: #050505;
+        --muted: rgba(5, 5, 5, 0.32);
+        --soft: cubic-bezier(0.4, 0, 0.2, 1);
+        --font-rounded: "Yuanti SC", "YouYuan", "PingFang SC", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        background: #111;
+        font-family: var(--font-rounded);
+      }
+
+      button {
+        font: inherit;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100vw, var(--phone-width));
+        height: min(100vh, var(--phone-height));
+        aspect-ratio: 393 / 852;
+        overflow: hidden;
+        border-radius: 32px;
+        background: #fff;
+        color: var(--ink);
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+      }
+
+      .screen {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+
+      .intro {
+        z-index: 2;
+        opacity: 1;
+        transform: translateX(0);
+        transition:
+          opacity 360ms var(--soft),
+          transform 360ms var(--soft);
+      }
+
+      .phone.is-detail .intro {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(-34px);
+      }
+
+      .intro-shot,
+      .detail-bg,
+      .status-bar,
+      .back-icon,
+      .tea {
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .intro-shot,
+      .detail-bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .stat-hotspot {
+        position: absolute;
+        left: 16px;
+        top: 496px;
+        width: 178px;
+        height: 223px;
+        border: 0;
+        border-radius: 32px;
+        background: transparent;
+        cursor: pointer;
+      }
+
+      .stat-hotspot::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: rgba(0, 0, 0, 0.04);
+        opacity: 0;
+        transform: scale(0.98);
+        transition:
+          opacity 180ms ease,
+          transform 320ms var(--soft);
+      }
+
+      .stat-hotspot.is-pressing::after {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .detail {
+        z-index: 1;
+        opacity: 0;
+        transform: translateX(30px);
+        transition:
+          opacity 360ms var(--soft),
+          transform 360ms var(--soft);
+      }
+
+      .phone.is-detail .detail {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      .status-bar {
+        position: absolute;
+        z-index: 2;
+        left: 0;
+        top: 0;
+        width: 393px;
+        height: 44px;
+        object-fit: cover;
+      }
+
+      .back-button {
+        position: absolute;
+        z-index: 5;
+        left: 15px;
+        top: 56px;
+        width: 48px;
+        height: 48px;
+        padding: 0;
+        border: 0;
+        border-radius: 17px;
+        background: rgba(246, 246, 246, 0.92);
+        cursor: pointer;
+        --press-y: 1px;
+        --press-scale: 0.93;
+      }
+
+      .back-icon {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+      }
+
+      .result-copy {
+        position: absolute;
+        z-index: 3;
+        left: 17px;
+        right: 17px;
+        top: 155px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        column-gap: 14px;
+        align-items: end;
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      .detail.is-loaded .result-copy {
+        animation: textIn 320ms var(--soft) 120ms both;
+      }
+
+      .label {
+        margin: 0 0 7px;
+        color: var(--muted);
+        font-size: 17px;
+        font-weight: 900;
+        line-height: 1;
+      }
+
+      .kcal {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+        color: var(--ink);
+        font-weight: 900;
+        letter-spacing: 0;
+      }
+
+      .number {
+        font-size: 51px;
+        line-height: 0.95;
+      }
+
+      .unit {
+        font-size: 22px;
+        line-height: 1;
+      }
+
+      .milk-copy {
+        margin: 0 0 7px;
+        font-size: 21px;
+        font-weight: 900;
+        line-height: 1;
+        text-align: right;
+      }
+
+      .tea {
+        position: absolute;
+        z-index: 2;
+        left: 0;
+        top: 0;
+        opacity: 0;
+        transform: translate3d(-120px, -220px, 0) rotate(0deg);
+        transform-origin: 50% 56%;
+        will-change: opacity, transform;
+        pointer-events: none;
+      }
+
+      .is-pressing {
+        transform: translateY(var(--press-y, 1.5px)) scale(var(--press-scale, 0.965));
+        filter: brightness(0.96);
+        transition:
+          transform 90ms cubic-bezier(0.2, 0, 0.2, 1),
+          filter 90ms ease;
+      }
+
+      .is-releasing {
+        animation: pressRelease 320ms var(--soft) both !important;
+      }
+
+      @keyframes textIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pressRelease {
+        from {
+          transform: translateY(var(--press-y, 1.5px)) scale(var(--press-scale, 0.965));
+          filter: brightness(0.96);
+        }
+        to {
+          transform: translateY(0) scale(1);
+          filter: brightness(1);
+        }
+      }
+
+      @media (max-width: 420px) {
+        body {
+          background: #fff;
+        }
+
+        .phone {
+          width: 100vw;
+          height: 100vh;
+          border-radius: 0;
+          box-shadow: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 1ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 1ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" id="phone" aria-label="糖果掉落动画">
+      <section class="screen intro" id="introScreen" aria-label="个人页前置状态">
+        <img class="intro-shot" src="/assets/eaf4a96d2f5eb20cac3654ecd9d1d53814faba160d562c0783d1316b2db31fab.png" alt="" />
+        <button class="stat-hotspot" id="statHotspot" type="button" aria-label="查看累计燃烧详情"></button>
+      </section>
+
+      <section class="screen detail" id="detailScreen" aria-label="累计燃烧详情页">
+        <img class="detail-bg" src="/assets/5b0fa4e56c543e39f3eddaf04581786df7d40d7c724c225ff991940a0506d867.png" alt="" />
+        <img class="status-bar" src="/assets/0edff1c1522f149a308ff45f202b41e19d5d0d2e7d1402c9c1d56e80af98b5c5.png" alt="" />
+        <button class="back-button" id="backButton" type="button" aria-label="返回个人页">
+          <img class="back-icon" src="/assets/11e016b60e975f75c12de1ebe34e6775c472a638d611dc0b03f8ffcea2e1c4d7.png" alt="" />
+        </button>
+
+        <div class="result-copy" aria-label="累计燃烧数据">
+          <div>
+            <p class="label">累计燃烧</p>
+            <div class="kcal"><span class="number">999</span><span class="unit">kcal</span></div>
+          </div>
+          <p class="milk-copy">≈少吃25颗糖果</p>
+        </div>
+
+        <img class="tea" src="/assets/802e1e223201f9416b53992a9130cbc72e908898aeed2382003838e3e0606cbd.png" alt="" data-width="72" data-aspect="0.416667" />
+        <img class="tea" src="/assets/654415fab5ed033aaeb430810848bdf47a10200135714c248fa6d191f9735219.png" alt="" data-width="72" data-aspect="0.479167" />
+        <img class="tea" src="/assets/13de4cba8a49f20bf4e011446365297919dd67befd8833b6a00e83f7f4885cf5.png" alt="" data-width="68" data-aspect="0.625" />
+        <img class="tea" src="/assets/96490074a6ef9abbcc8393c328fabeecbef91508e0833ff517a90a46b0bd3cb8.png" alt="" data-width="38" data-aspect="2" />
+        <img class="tea" src="/assets/cd5824cafc6cbaab7ce53c465344bcfc94e4c39cd8d6b64dbf30964a942b61c7.png" alt="" data-width="52" data-aspect="0.884615" />
+        <img class="tea" src="/assets/802dd7f9244979780789c84cb2c6b9c430a0dfdf5743da66c980ff19691a1d2e.png" alt="" data-width="72" data-aspect="0.479167" />
+        <img class="tea" src="/assets/802e1e223201f9416b53992a9130cbc72e908898aeed2382003838e3e0606cbd.png" alt="" data-width="72" data-aspect="0.416667" />
+        <img class="tea" src="/assets/654415fab5ed033aaeb430810848bdf47a10200135714c248fa6d191f9735219.png" alt="" data-width="72" data-aspect="0.479167" />
+        <img class="tea" src="/assets/13de4cba8a49f20bf4e011446365297919dd67befd8833b6a00e83f7f4885cf5.png" alt="" data-width="68" data-aspect="0.625" />
+        <img class="tea" src="/assets/96490074a6ef9abbcc8393c328fabeecbef91508e0833ff517a90a46b0bd3cb8.png" alt="" data-width="38" data-aspect="2" />
+        <img class="tea" src="/assets/cd5824cafc6cbaab7ce53c465344bcfc94e4c39cd8d6b64dbf30964a942b61c7.png" alt="" data-width="52" data-aspect="0.884615" />
+        <img class="tea" src="/assets/802dd7f9244979780789c84cb2c6b9c430a0dfdf5743da66c980ff19691a1d2e.png" alt="" data-width="72" data-aspect="0.479167" />
+        <img class="tea" src="/assets/802e1e223201f9416b53992a9130cbc72e908898aeed2382003838e3e0606cbd.png" alt="" data-width="72" data-aspect="0.416667" />
+        <img class="tea" src="/assets/654415fab5ed033aaeb430810848bdf47a10200135714c248fa6d191f9735219.png" alt="" data-width="72" data-aspect="0.479167" />
+        <img class="tea" src="/assets/13de4cba8a49f20bf4e011446365297919dd67befd8833b6a00e83f7f4885cf5.png" alt="" data-width="68" data-aspect="0.625" />
+        <img class="tea" src="/assets/96490074a6ef9abbcc8393c328fabeecbef91508e0833ff517a90a46b0bd3cb8.png" alt="" data-width="38" data-aspect="2" />
+        <img class="tea" src="/assets/cd5824cafc6cbaab7ce53c465344bcfc94e4c39cd8d6b64dbf30964a942b61c7.png" alt="" data-width="52" data-aspect="0.884615" />
+        <img class="tea" src="/assets/802dd7f9244979780789c84cb2c6b9c430a0dfdf5743da66c980ff19691a1d2e.png" alt="" data-width="72" data-aspect="0.479167" />
+        <img class="tea" src="/assets/802e1e223201f9416b53992a9130cbc72e908898aeed2382003838e3e0606cbd.png" alt="" data-width="72" data-aspect="0.416667" />
+        <img class="tea" src="/assets/654415fab5ed033aaeb430810848bdf47a10200135714c248fa6d191f9735219.png" alt="" data-width="72" data-aspect="0.479167" />
+        <img class="tea" src="/assets/13de4cba8a49f20bf4e011446365297919dd67befd8833b6a00e83f7f4885cf5.png" alt="" data-width="68" data-aspect="0.625" />
+        <img class="tea" src="/assets/96490074a6ef9abbcc8393c328fabeecbef91508e0833ff517a90a46b0bd3cb8.png" alt="" data-width="38" data-aspect="2" />
+        <img class="tea" src="/assets/cd5824cafc6cbaab7ce53c465344bcfc94e4c39cd8d6b64dbf30964a942b61c7.png" alt="" data-width="52" data-aspect="0.884615" />
+        <img class="tea" src="/assets/802dd7f9244979780789c84cb2c6b9c430a0dfdf5743da66c980ff19691a1d2e.png" alt="" data-width="72" data-aspect="0.479167" />
+        <img class="tea" src="/assets/802e1e223201f9416b53992a9130cbc72e908898aeed2382003838e3e0606cbd.png" alt="" data-width="72" data-aspect="0.416667" />
+      </section>
+    </main>
+
+    <script>const embeddedAssetMap={"assets/back-icon.png":"/assets/11e016b60e975f75c12de1ebe34e6775c472a638d611dc0b03f8ffcea2e1c4d7.png","assets/bg.png":"/assets/5b0fa4e56c543e39f3eddaf04581786df7d40d7c724c225ff991940a0506d867.png","assets/image 1703.png":"/assets/a2b30b7da3609744a86a7acc2a375561b84f804bdaf25558ecfb57c3cdffc5e7.png","assets/image 1706.png":"/assets/0fa03f410d94e416f27c0deca81523f010fffb854478d7e20a2335efd1acfb81.png","assets/image 1707.png":"/assets/be01b7f57ecb2deb95d37882c20830b3e35274e4c363fc93a438d79f2efc0599.png","assets/image 1708.png":"/assets/a26f51ee64c8f728beca185cd3052f0e0830e869509b43e90a6228fb6cfa467e.png","assets/image 1709.png":"/assets/66ab2bb4915767dce03e665612c2b792bb77fc9a11491f2971083e27ad8f7dca.png","assets/image 1710.png":"/assets/3a160dbd54e2c2128f9ef986744ce99586f16f14e2098cf62454845448224d86.png","assets/image 1711.png":"/assets/98f03e15d4e7ac71c102521e8677e3501cfa25cd872679799f3f3361c6f4024f.png","assets/image 1712.png":"/assets/ab88a5b56451f3961cfc3e8c535e7ac4facaf48d85e17d720eab6f41089097cc.png","assets/image 1713.png":"/assets/870271651ea4a0091eea9dfdecb4045450b4c2e974bd5e847faad9995bd6562d.png","assets/image 1714.png":"/assets/3d2dd73286f5742d665af5e19814dfcce376d02bea3841a952275819cf794b9c.png","assets/intro-page.png":"/assets/eaf4a96d2f5eb20cac3654ecd9d1d53814faba160d562c0783d1316b2db31fab.png","assets/status-bar.png":"/assets/0edff1c1522f149a308ff45f202b41e19d5d0d2e7d1402c9c1d56e80af98b5c5.png","assets/前置页面.png":"/assets/eaf4a96d2f5eb20cac3654ecd9d1d53814faba160d562c0783d1316b2db31fab.png","assets/奶茶1.png":"/assets/c7c238fd0042aae3cf1760b353cb3133fd9178cc58ef22d09e2869d5adb29159.png","assets/奶茶2.png":"/assets/96662e50036ff621b0b68bb0a7e9c7b1f8c82bfb3cbfdfb27bbee898b05c2164.png","assets/奶茶3.png":"/assets/98a80f841cc39de6cbd8290b1563a7f82039f44157b0a2d251ca802c892b19b2.png","assets/奶茶4.png":"/assets/901d39b3163751218e2666c9739efaa1e5dbeca124c19ec74741b049be4d9e4b.png","assets/奶茶5.png":"/assets/2342ccd56deb0321b298741a3f2a5dcc861293aaef6f793b3b51abde848af6f5.png","assets/状态栏.png":"/assets/0edff1c1522f149a308ff45f202b41e19d5d0d2e7d1402c9c1d56e80af98b5c5.png","assets/糖果01.png":"/assets/802e1e223201f9416b53992a9130cbc72e908898aeed2382003838e3e0606cbd.png","assets/糖果02.png":"/assets/654415fab5ed033aaeb430810848bdf47a10200135714c248fa6d191f9735219.png","assets/糖果03.png":"/assets/13de4cba8a49f20bf4e011446365297919dd67befd8833b6a00e83f7f4885cf5.png","assets/糖果04.png":"/assets/96490074a6ef9abbcc8393c328fabeecbef91508e0833ff517a90a46b0bd3cb8.png","assets/糖果05.png":"/assets/cd5824cafc6cbaab7ce53c465344bcfc94e4c39cd8d6b64dbf30964a942b61c7.png","assets/糖果06.png":"/assets/802dd7f9244979780789c84cb2c6b9c430a0dfdf5743da66c980ff19691a1d2e.png","assets/返回icon.png":"/assets/11e016b60e975f75c12de1ebe34e6775c472a638d611dc0b03f8ffcea2e1c4d7.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const phone = document.querySelector("#phone");
+      const detailScreen = document.querySelector("#detailScreen");
+      const statHotspot = document.querySelector("#statHotspot");
+      const backButton = document.querySelector("#backButton");
+      const teaNodes = [...document.querySelectorAll(".tea")];
+      const pressReleaseMs = 320;
+      const physics = {
+        width: 393,
+        height: 852,
+        teaScale: 0.91,
+        floorY: 822,
+        leftWall: 28,
+        rightWall: 365,
+        gravity: 2140,
+        restitution: 0.43,
+        collisionRestitution: 0.35,
+        airDrag: 0.993,
+        floorFriction: 0.9,
+        angularDamping: 0.974,
+        floorSpinDamping: 0.62,
+        landedSpinDamping: 0.82,
+        settleSpinDamping: 0.36,
+        restAngularVelocity: 0.024,
+        maxAngularVelocity: 1.05,
+        impactSpin: 0.002,
+        collisionSpin: 0.00045,
+        wallSpin: 0.11,
+        maxTilt: 0.72,
+        collisionPassesPerFrame: 5,
+        freezeAfterMs: 6800,
+        startDelay: 420,
+      };
+      const dropPlans = [
+        { x: 70, vx: 106, angle: -0.22, spin: -0.82, delay: 0 },
+        { x: 214, vx: -42, angle: 0.18, spin: 0.52, delay: 72 },
+        { x: 328, vx: -112, angle: 0.14, spin: 0.78, delay: 128 },
+        { x: 118, vx: 82, angle: -0.1, spin: -0.54, delay: 196 },
+        { x: 264, vx: -66, angle: 0.2, spin: 0.66, delay: 252 },
+        { x: 92, vx: 118, angle: -0.16, spin: -0.86, delay: 318 },
+        { x: 350, vx: -126, angle: 0.26, spin: 0.82, delay: 392 },
+        { x: 184, vx: 34, angle: -0.06, spin: -0.38, delay: 456 },
+        { x: 44, vx: 128, angle: -0.28, spin: -0.92, delay: 514 },
+        { x: 298, vx: -88, angle: 0.1, spin: 0.7, delay: 586 },
+        { x: 154, vx: 58, angle: 0.06, spin: -0.48, delay: 650 },
+        { x: 238, vx: -24, angle: -0.16, spin: 0.56, delay: 708 },
+        { x: 372, vx: -142, angle: 0.24, spin: 0.9, delay: 784 },
+        { x: 104, vx: 72, angle: -0.04, spin: -0.62, delay: 842 },
+        { x: 322, vx: -76, angle: 0.18, spin: 0.44, delay: 906 },
+        { x: 176, vx: 18, angle: -0.2, spin: -0.5, delay: 970 },
+        { x: 62, vx: 94, angle: 0.12, spin: -0.74, delay: 1042 },
+        { x: 276, vx: -54, angle: -0.08, spin: 0.64, delay: 1110 },
+        { x: 134, vx: 46, angle: 0.22, spin: -0.36, delay: 1170 },
+        { x: 346, vx: -102, angle: -0.14, spin: 0.78, delay: 1242 },
+        { x: 218, vx: -12, angle: 0.04, spin: 0.42, delay: 1300 },
+        { x: 84, vx: 116, angle: -0.26, spin: -0.78, delay: 1374 },
+        { x: 304, vx: -68, angle: 0.28, spin: 0.58, delay: 1436 },
+        { x: 158, vx: 54, angle: -0.12, spin: -0.46, delay: 1502 },
+        { x: 252, vx: -44, angle: 0.16, spin: 0.5, delay: 1570 },
+      ];
+      let playTimer = 0;
+      let dropRaf = 0;
+      let dropStart = 0;
+      let lastFrame = 0;
+      let bodies = [];
+
+      function randomBetween(min, max) {
+        return min + Math.random() * (max - min);
+      }
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function addAngularImpulse(body, impulse) {
+        body.av = clamp(body.av + impulse, -physics.maxAngularVelocity, physics.maxAngularVelocity);
+      }
+
+      function releasePressable(button) {
+        if (!button.classList.contains("is-pressing")) return;
+        button.classList.remove("is-pressing", "is-releasing");
+        void button.offsetWidth;
+        button.classList.add("is-releasing");
+        window.setTimeout(() => button.classList.remove("is-releasing"), pressReleaseMs);
+      }
+
+      function bindPressables() {
+        document.querySelectorAll("button").forEach((button) => {
+          button.addEventListener("pointerdown", (event) => {
+            if (button.disabled) return;
+            button.classList.remove("is-releasing");
+            button.classList.add("is-pressing");
+            button.setPointerCapture?.(event.pointerId);
+          });
+          button.addEventListener("pointerup", () => releasePressable(button));
+          button.addEventListener("pointercancel", () => button.classList.remove("is-pressing", "is-releasing"));
+          button.addEventListener("pointerleave", () => button.classList.remove("is-pressing"));
+        });
+      }
+
+      function createBodies() {
+        bodies = teaNodes.map((node, index) => {
+          const width = Number(node.dataset.width) * physics.teaScale;
+          const height = width * Number(node.dataset.aspect);
+          const radius = Math.min(width, height) * 0.43;
+          const collisionHalfSpan = Math.max(0, Math.max(width, height) / 2 - radius);
+          const collisionAxis = width >= height ? "horizontal" : "vertical";
+          const plan = dropPlans[index % dropPlans.length];
+
+          node.style.width = `${width}px`;
+          const startX = clamp(plan.x + randomBetween(-14, 14), width / 2 + 6, physics.width - width / 2 - 6);
+          const airAngle = plan.angle + randomBetween(-0.08, 0.08);
+
+          return {
+            node,
+            width,
+            height,
+            radius,
+            collisionHalfSpan,
+            collisionAxis,
+            mass: width * height,
+            x: startX,
+            y: -245 - randomBetween(0, 260),
+            vx: plan.vx + randomBetween(-34, 34),
+            vy: 0,
+            angle: airAngle,
+            av: plan.spin + randomBetween(-0.22, 0.22),
+            drift: randomBetween(-18, 18),
+            driftSpeed: randomBetween(0.9, 1.65),
+            driftPhase: randomBetween(0, Math.PI * 2),
+            releaseAt: physics.startDelay + plan.delay + randomBetween(-35, 35),
+            active: false,
+            touchedFloor: false,
+            frozen: false,
+            settledFrames: 0,
+          };
+        });
+      }
+
+      function renderBody(body) {
+        const left = body.x - body.width / 2;
+        const top = body.y - body.height / 2;
+        body.node.style.opacity = body.active ? "1" : "0";
+        body.node.style.transform = `translate3d(${left}px, ${top}px, 0) rotate(${body.angle}rad)`;
+      }
+
+      function resetTeaBodies() {
+        window.cancelAnimationFrame(dropRaf);
+        createBodies();
+        bodies.forEach(renderBody);
+      }
+
+      function resolveFloorAndWalls(body) {
+        const halfWidth =
+          Math.abs(Math.cos(body.angle)) * body.width / 2 + Math.abs(Math.sin(body.angle)) * body.height / 2;
+        const halfHeight =
+          Math.abs(Math.sin(body.angle)) * body.width / 2 + Math.abs(Math.cos(body.angle)) * body.height / 2;
+        const visualBottom = body.y + halfHeight;
+        const visualTop = body.y - halfHeight;
+        const visualLeft = body.x - halfWidth;
+        const visualRight = body.x + halfWidth;
+
+        if (visualBottom > physics.floorY) {
+          body.touchedFloor = true;
+          body.y = physics.floorY - halfHeight;
+          if (body.vy > 0) {
+            const impactVelocity = body.vy;
+            const direction = Math.sign(body.vx || randomBetween(-1, 1));
+            const floorImpulse = body.vx * physics.impactSpin + direction * Math.min(0.12, impactVelocity * 0.00004);
+            body.vy = -body.vy * physics.restitution;
+            body.vx *= physics.floorFriction;
+            body.av = body.av * physics.floorSpinDamping + floorImpulse;
+            body.av = clamp(body.av, -physics.maxAngularVelocity, physics.maxAngularVelocity);
+          }
+        }
+
+        if (visualTop < -220) {
+          body.y = -220 + halfHeight;
+          body.vy = Math.max(body.vy, 0);
+        }
+
+        if (visualLeft < physics.leftWall) {
+          body.x = physics.leftWall + halfWidth;
+          if (body.vx < 0) {
+            body.vx = -body.vx * physics.restitution;
+            addAngularImpulse(body, physics.wallSpin);
+          }
+        }
+
+        if (visualRight > physics.rightWall) {
+          body.x = physics.rightWall - halfWidth;
+          if (body.vx > 0) {
+            body.vx = -body.vx * physics.restitution;
+            addAngularImpulse(body, -physics.wallSpin);
+          }
+        }
+      }
+
+      function getCollisionPoints(body) {
+        const isHorizontal = body.collisionAxis === "horizontal";
+        const axisX = isHorizontal ? Math.cos(body.angle) : -Math.sin(body.angle);
+        const axisY = isHorizontal ? Math.sin(body.angle) : Math.cos(body.angle);
+        const span = body.collisionHalfSpan;
+        return [
+          { x: body.x - axisX * span, y: body.y - axisY * span },
+          { x: body.x, y: body.y },
+          { x: body.x + axisX * span, y: body.y + axisY * span },
+        ];
+      }
+
+      function resolveCollisions() {
+        for (let i = 0; i < bodies.length; i += 1) {
+          const a = bodies[i];
+          if (!a.active) continue;
+
+          for (let j = i + 1; j < bodies.length; j += 1) {
+            const b = bodies[j];
+            if (!b.active) continue;
+            if (a.frozen && b.frozen) continue;
+
+            const pointsA = getCollisionPoints(a);
+            const pointsB = getCollisionPoints(b);
+            const minDistance = (a.radius + b.radius) * 0.95;
+            let collision = null;
+
+            pointsA.forEach((pointA) => {
+              pointsB.forEach((pointB) => {
+                const dx = pointB.x - pointA.x;
+                const dy = pointB.y - pointA.y;
+                const distance = Math.hypot(dx, dy) || 0.001;
+                const overlap = minDistance - distance;
+                if (overlap > 0 && (!collision || overlap > collision.overlap)) {
+                  collision = { dx, dy, distance, overlap };
+                }
+              });
+            });
+
+            if (!collision) continue;
+
+            const nx = collision.dx / collision.distance;
+            const ny = collision.dy / collision.distance;
+            const overlap = collision.overlap;
+            const invA = a.frozen ? 0 : 1 / a.mass;
+            const invB = b.frozen ? 0 : 1 / b.mass;
+            const invSum = invA + invB;
+            if (invSum === 0) continue;
+
+            a.x -= nx * overlap * (invA / invSum);
+            a.y -= ny * overlap * (invA / invSum);
+            b.x += nx * overlap * (invB / invSum);
+            b.y += ny * overlap * (invB / invSum);
+
+            const rvx = b.vx - a.vx;
+            const rvy = b.vy - a.vy;
+            const velAlongNormal = rvx * nx + rvy * ny;
+            if (velAlongNormal > 0) continue;
+
+            const impulse = (-(1 + physics.collisionRestitution) * velAlongNormal) / invSum;
+            const impulseX = impulse * nx;
+            const impulseY = impulse * ny;
+            const angularImpulse = clamp(
+              (impulseX * 0.55 + impulseY * 0.12 * Math.sign(nx || 1)) * physics.collisionSpin,
+              -0.22,
+              0.22
+            );
+
+            if (!a.frozen) {
+              a.vx -= impulseX * invA;
+              a.vy -= impulseY * invA;
+              addAngularImpulse(a, -angularImpulse);
+            }
+
+            if (!b.frozen) {
+              b.vx += impulseX * invB;
+              b.vy += impulseY * invB;
+              addAngularImpulse(b, angularImpulse);
+            }
+          }
+        }
+      }
+
+      function stepDrop(now) {
+        if (!dropStart) {
+          dropStart = now;
+          lastFrame = now;
+        }
+
+        const elapsed = now - dropStart;
+        const dt = Math.min((now - lastFrame) / 1000, 1 / 30);
+        lastFrame = now;
+
+        bodies.forEach((body) => {
+          if (!body.active && elapsed >= body.releaseAt) {
+            body.active = true;
+            body.node.style.transition = "opacity 90ms ease";
+          }
+
+          if (!body.active) {
+            renderBody(body);
+            return;
+          }
+
+          if (body.frozen) {
+            renderBody(body);
+            return;
+          }
+
+          body.vy += physics.gravity * dt;
+          body.vx += Math.sin(elapsed / 1000 * body.driftSpeed + body.driftPhase) * body.drift * dt;
+          body.x += body.vx * dt;
+          body.y += body.vy * dt;
+          body.vx *= physics.airDrag;
+          body.vy *= physics.airDrag;
+          body.av *= physics.angularDamping;
+          if (body.touchedFloor) {
+            body.av *= physics.landedSpinDamping;
+          }
+          body.av = clamp(body.av, -physics.maxAngularVelocity, physics.maxAngularVelocity);
+          if (body.av) {
+            body.angle += body.av * dt;
+          }
+          if (Math.abs(body.angle) > physics.maxTilt) {
+            body.angle = Math.sign(body.angle) * physics.maxTilt;
+            body.av *= -0.16;
+          }
+
+          resolveFloorAndWalls(body);
+        });
+
+        for (let pass = 0; pass < physics.collisionPassesPerFrame; pass += 1) {
+          resolveCollisions();
+          bodies.forEach(resolveFloorAndWalls);
+        }
+
+        let settled = true;
+        bodies.forEach((body) => {
+          if (body.active) {
+            if (body.frozen) {
+              renderBody(body);
+              return;
+            }
+
+            if (elapsed > physics.freezeAfterMs && body.y + body.height / 2 > 770) {
+              body.vx = 0;
+              body.vy = 0;
+              body.av = 0;
+              body.frozen = true;
+              renderBody(body);
+              return;
+            }
+
+            if (Math.abs(body.vx) < 5 && Math.abs(body.vy) < 12 && body.y + body.height / 2 > physics.floorY - 3) {
+              body.vx *= 0.75;
+              body.vy *= 0.5;
+              body.av *= physics.settleSpinDamping;
+              if (Math.abs(body.av) < physics.restAngularVelocity || body.settledFrames > 5) {
+                body.av = 0;
+              }
+              if (body.settledFrames > 9) {
+                body.vx = 0;
+                body.vy = 0;
+              }
+              if (
+                body.settledFrames > 11 ||
+                (elapsed > physics.freezeAfterMs && body.touchedFloor && Math.abs(body.vy) < 22)
+              ) {
+                body.vx = 0;
+                body.vy = 0;
+                body.av = 0;
+                body.frozen = true;
+              }
+              body.settledFrames += 1;
+              if (Math.abs(body.av) > physics.restAngularVelocity) {
+                settled = false;
+              }
+            } else {
+              body.settledFrames = 0;
+              settled = false;
+            }
+          } else {
+            settled = false;
+          }
+          renderBody(body);
+        });
+
+        if (elapsed < 7800 && !settled) {
+          dropRaf = window.requestAnimationFrame(stepDrop);
+        }
+      }
+
+      function startPhysicsDrop() {
+        resetTeaBodies();
+        dropStart = 0;
+        lastFrame = 0;
+        dropRaf = window.requestAnimationFrame(stepDrop);
+      }
+
+      function startDetail() {
+        window.clearTimeout(playTimer);
+        detailScreen.classList.remove("is-loaded");
+        phone.classList.add("is-detail");
+        playTimer = window.setTimeout(() => {
+          void detailScreen.offsetWidth;
+          detailScreen.classList.add("is-loaded");
+          startPhysicsDrop();
+        }, 300);
+      }
+
+      function resetIntro() {
+        window.clearTimeout(playTimer);
+        window.cancelAnimationFrame(dropRaf);
+        detailScreen.classList.remove("is-loaded");
+        phone.classList.remove("is-detail");
+        resetTeaBodies();
+      }
+
+      statHotspot.addEventListener("click", startDetail);
+      backButton.addEventListener("click", resetIntro);
+      bindPressables();
+      resetTeaBodies();
+    </script>
+  </body>
+</html>

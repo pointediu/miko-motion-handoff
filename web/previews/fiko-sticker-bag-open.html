@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fiko 贴纸袋打开动画</title>
+    <style>
+      :root {
+        --phone-width: 393px;
+        --phone-height: 852px;
+        --ink: #050505;
+        --muted: #8d8d8d;
+        --font-rounded: "Yuanti SC", "YouYuan", "PingFang SC", sans-serif;
+        --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+        --ease-soft-out: cubic-bezier(0.22, 0.72, 0.2, 1);
+        --ease-soft-in: cubic-bezier(0.48, 0, 0.72, 0.26);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        background: #111;
+        color: var(--ink);
+        font-family: var(--font-rounded);
+      }
+
+      button {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100vw, var(--phone-width));
+        height: min(100vh, var(--phone-height));
+        aspect-ratio: 393 / 852;
+        overflow: hidden;
+        border-radius: 32px;
+        background: #fff;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+      }
+
+      .front-screen,
+      .unlock-screen {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        background: #fff;
+      }
+
+      .front-screen {
+        z-index: 2;
+      }
+
+      .front-screen.is-exiting {
+        animation: frontExit 360ms var(--ease-standard) both;
+        pointer-events: none;
+      }
+
+      .front-img,
+      .bg,
+      .status {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        user-select: none;
+        -webkit-user-drag: none;
+        pointer-events: none;
+      }
+
+      .bg {
+        z-index: 0;
+        transition: opacity 360ms var(--ease-standard);
+      }
+
+      .wave-dots {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 360ms var(--ease-standard);
+      }
+
+      .unlock-screen.is-waving .bg {
+        opacity: 0;
+      }
+
+      .unlock-screen.is-waving .wave-dots {
+        opacity: 1;
+      }
+
+      .status {
+        height: 44px;
+        object-fit: cover;
+        z-index: 5;
+      }
+
+      .continue-hit {
+        position: absolute;
+        left: 125px;
+        top: 623px;
+        width: 143px;
+        height: 60px;
+        border-radius: 999px;
+        z-index: 3;
+        --press-scale: 0.955;
+        --press-y: 2px;
+        --press-dim: 0.94;
+        --press-overlay: 0.08;
+      }
+
+      .unlock-screen {
+        z-index: 1;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .unlock-screen.is-active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .close {
+        position: absolute;
+        left: 16px;
+        top: 68px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        z-index: 7;
+        --press-scale: 0.93;
+        --press-y: 1px;
+        --press-dim: 0.96;
+        --press-overlay: 0.035;
+      }
+
+      .close img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+
+      .stage-layer {
+        position: absolute;
+        left: 50%;
+        top: 264px;
+        width: 320px;
+        margin-left: -160px;
+        transform-origin: 50% 46%;
+        opacity: 0;
+        z-index: 3;
+        pointer-events: none;
+      }
+
+      .bag-head {
+        height: auto;
+        transform-origin: 50% 95%;
+        z-index: 5;
+      }
+
+      .bag-film {
+        top: 376px;
+        height: auto;
+        transform-origin: 50% 8%;
+        z-index: 3;
+      }
+
+      .sticker {
+        position: absolute;
+        left: 116.3px;
+        top: 436.9px;
+        width: 151px;
+        height: 151px;
+        object-fit: contain;
+        opacity: 0;
+        transform-origin: 50% 58%;
+        z-index: 4;
+        pointer-events: none;
+        filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.08));
+      }
+
+      .unlock-screen.is-playing .bag-head,
+      .unlock-screen.is-playing .bag-film,
+      .unlock-screen.is-playing .sticker {
+        animation-fill-mode: both;
+      }
+
+      .unlock-screen.is-playing .bag-head {
+        animation:
+          bagEnter 900ms var(--ease-standard) 430ms both,
+          headLiftAway 900ms var(--ease-standard) 1580ms forwards;
+      }
+
+      .unlock-screen.is-playing .bag-film {
+        animation:
+          bagEnter 900ms var(--ease-standard) 430ms both,
+          filmSlideAway 960ms var(--ease-standard) 1580ms forwards;
+      }
+
+      .unlock-screen.is-playing .sticker {
+        animation:
+          stickerBagEnter 900ms var(--ease-standard) 430ms both,
+          stickerLiftAndStick 1160ms var(--ease-standard) 1580ms forwards;
+      }
+
+      .final-copy,
+      .primary,
+      .share {
+        position: absolute;
+        z-index: 2;
+        opacity: 0;
+        transform: translateY(18px);
+        pointer-events: none;
+      }
+
+      .final-copy {
+        left: 0;
+        right: 0;
+        top: 232px;
+        text-align: center;
+      }
+
+      .final-copy h1 {
+        margin: 0;
+        font-size: 29px;
+        line-height: 1.05;
+        font-weight: 900;
+        letter-spacing: 0;
+      }
+
+      .final-copy p {
+        margin: 15px 0 0;
+        font-size: 18px;
+        line-height: 1;
+        font-weight: 900;
+      }
+
+      .primary {
+        left: 88px;
+        top: 557px;
+        width: 217px;
+        height: 60px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        background: #000;
+        color: #fff;
+        font-size: 24px;
+        font-weight: 900;
+        --press-scale: 0.955;
+        --press-y: 2px;
+        --press-dim: 0.94;
+        --press-overlay: 0.1;
+      }
+
+      .share {
+        left: 50%;
+        top: 649px;
+        width: 80px;
+        margin-left: -40px;
+        color: #000;
+        font-size: 20px;
+        font-weight: 900;
+        text-align: center;
+        --press-scale: 0.965;
+        --press-y: 1px;
+        --press-dim: 0.96;
+        --press-overlay: 0.025;
+      }
+
+      .unlock-screen.is-playing .final-copy {
+        animation: uiRiseIn 520ms var(--ease-standard) 3020ms both;
+      }
+
+      .unlock-screen.is-playing .primary {
+        pointer-events: auto;
+        animation: uiRiseIn 520ms var(--ease-standard) 3140ms both;
+      }
+
+      .unlock-screen.is-playing .share {
+        pointer-events: auto;
+        animation: uiRiseIn 520ms var(--ease-standard) 3260ms both;
+      }
+
+      .pressable {
+        transform-origin: 50% 50%;
+        transition:
+          transform 90ms cubic-bezier(0.2, 0, 0.2, 1),
+          filter 90ms ease;
+      }
+
+      .pressable::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: rgba(0, 0, 0, var(--press-overlay, 0.035));
+        opacity: 0;
+        transition: opacity 90ms ease;
+        pointer-events: none;
+      }
+
+      .primary::after {
+        background: rgba(255, 255, 255, 0.16);
+      }
+
+      .pressable.is-pressing {
+        transform: translateY(var(--press-y)) scale(var(--press-scale));
+        filter: brightness(var(--press-dim));
+      }
+
+      .pressable.is-pressing::after {
+        opacity: 1;
+      }
+
+      .pressable.is-releasing {
+        animation: pressRelease 320ms var(--ease-standard) both;
+      }
+
+      @keyframes frontExit {
+        from {
+          opacity: 1;
+          transform: translateX(0);
+        }
+        to {
+          opacity: 0;
+          transform: translateX(-26px);
+        }
+      }
+
+      @keyframes bagEnter {
+        0% {
+          opacity: 0;
+          transform: translateY(-720px) scale(0.985) rotate(-4deg);
+        }
+        8% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0) scale(1) rotate(0deg);
+        }
+      }
+
+      @keyframes stickerBagEnter {
+        0% {
+          opacity: 0;
+          transform: translateY(-720px) scale(0.985) rotate(-4deg);
+        }
+        8% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0) scale(1) rotate(0deg);
+        }
+      }
+
+      @keyframes headLiftAway {
+        0% {
+          opacity: 1;
+          transform: translateY(0) rotate(0deg);
+        }
+        82% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+          transform: translate(-28px, -390px) rotate(-6deg);
+        }
+      }
+
+      @keyframes filmSlideAway {
+        0% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+        78% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(560px) scale(0.985);
+        }
+      }
+
+      @keyframes stickerLiftAndStick {
+        0% {
+          opacity: 1;
+          transform: translateY(0) scale(1) rotate(0deg);
+          filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.08));
+        }
+        48% {
+          opacity: 1;
+          transform: translateY(-132px) scale(1.04) rotate(-1.4deg);
+          filter: drop-shadow(0 16px 18px rgba(0, 0, 0, 0.11));
+        }
+        78% {
+          opacity: 1;
+          transform: translateY(-118px) scale(1.015) rotate(0.6deg);
+          filter: drop-shadow(0 12px 14px rgba(0, 0, 0, 0.09));
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(-112px) scale(1) rotate(0deg);
+          filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.08));
+        }
+      }
+
+      @keyframes uiRiseIn {
+        from {
+          opacity: 0;
+          transform: translateY(18px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pressRelease {
+        from {
+          transform: translateY(var(--press-y)) scale(var(--press-scale));
+          filter: brightness(var(--press-dim));
+        }
+        to {
+          transform: translateY(0) scale(1);
+          filter: brightness(1);
+        }
+      }
+
+      @media (max-width: 420px) {
+        body {
+          background: #fff;
+        }
+
+        .phone {
+          width: 100vw;
+          height: 100vh;
+          border-radius: 0;
+          box-shadow: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 1ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 1ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" aria-label="贴纸袋打开动画">
+      <section class="unlock-screen" id="unlockScreen" aria-label="解锁贴纸">
+        <img class="bg" src="/assets/80676366eaf6215308a3d48c5f82e58a2eb85789244849466b630d17e413c851.png" alt="" />
+        <svg class="wave-dots" viewBox="0 0 393 852" aria-hidden="true">
+          <g id="dots"></g>
+        </svg>
+        <img class="status" src="/assets/ccb5ba29fdbd199cb6ed05e173b17d8c7c6310657c2f9c62b9664d4a4fc31ec5.png" alt="" />
+        <button class="close pressable" id="closeButton" type="button" aria-label="关闭并重播">
+          <img src="/assets/9b8b08b15166230863223a479492c1a800bc952974689d881d6f541b295f47ab.png" alt="" />
+        </button>
+        <img class="stage-layer bag-head" src="/assets/237ff48a2ea9dca376023fb9dc4b3c2ed4c3e05014d1438d6c790dcd2fe9a6ae.png" alt="" />
+        <img class="stage-layer bag-film" src="/assets/20f863442dc0bcec21e9d39506f1fb8f83ba72190bc88c58ee1a1a90ffcd5c44.png" alt="" />
+        <img class="sticker" src="/assets/d16d68657a4272f82adff739b9e248cd872548895233286f990b05bcbc3650ce.png" alt="" />
+        <div class="final-copy" aria-hidden="true">
+          <h1>解锁新贴纸</h1>
+          <p>“初次登场”</p>
+        </div>
+        <button class="primary pressable" type="button">收下贴纸</button>
+        <button class="share pressable" type="button">分享</button>
+      </section>
+
+      <section class="front-screen" id="frontScreen" aria-label="前置页面">
+        <img class="front-img" src="/assets/b58ede0597219e2b4c9b7a68f3afa4d6a660fed3a028a31a2ddac306896d002d.png" alt="" />
+        <button class="continue-hit pressable" id="continueButton" type="button" aria-label="继续"></button>
+      </section>
+
+      <audio id="unpackSound" src="/assets/acc00e66be5ed8b4c173e396a4263f95c3e446d775deb56b760174344a16150e.mp3" preload="auto"></audio>
+      <audio id="rewardSound" src="/assets/a17f815e9c75b010e04d666b010c36b632aef604d3a97e7bd0c6dafff64c0eca.mp3" preload="auto"></audio>
+    </main>
+
+    <script>const embeddedAssetMap={"assets/bg.png":"/assets/80676366eaf6215308a3d48c5f82e58a2eb85789244849466b630d17e413c851.png","assets/关闭.png":"/assets/9b8b08b15166230863223a479492c1a800bc952974689d881d6f541b295f47ab.png","assets/前置页面.png":"/assets/b58ede0597219e2b4c9b7a68f3afa4d6a660fed3a028a31a2ddac306896d002d.png","assets/拆包装.mp3":"/assets/acc00e66be5ed8b4c173e396a4263f95c3e446d775deb56b760174344a16150e.mp3","assets/状态栏.png":"/assets/ccb5ba29fdbd199cb6ed05e173b17d8c7c6310657c2f9c62b9664d4a4fc31ec5.png","assets/获得音效.mp3":"/assets/a17f815e9c75b010e04d666b010c36b632aef604d3a97e7bd0c6dafff64c0eca.mp3","assets/贴纸.png":"/assets/d16d68657a4272f82adff739b9e248cd872548895233286f990b05bcbc3650ce.png","assets/贴纸塑膜.png":"/assets/0cf28b377a5084cdd2b380d86723c6f8ba64c85b685ad411f955399d98e868a1.png","assets/贴纸塑膜2.png":"/assets/20f863442dc0bcec21e9d39506f1fb8f83ba72190bc88c58ee1a1a90ffcd5c44.png","assets/贴纸头.png":"/assets/4c4abeb32f76492fda535f70db6aad098a027bb42e594bc4e06a49a5a7634a6d.png","assets/贴纸头2.png":"/assets/237ff48a2ea9dca376023fb9dc4b3c2ed4c3e05014d1438d6c790dcd2fe9a6ae.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const frontScreen = document.querySelector("#frontScreen");
+      const unlockScreen = document.querySelector("#unlockScreen");
+      const continueButton = document.querySelector("#continueButton");
+      const closeButton = document.querySelector("#closeButton");
+      const unpackSound = document.querySelector("#unpackSound");
+      const rewardSound = document.querySelector("#rewardSound");
+      const pressables = document.querySelectorAll(".pressable");
+      const SVG_NS = "http://www.w3.org/2000/svg";
+      const dotsGroup = document.querySelector("#dots");
+      const waveCenter = { x: 196.5, y: 400.5 };
+      const dotItems = [];
+      const baseRadius = 1;
+      const baseColor = { r: 207, g: 207, b: 207 };
+      const peakColor = { r: 188, g: 218, b: 255 };
+      const waveConfig = {
+        startDelayMs: 2160,
+        repeatDelayMs: 700,
+        propagationMsPerPx: 2.9,
+        pulseMs: 2320,
+        radiusAdd: 2.6,
+        opacityBase: 1,
+        opacityPeak: 0.1,
+        visibleThreshold: 0.68,
+        globalEaseMix: 0.35,
+        rippleLayers: [
+          { delayMs: 0, strength: 1 },
+        ],
+      };
+      let resetTimer = 0;
+      let waveRaf = 0;
+      let waveStart = 0;
+      let waveTimer = 0;
+      let unpackSoundTimer = 0;
+      let rewardSoundTimer = 0;
+
+      function lerp(a, b, t) {
+        return a + (b - a) * t;
+      }
+
+      function easeInOutSine(t) {
+        return -(Math.cos(Math.PI * t) - 1) / 2;
+      }
+
+      function smoothstep(edge0, edge1, value) {
+        const t = Math.max(0, Math.min(1, (value - edge0) / (edge1 - edge0)));
+        return t * t * (3 - 2 * t);
+      }
+
+      function colorAt(amount) {
+        const r = Math.round(lerp(baseColor.r, peakColor.r, amount));
+        const g = Math.round(lerp(baseColor.g, peakColor.g, amount));
+        const b = Math.round(lerp(baseColor.b, peakColor.b, amount));
+        return `rgb(${r}, ${g}, ${b})`;
+      }
+
+      function createDotGrid() {
+        const fragment = document.createDocumentFragment();
+
+        for (let y = 3.5; y <= 848.5; y += 13) {
+          for (let x = 1.5; x <= 391.5; x += 13) {
+            const circle = document.createElementNS(SVG_NS, "circle");
+            circle.setAttribute("cx", x);
+            circle.setAttribute("cy", y);
+            circle.setAttribute("r", baseRadius);
+            circle.setAttribute("fill", "#CFCFCF");
+            circle.setAttribute("fill-opacity", waveConfig.opacityBase);
+            fragment.append(circle);
+
+            dotItems.push({
+              node: circle,
+              distance: Math.hypot(x - waveCenter.x, y - waveCenter.y),
+            });
+          }
+        }
+
+        dotsGroup.append(fragment);
+      }
+
+      function resetDots() {
+        dotItems.forEach(({ node }) => {
+          node.setAttribute("r", baseRadius);
+          node.setAttribute("fill", "#CFCFCF");
+          node.setAttribute("fill-opacity", waveConfig.opacityBase);
+        });
+      }
+
+      function animateWave(now) {
+        if (!waveStart) waveStart = now;
+        const elapsed = now - waveStart;
+        const maxDistance = 560;
+        const maxLayerDelay = Math.max(...waveConfig.rippleLayers.map((layer) => layer.delayMs));
+        const totalDuration = maxDistance * waveConfig.propagationMsPerPx + maxLayerDelay + waveConfig.pulseMs;
+        const linearProgress = Math.min(1, elapsed / totalDuration);
+        const easedElapsed = lerp(
+          elapsed,
+          totalDuration * easeInOutSine(linearProgress),
+          waveConfig.globalEaseMix
+        );
+        const { propagationMsPerPx, pulseMs, radiusAdd, opacityBase, opacityPeak, rippleLayers } = waveConfig;
+
+        dotItems.forEach(({ node, distance }) => {
+          const waveAmount = rippleLayers.reduce((amount, layer) => {
+            const local = easedElapsed - distance * propagationMsPerPx - layer.delayMs;
+
+            if (local < 0 || local > pulseMs) {
+              return amount;
+            }
+
+            const progress = local / pulseMs;
+            const bell = Math.sin(Math.PI * easeInOutSine(progress)) * layer.strength;
+            return Math.max(amount, bell);
+          }, 0);
+
+          const visibleAmount = smoothstep(waveConfig.visibleThreshold, 1, waveAmount);
+
+          if (visibleAmount <= 0) {
+            node.setAttribute("r", baseRadius);
+            node.setAttribute("fill", "#CFCFCF");
+            node.setAttribute("fill-opacity", opacityBase);
+            return;
+          }
+
+          const radius = baseRadius + radiusAdd * visibleAmount;
+          const opacity = lerp(opacityBase, opacityPeak, visibleAmount);
+
+          node.setAttribute("r", radius.toFixed(3));
+          node.setAttribute("fill", colorAt(visibleAmount));
+          node.setAttribute("fill-opacity", opacity.toFixed(3));
+        });
+
+        if (elapsed < totalDuration) {
+          waveRaf = requestAnimationFrame(animateWave);
+        } else {
+          resetDots();
+          waveStart = 0;
+          waveTimer = window.setTimeout(startWave, waveConfig.repeatDelayMs);
+        }
+      }
+
+      function startWave() {
+        resetDots();
+        unlockScreen.classList.add("is-waving");
+        waveStart = 0;
+        cancelAnimationFrame(waveRaf);
+        waveRaf = requestAnimationFrame(animateWave);
+      }
+
+      function scheduleWave() {
+        window.clearTimeout(waveTimer);
+        waveTimer = window.setTimeout(startWave, waveConfig.startDelayMs);
+      }
+
+      function stopWave() {
+        window.clearTimeout(waveTimer);
+        cancelAnimationFrame(waveRaf);
+        waveStart = 0;
+        unlockScreen.classList.remove("is-waving");
+        resetDots();
+      }
+
+      function resetSound(audio) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+
+      function stopSounds() {
+        window.clearTimeout(unpackSoundTimer);
+        window.clearTimeout(rewardSoundTimer);
+        resetSound(unpackSound);
+        resetSound(rewardSound);
+      }
+
+      function primeSound(audio, volume) {
+        audio.volume = 0;
+        const playPromise = audio.play();
+
+        if (!playPromise) {
+          audio.pause();
+          audio.currentTime = 0;
+          audio.volume = volume;
+          return;
+        }
+
+        playPromise
+          .then(() => {
+            audio.pause();
+            audio.currentTime = 0;
+            audio.volume = volume;
+          })
+          .catch(() => {
+            audio.volume = volume;
+          });
+      }
+
+      function playSound(audio, volume) {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.volume = volume;
+        audio.play().catch(() => {});
+      }
+
+      function prepareSounds() {
+        stopSounds();
+        primeSound(unpackSound, 0.9);
+        primeSound(rewardSound, 1);
+      }
+
+      function scheduleSounds() {
+        unpackSoundTimer = window.setTimeout(() => {
+          playSound(unpackSound, 0.9);
+        }, 1380);
+
+        rewardSoundTimer = window.setTimeout(() => {
+          playSound(rewardSound, 1);
+        }, 2800);
+      }
+
+      function releasePressed(button, delay = 0) {
+        window.setTimeout(() => {
+          button.classList.remove("is-pressing");
+          button.classList.remove("is-releasing");
+          button.offsetHeight;
+          button.classList.add("is-releasing");
+          window.setTimeout(() => {
+            button.classList.remove("is-releasing");
+          }, 320);
+        }, delay);
+      }
+
+      pressables.forEach((button) => {
+        button.addEventListener("pointerdown", (event) => {
+          button.classList.remove("is-releasing");
+          button.classList.add("is-pressing");
+          button.setPointerCapture?.(event.pointerId);
+        });
+
+        button.addEventListener("pointerup", () => releasePressed(button));
+        button.addEventListener("pointercancel", () => {
+          button.classList.remove("is-pressing", "is-releasing");
+        });
+        button.addEventListener("pointerleave", () => {
+          button.classList.remove("is-pressing");
+        });
+      });
+
+      function startUnlock() {
+        window.clearTimeout(resetTimer);
+        stopWave();
+        prepareSounds();
+        unlockScreen.classList.remove("is-active", "is-playing");
+        unlockScreen.offsetHeight;
+        unlockScreen.classList.add("is-active");
+        requestAnimationFrame(() => {
+          frontScreen.classList.add("is-exiting");
+          unlockScreen.classList.add("is-playing");
+          scheduleSounds();
+          scheduleWave();
+        });
+      }
+
+      function resetFlow() {
+        window.clearTimeout(resetTimer);
+        stopWave();
+        stopSounds();
+        unlockScreen.classList.remove("is-active", "is-playing");
+        frontScreen.classList.remove("is-exiting");
+        frontScreen.offsetHeight;
+      }
+
+      createDotGrid();
+      continueButton.addEventListener("click", startUnlock);
+      closeButton.addEventListener("click", resetFlow);
+    </script>
+  </body>
+</html>

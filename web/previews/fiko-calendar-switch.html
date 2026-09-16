@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fiko Calendar Switch</title>
+    <style>
+      :root {
+        --phone-width: 393px;
+        --phone-height: 852px;
+        --ink: #050505;
+        --muted: rgba(5, 5, 5, 0.42);
+        --paper: #fffef4;
+        --font-rounded: "Yuanti SC", "YouYuan", "PingFang SC", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        background: #111;
+        font-family: var(--font-rounded);
+      }
+
+      button {
+        font: inherit;
+        transform-origin: 50% 50%;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      button.is-pressing {
+        transform: translateY(var(--press-y, 1.5px)) scale(var(--press-scale, 0.965));
+        filter: brightness(var(--press-dim, 0.96));
+        transition:
+          transform 90ms cubic-bezier(0.2, 0, 0.2, 1),
+          filter 90ms ease;
+      }
+
+      button.is-releasing {
+        animation: pressRelease 320ms cubic-bezier(0.4, 0, 0.2, 1) both;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100vw, var(--phone-width));
+        height: min(100vh, var(--phone-height));
+        aspect-ratio: 393 / 852;
+        overflow: hidden;
+        border-radius: 32px;
+        background: #fff;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+        color: var(--ink);
+      }
+
+      .bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .calendar-shell {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 198px;
+        height: 96px;
+        overflow: hidden;
+        touch-action: pan-y;
+        cursor: grab;
+        user-select: none;
+      }
+
+      .calendar-shell.is-dragging {
+        cursor: grabbing;
+      }
+
+      .week-track {
+        width: 200%;
+        height: 100%;
+        display: flex;
+        transform: translateX(-50%);
+        transition: transform 430ms cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform;
+      }
+
+      .calendar-shell.is-dragging .week-track {
+        transition: none;
+      }
+
+      .week {
+        width: 50%;
+        height: 100%;
+        flex: 0 0 50%;
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        align-items: start;
+        padding: 0 28px;
+      }
+
+      .day {
+        position: relative;
+        height: 92px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: var(--ink);
+        cursor: pointer;
+        --press-scale: 0.94;
+        --press-y: 1px;
+        --press-over: 1;
+      }
+
+      .day-label {
+        position: absolute;
+        top: 3px;
+        left: 50%;
+        min-width: 32px;
+        height: 27px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        font-size: 17px;
+        font-weight: 900;
+        transform: translateX(-50%) scale(1);
+        transition:
+          color 180ms ease,
+          background 180ms ease,
+          transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .day.is-today:not(.is-selected) .day-label {
+        color: rgba(5, 5, 5, 0.72);
+        background: rgba(0, 0, 0, 0.06);
+      }
+
+      .day.is-selected .day-label {
+        color: #fff;
+        background: #000;
+        transform: translateX(-50%) scale(1);
+      }
+
+      .day.is-tapped .day-label {
+        animation: pillPop 280ms cubic-bezier(0.4, 0, 0.2, 1) both;
+      }
+
+      .day-marker {
+        position: absolute;
+        left: 50%;
+        top: 54px;
+        transform: translateX(-50%);
+      }
+
+      .day-marker.stamp {
+        width: 31px;
+        height: 31px;
+        background: url("/assets/10513f476b0dc0bfcd09c44ba81146dcdf159d939b94f3326b0a943d21490272.png") center / contain no-repeat;
+        opacity: 0.86;
+      }
+
+      .day-marker.dot {
+        width: 5px;
+        height: 5px;
+        margin-top: 4px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.25);
+      }
+
+      .content-panel {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 300px;
+        bottom: 0;
+        overflow: hidden;
+        border-radius: 28px 28px 0 0;
+        background: #fff;
+        box-shadow: 0 -1px 8px rgba(0, 0, 0, 0.035);
+      }
+
+      .content-inner {
+        position: absolute;
+        inset: 0;
+        padding: 31px 19px 0;
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .content-inner.is-changing {
+        animation: contentSwap 420ms cubic-bezier(0.4, 0, 0.2, 1) both;
+      }
+
+      .stat-row {
+        position: relative;
+        height: 76px;
+      }
+
+      .kcal {
+        position: absolute;
+        left: 6px;
+        top: 2px;
+        display: flex;
+        align-items: baseline;
+        gap: 1px;
+      }
+
+      .kcal strong {
+        font-size: 26px;
+        line-height: 1;
+        font-weight: 900;
+      }
+
+      .kcal span {
+        color: rgba(5, 5, 5, 0.34);
+        font-size: 15px;
+        font-weight: 900;
+      }
+
+      .progress {
+        position: absolute;
+        left: 168px;
+        top: 17px;
+        width: 176px;
+        height: 14px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.06);
+      }
+
+      .progress::before {
+        content: "";
+        position: absolute;
+        inset: 1px 8px 1px 0;
+        border-radius: inherit;
+        background:
+          repeating-linear-gradient(
+            -10deg,
+            rgba(255, 255, 255, 0.28) 0 2px,
+            rgba(255, 255, 255, 0) 2px 5px
+          ),
+          #050505;
+      }
+
+      .progress-stamp {
+        position: absolute;
+        right: 7px;
+        top: -7px;
+        width: 52px;
+        height: 52px;
+        background: url("/assets/10513f476b0dc0bfcd09c44ba81146dcdf159d939b94f3326b0a943d21490272.png") center / contain no-repeat;
+        filter: contrast(1.15);
+      }
+
+      .section-title {
+        position: absolute;
+        left: 7px;
+        top: 62px;
+        margin: 0;
+        font-size: 23px;
+        line-height: 1;
+        font-weight: 900;
+      }
+
+      .more {
+        position: absolute;
+        right: 11px;
+        top: 48px;
+        width: 47px;
+        height: 47px;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 50%;
+        background: #f5f5f5;
+        font-size: 24px;
+        font-weight: 900;
+        line-height: 1;
+        --press-scale: 0.93;
+        --press-y: 1px;
+        --press-over: 1;
+      }
+
+      .training-list {
+        display: grid;
+        gap: 13px;
+        margin-top: 22px;
+      }
+
+      .training-card {
+        position: relative;
+        min-height: 86px;
+        padding: 23px 31px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.045);
+        border-radius: 32px;
+        background: var(--paper);
+      }
+
+      .training-card h3 {
+        margin: 0 0 12px;
+        font-size: 20px;
+        line-height: 1;
+        font-weight: 900;
+      }
+
+      .training-card p {
+        margin: 0;
+        color: rgba(5, 5, 5, 0.48);
+        font-size: 15px;
+        font-weight: 900;
+      }
+
+      .training-card::after {
+        content: "今日\A达成";
+        position: absolute;
+        right: 7px;
+        bottom: -9px;
+        white-space: pre;
+        color: rgba(0, 0, 0, 0.06);
+        font-size: 26px;
+        line-height: 0.9;
+        font-weight: 900;
+        transform: rotate(-8deg);
+      }
+
+      .break-state {
+        height: 100%;
+        display: grid;
+        place-items: center;
+        padding-bottom: 110px;
+      }
+
+      .break-card {
+        width: 210px;
+        height: 162px;
+        display: grid;
+        place-items: center;
+        border-radius: 28px;
+        background: rgba(255, 255, 255, 0.9);
+      }
+
+      .break-card svg {
+        width: 170px;
+        height: 128px;
+        overflow: visible;
+      }
+
+      .break-card path,
+      .break-card circle,
+      .break-card line {
+        stroke: #050505;
+        stroke-width: 3.4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+
+      .break-card text {
+        font-family: var(--font-rounded);
+        font-size: 21px;
+        font-weight: 900;
+        fill: #050505;
+      }
+
+      @keyframes pillPop {
+        from {
+          transform: translateX(-50%) scale(0.88);
+        }
+        to {
+          transform: translateX(-50%) scale(1);
+        }
+      }
+
+      @keyframes contentSwap {
+        from {
+          opacity: 0;
+          transform: translateY(26px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pressRelease {
+        from {
+          transform: translateY(var(--press-y, 1.5px)) scale(var(--press-scale, 0.965));
+          filter: brightness(var(--press-dim, 0.96));
+        }
+        to {
+          transform: translateY(0) scale(1);
+          filter: brightness(1);
+        }
+      }
+
+      @media (max-width: 420px) {
+        body {
+          background: #fff;
+        }
+
+        .phone {
+          width: 100vw;
+          height: 100vh;
+          border-radius: 0;
+          box-shadow: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 1ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 1ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" aria-label="Fiko calendar switch animation">
+      <img class="bg" src="/assets/f16882ec327cf35ee3135ac2cd1c2dadf3d97ac3b2c05f7c3dab1e44f2af7f6f.png" alt="" />
+
+      <section class="calendar-shell" aria-label="周日历，可左右滑动切换周">
+        <div class="week-track" id="weekTrack"></div>
+      </section>
+
+      <section class="content-panel" aria-live="polite">
+        <div class="content-inner" id="contentInner"></div>
+      </section>
+    </main>
+
+    <script>const embeddedAssetMap={"assets/bg.png":"/assets/f16882ec327cf35ee3135ac2cd1c2dadf3d97ac3b2c05f7c3dab1e44f2af7f6f.png","assets/cat-stamp.png":"/assets/10513f476b0dc0bfcd09c44ba81146dcdf159d939b94f3326b0a943d21490272.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const weekTrack = document.querySelector("#weekTrack");
+      const calendarShell = document.querySelector(".calendar-shell");
+      const contentInner = document.querySelector("#contentInner");
+      const weeks = [
+        {
+          id: "last",
+          title: "上周",
+          days: [
+            { label: "一", marker: "dot", type: "break", kcal: 0 },
+            { label: "二", marker: "stamp", type: "done", kcal: 120 },
+            { label: "三", marker: null, type: "break", kcal: 0 },
+            { label: "四", marker: "stamp", type: "done", kcal: 180 },
+            { label: "五", marker: null, type: "break", kcal: 0 },
+            { label: "六", marker: "stamp", type: "done", kcal: 100 },
+            { label: "日", marker: "dot", type: "break", kcal: 0 },
+          ],
+        },
+        {
+          id: "current",
+          title: "本周",
+          days: [
+            { label: "一", marker: "dot", type: "break", kcal: 0 },
+            { label: "二", marker: "stamp", type: "done", kcal: 160 },
+            { label: "三", marker: null, type: "break", kcal: 0 },
+            { label: "四", marker: null, type: "break", kcal: 0 },
+            { label: "今", marker: "stamp", type: "today", kcal: 100, today: true },
+            { label: "六", marker: null, type: "break", kcal: 0 },
+            { label: "日", marker: "dot", type: "break", kcal: 0 },
+          ],
+        },
+      ];
+      const trainingNames = ["俯卧撑", "深蹲", "弓步蹲", "俯卧撑"];
+      let activeWeek = 1;
+      let selected = { week: 1, day: 4 };
+      let dragStartX = 0;
+      let dragX = 0;
+      let isDragging = false;
+      let tapTarget = null;
+      const pressReleaseMs = 320;
+
+      function releasePressable(button) {
+        if (!button || !button.classList.contains("is-pressing")) return;
+        button.classList.remove("is-pressing", "is-releasing");
+        void button.offsetWidth;
+        button.classList.add("is-releasing");
+        window.setTimeout(() => button.classList.remove("is-releasing"), pressReleaseMs);
+      }
+
+      function bindPressables(root = document) {
+        root.querySelectorAll("button").forEach((button) => {
+          if (button.dataset.pressBound) return;
+          button.dataset.pressBound = "true";
+
+          button.addEventListener("pointerdown", (event) => {
+            if (button.disabled || button.hidden) return;
+            button.classList.remove("is-releasing");
+            button.classList.add("is-pressing");
+            button.setPointerCapture?.(event.pointerId);
+          });
+
+          button.addEventListener("pointerup", () => {
+            releasePressable(button);
+          });
+
+          button.addEventListener("pointercancel", () => {
+            button.classList.remove("is-pressing", "is-releasing");
+          });
+
+          button.addEventListener("pointerleave", () => {
+            button.classList.remove("is-pressing");
+          });
+        });
+      }
+
+      function renderWeeks() {
+        weekTrack.innerHTML = weeks
+          .map(
+            (week, weekIndex) => `
+              <div class="week" data-week="${weekIndex}">
+                ${week.days
+                  .map(
+                    (day, dayIndex) => `
+                    <button
+                      class="day${day.today ? " is-today" : ""}"
+                      type="button"
+                      data-week="${weekIndex}"
+                      data-day="${dayIndex}"
+                      aria-label="${week.title}${day.label}"
+                    >
+                      <span class="day-label">${day.label}</span>
+                      ${
+                        day.marker
+                          ? `<span class="day-marker ${day.marker}" aria-hidden="true"></span>`
+                          : ""
+                      }
+                    </button>`
+                  )
+                  .join("")}
+              </div>`
+          )
+          .join("");
+
+        updateSelection();
+        bindPressables(weekTrack);
+      }
+
+      function updateWeekPosition(offsetPx = 0) {
+        const base = activeWeek * -50;
+        const offsetPercent = (offsetPx / calendarShell.clientWidth) * 50;
+        weekTrack.style.transform = `translateX(${base + offsetPercent}%)`;
+      }
+
+      function updateSelection() {
+        weekTrack.querySelectorAll(".day").forEach((button) => {
+          const matched =
+            Number(button.dataset.week) === selected.week &&
+            Number(button.dataset.day) === selected.day;
+          button.classList.toggle("is-selected", matched);
+          if (matched) {
+            button.classList.remove("is-tapped");
+            void button.offsetWidth;
+            button.classList.add("is-tapped");
+          } else {
+            button.classList.remove("is-tapped");
+          }
+        });
+      }
+
+      function selectDay(weekIndex, dayIndex) {
+        selected = { week: weekIndex, day: dayIndex };
+        updateSelection();
+        renderContent(true);
+      }
+
+      function switchWeek(nextWeek) {
+        activeWeek = Math.max(0, Math.min(weeks.length - 1, nextWeek));
+        weekTrack.style.transition = "";
+        updateWeekPosition(0);
+
+        if (selected.week !== activeWeek) {
+          selected = { week: activeWeek, day: Math.min(selected.day, 6) };
+          updateSelection();
+          renderContent(true);
+        }
+      }
+
+      function renderTraining(day, mode) {
+        const title =
+          mode === "today"
+            ? "今日训练 (1/5)"
+            : `${weeks[selected.week].title}${day.label}训练`;
+        const cards = trainingNames
+          .map(
+            (name) => `
+            <article class="training-card">
+              <h3>${name}</h3>
+              <p>60kcal</p>
+            </article>`
+          )
+          .join("");
+
+        return `
+          <div class="stat-row">
+            <div class="kcal"><strong>${day.kcal || 100}</strong><span>/100 kcal</span></div>
+            <div class="progress" aria-hidden="true"></div>
+            <div class="progress-stamp" aria-hidden="true"></div>
+            <h2 class="section-title">${title}</h2>
+            <button class="more" type="button" aria-label="更多">...</button>
+          </div>
+          <div class="training-list">${cards}</div>`;
+      }
+
+      function renderBreak() {
+        return `
+          <div class="break-state">
+            <div class="break-card" aria-label="休息日">
+              <svg viewBox="0 0 180 135" aria-hidden="true">
+                <text x="35" y="25" transform="rotate(-10 35 25)">Take a break</text>
+                <circle cx="63" cy="61" r="17"></circle>
+                <path d="M48 58c8 7 22 7 31 0"></path>
+                <path d="M50 70c-11 8-17 22-15 37"></path>
+                <path d="M73 72c12 12 15 27 9 41"></path>
+                <line x1="44" y1="101" x2="27" y2="117"></line>
+                <line x1="80" y1="106" x2="99" y2="121"></line>
+                <path d="M91 68c12-20 48-20 57 7 7 23-9 44-30 43-21-1-35-23-27-50z"></path>
+                <circle cx="119" cy="74" r="3"></circle>
+                <path d="M133 83c-5 5-12 5-17 0"></path>
+                <path d="M103 99c13 7 29 8 42 0"></path>
+              </svg>
+            </div>
+          </div>`;
+      }
+
+      function renderContent(animated = false) {
+        const day = weeks[selected.week].days[selected.day];
+        contentInner.classList.toggle("is-changing", false);
+        contentInner.innerHTML =
+          day.type === "today" || day.type === "done"
+            ? renderTraining(day, day.type)
+            : renderBreak();
+
+        if (animated) {
+          void contentInner.offsetWidth;
+          contentInner.classList.add("is-changing");
+        }
+
+        bindPressables(contentInner);
+      }
+
+      calendarShell.addEventListener("pointerdown", (event) => {
+        isDragging = true;
+        dragStartX = event.clientX;
+        dragX = 0;
+        tapTarget = event.target.closest(".day");
+        calendarShell.classList.add("is-dragging");
+        calendarShell.setPointerCapture(event.pointerId);
+      });
+
+      calendarShell.addEventListener("pointermove", (event) => {
+        if (!isDragging) return;
+        dragX = event.clientX - dragStartX;
+        const edgeBlocked =
+          (activeWeek === 0 && dragX > 0) ||
+          (activeWeek === weeks.length - 1 && dragX < 0);
+        updateWeekPosition(edgeBlocked ? dragX * 0.24 : dragX);
+      });
+
+      function finishDrag() {
+        if (!isDragging) return;
+        isDragging = false;
+        calendarShell.classList.remove("is-dragging");
+        releasePressable(tapTarget);
+
+        if (Math.abs(dragX) < 8 && tapTarget) {
+          updateWeekPosition(0);
+          selectDay(Number(tapTarget.dataset.week), Number(tapTarget.dataset.day));
+        } else if (Math.abs(dragX) > 54) {
+          switchWeek(activeWeek + (dragX < 0 ? 1 : -1));
+        } else {
+          updateWeekPosition(0);
+        }
+
+        tapTarget = null;
+      }
+
+      calendarShell.addEventListener("pointerup", finishDrag);
+      calendarShell.addEventListener("pointercancel", finishDrag);
+
+      renderWeeks();
+      updateWeekPosition();
+      updateSelection();
+      renderContent();
+      bindPressables();
+    </script>
+  </body>
+</html>

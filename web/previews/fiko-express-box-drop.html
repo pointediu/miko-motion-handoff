@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fiko 快递盒掉落</title>
+    <style>
+      :root {
+        --phone-width: 393px;
+        --phone-height: 852px;
+        --ink: #050505;
+        --muted: rgba(5, 5, 5, 0.32);
+        --soft: cubic-bezier(0.4, 0, 0.2, 1);
+        --font-rounded: "Yuanti SC", "YouYuan", "PingFang SC", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background: #111;
+        color: var(--ink);
+        font-family: var(--font-rounded);
+      }
+
+      button {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        font: inherit;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100vw, var(--phone-width));
+        height: min(100vh, var(--phone-height));
+        aspect-ratio: 393 / 852;
+        overflow: hidden;
+        border-radius: 32px;
+        background: #fff;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+      }
+
+      .screen {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+
+      .intro {
+        z-index: 2;
+        opacity: 1;
+        transform: translateX(0);
+        transition: opacity 360ms var(--soft), transform 360ms var(--soft);
+      }
+
+      .phone.is-detail .intro {
+        opacity: 0;
+        transform: translateX(-30px);
+        pointer-events: none;
+      }
+
+      .intro-shot,
+      .detail-bg,
+      .status-bar,
+      .back-icon,
+      .other-action,
+      .cat-figure,
+      .parcel {
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .intro-shot,
+      .detail-bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .stat-hotspot {
+        position: absolute;
+        left: 201px;
+        top: 306px;
+        width: 176px;
+        height: 224px;
+        border-radius: 30px;
+        cursor: pointer;
+      }
+
+      .stat-hotspot::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: rgba(0, 0, 0, 0.04);
+        opacity: 0;
+        transform: scale(0.98);
+        transition: opacity 160ms ease, transform 280ms var(--soft);
+      }
+
+      .stat-hotspot.is-pressing::after {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .detail {
+        z-index: 1;
+        opacity: 0;
+        transform: translateX(30px);
+        transition: opacity 360ms var(--soft), transform 360ms var(--soft);
+      }
+
+      .phone.is-detail .detail {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      .status-bar {
+        position: absolute;
+        z-index: 8;
+        top: 0;
+        left: 0;
+        width: 393px;
+        height: 44px;
+        object-fit: cover;
+      }
+
+      .back-button {
+        position: absolute;
+        z-index: 9;
+        top: 56px;
+        left: 15px;
+        width: 48px;
+        height: 48px;
+        border-radius: 17px;
+        background: rgba(246, 246, 246, 0.94);
+        cursor: pointer;
+        --press-scale: 0.93;
+        --press-y: 1px;
+      }
+
+      .back-icon {
+        display: block;
+        width: 40px;
+        height: 40px;
+        margin: 4px;
+        object-fit: contain;
+        pointer-events: none;
+      }
+
+      .replay-button {
+        position: absolute;
+        z-index: 9;
+        top: 68px;
+        right: 15px;
+        width: 73px;
+        height: 40px;
+        border-radius: 20px;
+        cursor: pointer;
+        --press-scale: 0.95;
+        --press-y: 1px;
+      }
+
+      .other-action {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        pointer-events: none;
+      }
+
+      .result-copy {
+        position: absolute;
+        z-index: 7;
+        top: 131px;
+        left: 17px;
+        right: 17px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        column-gap: 12px;
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      .detail.is-loaded .result-copy {
+        animation: copyIn 380ms var(--soft) 100ms both;
+      }
+
+      .label {
+        margin: 0 0 7px;
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1;
+        font-weight: 900;
+      }
+
+      .count {
+        display: flex;
+        align-items: baseline;
+        gap: 2px;
+        font-weight: 900;
+      }
+
+      .count-number {
+        font-size: 51px;
+        line-height: 0.95;
+      }
+
+      .count-unit {
+        font-size: 24px;
+        line-height: 1;
+      }
+
+      .result-equivalent {
+        margin: 0 0 9px;
+        font-size: 20px;
+        line-height: 1;
+        font-weight: 900;
+        text-align: right;
+      }
+
+      .parcel-layer {
+        position: absolute;
+        z-index: 5;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+      }
+
+      .parcel {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: var(--parcel-width);
+        height: auto;
+        opacity: 0;
+        transform-origin: 50% 52%;
+        will-change: opacity, transform;
+      }
+
+      .cat-figure {
+        position: absolute;
+        z-index: 4;
+        left: 29px;
+        bottom: 8px;
+        width: 335px;
+        height: 335px;
+        object-fit: contain;
+        transform-origin: 50% 78%;
+        pointer-events: none;
+      }
+
+      .cat-figure.is-hit {
+        animation: catImpact 360ms var(--soft) both;
+      }
+
+      .is-pressing {
+        transform: translateY(var(--press-y, 1.5px)) scale(var(--press-scale, 0.965));
+        filter: brightness(0.96);
+        transition: transform 90ms cubic-bezier(0.2, 0, 0.2, 1), filter 90ms ease;
+      }
+
+      .is-releasing {
+        animation: pressRelease 320ms var(--soft) both !important;
+      }
+
+      @keyframes copyIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @keyframes catImpact {
+        0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+        24% { transform: translateY(3px) rotate(var(--impact-rotate, -0.45deg)) scale(1.008, 0.988); }
+        55% { transform: translateY(-1px) rotate(var(--impact-return, 0.28deg)) scale(0.997, 1.006); }
+        78% { transform: translateY(0.5px) rotate(0deg) scale(1.002, 0.998); }
+      }
+
+      @keyframes pressRelease {
+        from { transform: translateY(var(--press-y, 1.5px)) scale(var(--press-scale, 0.965)); filter: brightness(0.96); }
+        to { transform: translateY(0) scale(1); filter: brightness(1); }
+      }
+
+      @media (max-width: 420px) {
+        body { background: #fff; }
+        .phone { width: 100vw; height: 100vh; border-radius: 0; box-shadow: none; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 1ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 1ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" id="phone" aria-label="快递盒掉落动画">
+      <section class="screen intro" aria-label="个人页">
+        <img class="intro-shot" src="/assets/382712690b3c152568eb149fec91b64f403ed9bc7b8dadbb67c8e9a4c70281d5.png" alt="个人页" />
+        <button class="stat-hotspot" id="statHotspot" type="button" aria-label="查看累计举重"></button>
+      </section>
+
+      <section class="screen detail" id="detailScreen" aria-label="累计举重详情">
+        <img class="detail-bg" src="/assets/a98351845a993d4b28e11cff9f30e7ed9748ffa2ac26bc45992968327255ed9d.png" alt="" />
+        <img class="status-bar" src="/assets/073bc67852a6dc5a0501da1287bcd750457616cf7e62f2e59adf4c3eb66f8673.png" alt="" />
+        <button class="back-button" id="backButton" type="button" aria-label="返回">
+          <img class="back-icon" src="/assets/00d8e77e8c7441a4d73ae28c8dcb0742b4751e3c4a4f1518ec2b2f56ebf4396e.png" alt="" />
+        </button>
+        <button class="replay-button" id="replayButton" type="button" aria-label="重新播放快递盒掉落">
+          <img class="other-action" src="/assets/77b9eb1827a82f8e0c79efc33bb8bacd9c55247df3b6e7396a3ecc9678f43578.png" alt="" />
+        </button>
+
+        <div class="result-copy">
+          <div>
+            <p class="label">累计「举重」</p>
+            <div class="count"><span class="count-number">100</span><span class="count-unit">次</span></div>
+          </div>
+          <p class="result-equivalent">≈拿了100个快递盒</p>
+        </div>
+
+        <div class="parcel-layer" id="parcelLayer" aria-hidden="true">
+          <img class="parcel" src="/assets/68f54ed08b573ffb2a13cec87891e52cf3072b147ea88b3fd795d47dc8a4c3cb.png" data-width="56" data-height="52.4" alt="" />
+          <img class="parcel" src="/assets/b0e34e80fc6e1cac0b2a93434a4162dcf41328facca2a185be5e12594e4f2174.png" data-width="54" data-height="65.2" alt="" />
+          <img class="parcel" src="/assets/825e2fef0200d513cd5c417d868d10ef0b5e14ac0baea7ec90e237788e72c567.png" data-width="44" data-height="48.4" alt="" />
+          <img class="parcel" src="/assets/def939ded4336ad4aca322778e5aa00a9e21014154d31305438c9970ae1bdb02.png" data-width="65" data-height="41.6" alt="" />
+          <img class="parcel" src="/assets/2e69286fc959b4f01edd4d107b858a697d8545ff590a57cf5b0d1be34f8c1f0e.png" data-width="70" data-height="51.2" alt="" />
+          <img class="parcel" src="/assets/825e2fef0200d513cd5c417d868d10ef0b5e14ac0baea7ec90e237788e72c567.png" data-width="48" data-height="52.8" alt="" />
+          <img class="parcel" src="/assets/68f54ed08b573ffb2a13cec87891e52cf3072b147ea88b3fd795d47dc8a4c3cb.png" data-width="61" data-height="57.1" alt="" />
+          <img class="parcel" src="/assets/2e69286fc959b4f01edd4d107b858a697d8545ff590a57cf5b0d1be34f8c1f0e.png" data-width="64" data-height="46.8" alt="" />
+          <img class="parcel" src="/assets/b0e34e80fc6e1cac0b2a93434a4162dcf41328facca2a185be5e12594e4f2174.png" data-width="50" data-height="60.3" alt="" />
+          <img class="parcel" src="/assets/def939ded4336ad4aca322778e5aa00a9e21014154d31305438c9970ae1bdb02.png" data-width="59" data-height="37.8" alt="" />
+        </div>
+
+        <img class="cat-figure" id="catFigure" src="/assets/69c61cea51834c166686e3d4610bef9b19cf9889b098faac26042019cfef67a9.png" alt="小猫举着快递容器" />
+      </section>
+    </main>
+
+    <script>const embeddedAssetMap={"assets/bg.png":"/assets/a98351845a993d4b28e11cff9f30e7ed9748ffa2ac26bc45992968327255ed9d.png","assets/image 1805.png":"/assets/2fc9b6250c2e0d0158622ce237bfe891304109bc63f9cc4a33ae92a7b89ebaa0.png","assets/image 1806.png":"/assets/505d3cf3d6d76f1ffdbd96ef4b91942f6e080cf2758ff456196d75517fbffafe.png","assets/image 1807.png":"/assets/5a017a5b7ba8e1ef2f97233ada7062634b62d5edcc226160e2a6307972829e49.png","assets/image 1808.png":"/assets/eca886444be35271281aeb8d29d1cc4887d856fbe7d6c5927f4a0eed33887f6a.png","assets/image 1809.png":"/assets/46314f1a4371462948228d7df54f7377a10b2966abda0607a13cfc93b76ff88e.png","assets/image 1811.png":"/assets/23cf21175f82345c44dfd952cc040265780e42dc8739b3334720679b5a3c6530.png","assets/image 1812.png":"/assets/b00fb2f4573b2f76750e4b11c772c6ada04880ec6b9276d2846b0d4e5410a49f.png","assets/image 1813.png":"/assets/69a0366c2ca15a54ce9921942930f0dd4d23d75cc443393e411e1ae7a320fd79.png","assets/image 1814.png":"/assets/1c147c86fa52e53e6e00c61489aee68bc71794e7a9a6dc3442244887a69f6cba.png","assets/image 1815.png":"/assets/7370c4d1361d0cbcb7557190615b384832e6d8d7c220a364cd473a0569466bca.png","assets/其他动作.png":"/assets/77b9eb1827a82f8e0c79efc33bb8bacd9c55247df3b6e7396a3ecc9678f43578.png","assets/前置页面.png":"/assets/382712690b3c152568eb149fec91b64f403ed9bc7b8dadbb67c8e9a4c70281d5.png","assets/底部猫猫.png":"/assets/c861869814d8f911a9f170dc17e44b7f50b1903507679309f5c2858820ec4998.png","assets/底部猫猫2.png":"/assets/69c61cea51834c166686e3d4610bef9b19cf9889b098faac26042019cfef67a9.png","assets/状态栏.png":"/assets/073bc67852a6dc5a0501da1287bcd750457616cf7e62f2e59adf4c3eb66f8673.png","assets/箱子01.png":"/assets/68f54ed08b573ffb2a13cec87891e52cf3072b147ea88b3fd795d47dc8a4c3cb.png","assets/箱子02.png":"/assets/b0e34e80fc6e1cac0b2a93434a4162dcf41328facca2a185be5e12594e4f2174.png","assets/箱子03.png":"/assets/825e2fef0200d513cd5c417d868d10ef0b5e14ac0baea7ec90e237788e72c567.png","assets/箱子04.png":"/assets/def939ded4336ad4aca322778e5aa00a9e21014154d31305438c9970ae1bdb02.png","assets/箱子05.png":"/assets/2e69286fc959b4f01edd4d107b858a697d8545ff590a57cf5b0d1be34f8c1f0e.png","assets/返回.png":"/assets/00d8e77e8c7441a4d73ae28c8dcb0742b4751e3c4a4f1518ec2b2f56ebf4396e.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const phone = document.querySelector("#phone");
+      const detailScreen = document.querySelector("#detailScreen");
+      const statHotspot = document.querySelector("#statHotspot");
+      const backButton = document.querySelector("#backButton");
+      const replayButton = document.querySelector("#replayButton");
+      const catFigure = document.querySelector("#catFigure");
+      const parcelNodes = [...document.querySelectorAll(".parcel")];
+
+      const physics = {
+        width: 393,
+        gravity: 1500,
+        floorY: 643,
+        containerTopY: 558,
+        leftWall: 53,
+        rightWall: 340,
+        restitution: 0.14,
+        collisionRestitution: 0.1,
+        friction: 0.62,
+        airDrag: 0.9985,
+        angularDamping: 0.988,
+        maxAngularVelocity: 2.7,
+        maxHorizontalVelocity: 440,
+        maxVerticalVelocity: 1500,
+        sleepLinearVelocity: 13,
+        sleepAngularVelocity: 0.14,
+        sleepFrames: 28,
+        solverPasses: 8,
+        substeps: 2,
+      };
+
+      const dropPlans = [
+        { x: 104, vx: 52, angle: -0.16, spin: 0.58, delay: 0 },
+        { x: 287, vx: -64, angle: 0.18, spin: -0.52, delay: 230 },
+        { x: 177, vx: 30, angle: -0.08, spin: 0.44, delay: 455 },
+        { x: 329, vx: -88, angle: 0.26, spin: -0.62, delay: 675 },
+        { x: 70, vx: 74, angle: -0.24, spin: 0.66, delay: 900 },
+        { x: 242, vx: -36, angle: 0.12, spin: -0.42, delay: 1120 },
+        { x: 132, vx: 48, angle: -0.3, spin: 0.72, delay: 1340 },
+        { x: 307, vx: -58, angle: 0.2, spin: -0.54, delay: 1570 },
+        { x: 205, vx: 22, angle: -0.12, spin: 0.46, delay: 1800 },
+        { x: 92, vx: 68, angle: 0.16, spin: -0.6, delay: 2035 },
+      ];
+
+      let bodies = [];
+      let dropRaf = 0;
+      let dropStart = 0;
+      let lastFrame = 0;
+      let screenTimer = 0;
+      let impactTimer = 0;
+      let lastImpactAt = 0;
+      let staticBodies = [];
+
+      function randomBetween(min, max) {
+        return min + Math.random() * (max - min);
+      }
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function dot(a, b) {
+        return a.x * b.x + a.y * b.y;
+      }
+
+      function cross(a, b) {
+        return a.x * b.y - a.y * b.x;
+      }
+
+      function createStaticBody(x, y, width, height, role) {
+        return {
+          x,
+          y,
+          width,
+          height,
+          angle: 0,
+          vx: 0,
+          vy: 0,
+          av: 0,
+          invMass: 0,
+          invInertia: 0,
+          isStatic: true,
+          role,
+        };
+      }
+
+      function createContainerBodies() {
+        const centerX = (physics.leftWall + physics.rightWall) / 2;
+        const wallTop = -320;
+        const centerY = (wallTop + physics.floorY) / 2;
+        staticBodies = [
+          createStaticBody(centerX, physics.floorY + 7, physics.rightWall - physics.leftWall + 14, 14, "floor"),
+          createStaticBody(physics.leftWall - 6, centerY, 12, physics.floorY - wallTop + 20, "left-wall"),
+          createStaticBody(physics.rightWall + 6, centerY, 12, physics.floorY - wallTop + 20, "right-wall"),
+        ];
+      }
+
+      function getAxes(body) {
+        const cosine = Math.cos(body.angle);
+        const sine = Math.sin(body.angle);
+        return [
+          { x: cosine, y: sine },
+          { x: -sine, y: cosine },
+        ];
+      }
+
+      function getVertices(body) {
+        const halfW = body.width / 2;
+        const halfH = body.height / 2;
+        const cosine = Math.cos(body.angle);
+        const sine = Math.sin(body.angle);
+        return [
+          { x: -halfW, y: -halfH },
+          { x: halfW, y: -halfH },
+          { x: halfW, y: halfH },
+          { x: -halfW, y: halfH },
+        ].map(point => ({
+          x: body.x + point.x * cosine - point.y * sine,
+          y: body.y + point.x * sine + point.y * cosine,
+        }));
+      }
+
+      function projectVertices(vertices, axis) {
+        let min = dot(vertices[0], axis);
+        let max = min;
+        for (let index = 1; index < vertices.length; index += 1) {
+          const projection = dot(vertices[index], axis);
+          min = Math.min(min, projection);
+          max = Math.max(max, projection);
+        }
+        return { min, max };
+      }
+
+      function pointInsideBody(point, body) {
+        const cosine = Math.cos(-body.angle);
+        const sine = Math.sin(-body.angle);
+        const dx = point.x - body.x;
+        const dy = point.y - body.y;
+        const localX = dx * cosine - dy * sine;
+        const localY = dx * sine + dy * cosine;
+        return Math.abs(localX) <= body.width / 2 + 0.5 && Math.abs(localY) <= body.height / 2 + 0.5;
+      }
+
+      function supportPoint(vertices, direction) {
+        return vertices.reduce((best, point) => dot(point, direction) > dot(best, direction) ? point : best);
+      }
+
+      function findCollision(a, b) {
+        const verticesA = getVertices(a);
+        const verticesB = getVertices(b);
+        const axes = [...getAxes(a), ...getAxes(b)];
+        let minimumOverlap = Infinity;
+        let normal = axes[0];
+
+        for (const axis of axes) {
+          const projectionA = projectVertices(verticesA, axis);
+          const projectionB = projectVertices(verticesB, axis);
+          const overlap = Math.min(projectionA.max, projectionB.max) - Math.max(projectionA.min, projectionB.min);
+          if (overlap <= 0) return null;
+          if (overlap < minimumOverlap) {
+            minimumOverlap = overlap;
+            normal = axis;
+          }
+        }
+
+        const centerDelta = { x: b.x - a.x, y: b.y - a.y };
+        if (dot(centerDelta, normal) < 0) normal = { x: -normal.x, y: -normal.y };
+
+        const contactCandidates = [
+          ...verticesA.filter(point => pointInsideBody(point, b)),
+          ...verticesB.filter(point => pointInsideBody(point, a)),
+        ];
+        let contact;
+        if (contactCandidates.length) {
+          contact = contactCandidates.reduce((sum, point) => ({ x: sum.x + point.x, y: sum.y + point.y }), { x: 0, y: 0 });
+          contact.x /= contactCandidates.length;
+          contact.y /= contactCandidates.length;
+        } else {
+          const pointA = supportPoint(verticesA, normal);
+          const pointB = supportPoint(verticesB, { x: -normal.x, y: -normal.y });
+          contact = { x: (pointA.x + pointB.x) / 2, y: (pointA.y + pointB.y) / 2 };
+        }
+
+        return { normal, overlap: minimumOverlap, contact };
+      }
+
+      function releasePressable(button) {
+        if (!button.classList.contains("is-pressing")) return;
+        button.classList.remove("is-pressing", "is-releasing");
+        void button.offsetWidth;
+        button.classList.add("is-releasing");
+        window.setTimeout(() => button.classList.remove("is-releasing"), 330);
+      }
+
+      function bindPressables() {
+        document.querySelectorAll("button").forEach(button => {
+          button.addEventListener("pointerdown", event => {
+            if (button.disabled) return;
+            button.classList.remove("is-releasing");
+            button.classList.add("is-pressing");
+            button.setPointerCapture?.(event.pointerId);
+          });
+          button.addEventListener("pointerup", () => releasePressable(button));
+          button.addEventListener("pointercancel", () => button.classList.remove("is-pressing", "is-releasing"));
+          button.addEventListener("pointerleave", () => button.classList.remove("is-pressing"));
+        });
+      }
+
+      function triggerCatImpact(body, strength = 1) {
+        const now = performance.now();
+        if (now - lastImpactAt < 115 || strength < 0.42) return;
+        lastImpactAt = now;
+        window.clearTimeout(impactTimer);
+        const direction = body.x < physics.width / 2 ? -1 : 1;
+        const rotation = clamp(0.3 + strength * 0.2, 0.35, 0.58) * direction;
+        catFigure.style.setProperty("--impact-rotate", `${rotation}deg`);
+        catFigure.style.setProperty("--impact-return", `${rotation * -0.55}deg`);
+        catFigure.classList.remove("is-hit");
+        void catFigure.offsetWidth;
+        catFigure.classList.add("is-hit");
+        impactTimer = window.setTimeout(() => catFigure.classList.remove("is-hit"), 370);
+      }
+
+      function createBodies() {
+        createContainerBodies();
+        bodies = parcelNodes.map((node, index) => {
+          const plan = dropPlans[index];
+          const naturalWidth = Number(node.dataset.width);
+          const width = naturalWidth;
+          const height = Number(node.dataset.height);
+          const x = clamp(plan.x + randomBetween(-13, 13), physics.leftWall + width / 2, physics.rightWall - width / 2);
+          node.style.setProperty("--parcel-width", `${width}px`);
+          const mass = Math.max(0.9, width * height / 1800);
+          const inertia = mass * (width * width + height * height) / 12;
+          return {
+            node,
+            width,
+            height,
+            mass,
+            invMass: 1 / mass,
+            inertia,
+            invInertia: 1 / inertia,
+            x,
+            y: -height - randomBetween(30, 180),
+            vx: plan.vx + randomBetween(-22, 22),
+            vy: 0,
+            angle: plan.angle + randomBetween(-0.08, 0.08),
+            av: plan.spin + randomBetween(-0.18, 0.18),
+            releaseAt: 410 + plan.delay + randomBetween(-25, 25),
+            active: false,
+            sleeping: false,
+            sleepCounter: 0,
+            supported: false,
+            hasHitContainer: false,
+          };
+        });
+      }
+
+      function renderBody(body) {
+        const left = body.x - body.width / 2;
+        const top = body.y - body.height / 2;
+        body.node.style.opacity = body.active ? "1" : "0";
+        body.node.style.transform = `translate3d(${left}px, ${top}px, 0) rotate(${body.angle}rad)`;
+      }
+
+      function resetBodies() {
+        window.cancelAnimationFrame(dropRaf);
+        dropStart = 0;
+        lastFrame = 0;
+        lastImpactAt = 0;
+        catFigure.classList.remove("is-hit");
+        createBodies();
+        bodies.forEach(renderBody);
+      }
+
+      function wakeBody(body) {
+        if (!body || body.isStatic) return;
+        body.sleeping = false;
+        body.sleepCounter = 0;
+      }
+
+      function bodyVelocityAtPoint(body, offset) {
+        return {
+          x: body.vx - body.av * offset.y,
+          y: body.vy + body.av * offset.x,
+        };
+      }
+
+      function applyImpulse(body, impulse, offset) {
+        if (body.isStatic || body.sleeping) return;
+        body.vx += impulse.x * body.invMass;
+        body.vy += impulse.y * body.invMass;
+        body.vx = clamp(body.vx, -physics.maxHorizontalVelocity, physics.maxHorizontalVelocity);
+        body.vy = clamp(body.vy, -physics.maxVerticalVelocity, physics.maxVerticalVelocity);
+        body.av += cross(offset, impulse) * body.invInertia;
+        body.av = clamp(body.av, -physics.maxAngularVelocity, physics.maxAngularVelocity);
+      }
+
+      function resolvePair(a, b) {
+        if ((!a.active && !a.isStatic) || (!b.active && !b.isStatic)) return;
+        if (a.sleeping && b.sleeping) return;
+        const collision = findCollision(a, b);
+        if (!collision) return;
+
+        const invA = a.isStatic || a.sleeping ? 0 : a.invMass;
+        const invB = b.isStatic || b.sleeping ? 0 : b.invMass;
+        const invSum = invA + invB;
+        if (!invSum) return;
+
+        const correction = Math.max(collision.overlap - 0.06, 0) * 0.32 / invSum;
+        if (invA) {
+          a.x -= collision.normal.x * correction * invA;
+          a.y -= collision.normal.y * correction * invA;
+        }
+        if (invB) {
+          b.x += collision.normal.x * correction * invB;
+          b.y += collision.normal.y * correction * invB;
+        }
+
+        if (!a.isStatic && collision.normal.y > 0.42) a.supported = true;
+        if (!b.isStatic && collision.normal.y < -0.42) b.supported = true;
+
+        const offsetA = { x: collision.contact.x - a.x, y: collision.contact.y - a.y };
+        const offsetB = { x: collision.contact.x - b.x, y: collision.contact.y - b.y };
+        const velocityA = bodyVelocityAtPoint(a, offsetA);
+        const velocityB = bodyVelocityAtPoint(b, offsetB);
+        const relativeVelocity = { x: velocityB.x - velocityA.x, y: velocityB.y - velocityA.y };
+        const normalVelocity = dot(relativeVelocity, collision.normal);
+        if (normalVelocity >= 0) return;
+
+        const raCrossN = cross(offsetA, collision.normal);
+        const rbCrossN = cross(offsetB, collision.normal);
+        const angularMass = raCrossN * raCrossN * (a.isStatic ? 0 : a.invInertia) +
+          rbCrossN * rbCrossN * (b.isStatic ? 0 : b.invInertia);
+        const restitution = a.isStatic || b.isStatic ? physics.restitution : physics.collisionRestitution;
+        const impulseMagnitude = -(1 + restitution) * normalVelocity / (invSum + angularMass);
+        const impulse = {
+          x: collision.normal.x * impulseMagnitude,
+          y: collision.normal.y * impulseMagnitude,
+        };
+        applyImpulse(a, { x: -impulse.x, y: -impulse.y }, offsetA);
+        applyImpulse(b, impulse, offsetB);
+
+        const tangentVelocity = {
+          x: relativeVelocity.x - normalVelocity * collision.normal.x,
+          y: relativeVelocity.y - normalVelocity * collision.normal.y,
+        };
+        const tangentLength = Math.hypot(tangentVelocity.x, tangentVelocity.y);
+        if (tangentLength > 0.001) {
+          const tangent = { x: tangentVelocity.x / tangentLength, y: tangentVelocity.y / tangentLength };
+          const raCrossT = cross(offsetA, tangent);
+          const rbCrossT = cross(offsetB, tangent);
+          const tangentMass = invSum + raCrossT * raCrossT * (a.isStatic ? 0 : a.invInertia) +
+            rbCrossT * rbCrossT * (b.isStatic ? 0 : b.invInertia);
+          const frictionMagnitude = clamp(-dot(relativeVelocity, tangent) / tangentMass, -impulseMagnitude * physics.friction, impulseMagnitude * physics.friction);
+          const frictionImpulse = { x: tangent.x * frictionMagnitude, y: tangent.y * frictionMagnitude };
+          applyImpulse(a, { x: -frictionImpulse.x, y: -frictionImpulse.y }, offsetA);
+          applyImpulse(b, frictionImpulse, offsetB);
+        }
+
+        if ((a.sleeping || b.sleeping) && Math.abs(normalVelocity) > 26) {
+          wakeBody(a);
+          wakeBody(b);
+        }
+
+        const staticBody = a.isStatic ? a : b.isStatic ? b : null;
+        const impactBody = a.isStatic ? b : a;
+        if (staticBody && Math.abs(normalVelocity) > 90) {
+          triggerCatImpact(impactBody, clamp(Math.abs(normalVelocity) / 460, 0.43, 1));
+          impactBody.hasHitContainer = true;
+        } else if (!staticBody && collision.contact.y > 505 && Math.abs(normalVelocity) > 105) {
+          triggerCatImpact(a.y > b.y ? a : b, clamp(Math.abs(normalVelocity) / 430, 0.43, 0.84));
+        }
+      }
+
+      function solveCollisions() {
+        for (let index = 0; index < bodies.length; index += 1) {
+          const body = bodies[index];
+          if (!body.active) continue;
+          staticBodies.forEach(staticBody => resolvePair(body, staticBody));
+          for (let otherIndex = index + 1; otherIndex < bodies.length; otherIndex += 1) {
+            resolvePair(body, bodies[otherIndex]);
+          }
+        }
+      }
+
+      function stepDrop(now) {
+        if (!dropStart) {
+          dropStart = now;
+          lastFrame = now;
+        }
+        const elapsed = now - dropStart;
+        const dt = Math.min((now - lastFrame) / 1000, 1 / 30);
+        lastFrame = now;
+
+        bodies.forEach(body => {
+          if (!body.active && elapsed >= body.releaseAt) {
+            body.active = true;
+            body.node.style.transition = "opacity 90ms ease";
+          }
+          if (!body.active) return;
+          if (body.sleeping) return;
+        });
+
+        const subDt = dt / physics.substeps;
+        for (let substep = 0; substep < physics.substeps; substep += 1) {
+          bodies.forEach(body => {
+            if (!body.active || body.sleeping) return;
+            body.supported = false;
+            body.vy += physics.gravity * subDt;
+            body.x += body.vx * subDt;
+            body.y += body.vy * subDt;
+            body.angle += body.av * subDt;
+            body.vx *= Math.pow(physics.airDrag, subDt * 60);
+            body.vy *= Math.pow(physics.airDrag, subDt * 60);
+            body.vx = clamp(body.vx, -physics.maxHorizontalVelocity, physics.maxHorizontalVelocity);
+            body.vy = clamp(body.vy, -physics.maxVerticalVelocity, physics.maxVerticalVelocity);
+            body.av *= Math.pow(physics.angularDamping, subDt * 60);
+            body.av = clamp(body.av, -physics.maxAngularVelocity, physics.maxAngularVelocity);
+          });
+          for (let pass = 0; pass < physics.solverPasses; pass += 1) solveCollisions();
+        }
+
+        let settled = true;
+        bodies.forEach(body => {
+          if (!body.active) {
+            settled = false;
+            renderBody(body);
+            return;
+          }
+          if (!body.sleeping) {
+            const linearSpeed = Math.hypot(body.vx, body.vy);
+            const slow = linearSpeed < physics.sleepLinearVelocity && Math.abs(body.av) < physics.sleepAngularVelocity;
+            if (slow && body.supported) {
+              body.sleepCounter += 1;
+              body.vx *= 0.78;
+              body.vy *= 0.62;
+              body.av *= 0.74;
+              if (body.sleepCounter >= physics.sleepFrames) {
+                body.vx = 0;
+                body.vy = 0;
+                body.av = 0;
+                body.sleeping = true;
+              } else {
+                settled = false;
+              }
+            } else {
+              body.sleepCounter = 0;
+              settled = false;
+            }
+          }
+          renderBody(body);
+        });
+
+        if (elapsed < 14000 && !settled) {
+          dropRaf = window.requestAnimationFrame(stepDrop);
+        }
+      }
+
+      function startDrop() {
+        resetBodies();
+        dropRaf = window.requestAnimationFrame(stepDrop);
+      }
+
+      function showDetail() {
+        window.clearTimeout(screenTimer);
+        detailScreen.classList.remove("is-loaded");
+        phone.classList.add("is-detail");
+        screenTimer = window.setTimeout(() => {
+          void detailScreen.offsetWidth;
+          detailScreen.classList.add("is-loaded");
+          startDrop();
+        }, 280);
+      }
+
+      function showIntro() {
+        window.clearTimeout(screenTimer);
+        window.cancelAnimationFrame(dropRaf);
+        detailScreen.classList.remove("is-loaded");
+        phone.classList.remove("is-detail");
+        resetBodies();
+      }
+
+      statHotspot.addEventListener("click", showDetail);
+      backButton.addEventListener("click", showIntro);
+      replayButton.addEventListener("click", startDrop);
+      bindPressables();
+      resetBodies();
+    </script>
+  </body>
+</html>

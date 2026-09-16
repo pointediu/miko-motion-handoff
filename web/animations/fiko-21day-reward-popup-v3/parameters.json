@@ -1,0 +1,277 @@
+{
+  "id": "fiko-21day-reward-popup-v3",
+  "durationMs": 1500,
+  "figmaNode": "37:28417",
+  "canvas": {
+    "widthPt": 393,
+    "heightPt": 852
+  },
+  "layout": {
+    "card": {
+      "x": 36.5,
+      "y": 219,
+      "width": 321,
+      "height": 415,
+      "radius": 32
+    },
+    "heading": {
+      "x": 76.5,
+      "y": 251,
+      "width": 241,
+      "height": 24
+    },
+    "title": {
+      "x": 76.5,
+      "y": 283,
+      "width": 241,
+      "height": 36
+    },
+    "stage": {
+      "x": 97,
+      "y": 335,
+      "width": 200,
+      "height": 200,
+      "radius": 26.556
+    },
+    "prize": {
+      "x": 107.283203125,
+      "y": 345,
+      "width": 180,
+      "height": 180
+    },
+    "button": {
+      "x": 88,
+      "y": 554,
+      "width": 220,
+      "height": 60,
+      "radius": 26
+    },
+    "close": {
+      "x": 301.5,
+      "y": 235,
+      "width": 40,
+      "height": 40
+    }
+  },
+  "easing": {
+    "name": "easeOutCubic",
+    "formula": "1 - (1 - progress)^3",
+    "swiftUI": "Animation.timingCurve(0.333333, 1, 0.666667, 1, duration: seconds)"
+  },
+  "tracks": {
+    "maskOpacity": [
+      [
+        0,
+        0
+      ],
+      [
+        220,
+        0.5
+      ]
+    ],
+    "cardOpacity": [
+      [
+        0,
+        0
+      ],
+      [
+        280,
+        1
+      ]
+    ],
+    "cardScale": [
+      [
+        0,
+        0.94
+      ],
+      [
+        420,
+        1
+      ]
+    ],
+    "cardY": [
+      [
+        0,
+        0
+      ]
+    ],
+    "shellWidth": [
+      [
+        0,
+        321
+      ]
+    ],
+    "shellHeight": [
+      [
+        0,
+        415
+      ]
+    ],
+    "shellRadius": [
+      [
+        0,
+        32
+      ]
+    ],
+    "contentOpacity": [
+      [
+        0,
+        1
+      ]
+    ],
+    "toastOpacity": [
+      [
+        0,
+        0
+      ]
+    ],
+    "headingOpacity": [
+      [
+        0,
+        0
+      ],
+      [
+        100,
+        0
+      ],
+      [
+        340,
+        1
+      ]
+    ],
+    "headingY": [
+      [
+        0,
+        6
+      ],
+      [
+        100,
+        6
+      ],
+      [
+        380,
+        0
+      ]
+    ],
+    "titleOpacity": [
+      [
+        0,
+        0
+      ],
+      [
+        180,
+        0
+      ],
+      [
+        460,
+        1
+      ]
+    ],
+    "titleY": [
+      [
+        0,
+        8
+      ],
+      [
+        180,
+        8
+      ],
+      [
+        500,
+        0
+      ]
+    ],
+    "buttonOpacity": [
+      [
+        0,
+        0
+      ],
+      [
+        340,
+        0
+      ],
+      [
+        620,
+        1
+      ]
+    ],
+    "buttonY": [
+      [
+        0,
+        10
+      ],
+      [
+        340,
+        10
+      ],
+      [
+        680,
+        0
+      ]
+    ],
+    "buttonScale": [
+      [
+        0,
+        0.98
+      ],
+      [
+        340,
+        0.98
+      ],
+      [
+        680,
+        1
+      ]
+    ],
+    "closeOpacity": [
+      [
+        0,
+        0
+      ],
+      [
+        260,
+        0
+      ],
+      [
+        460,
+        1
+      ]
+    ]
+  },
+  "confetti": {
+    "count": 0
+  },
+  "interaction": {
+    "autoplay": true,
+    "replay": "交付页「重播 / 刷新」；关闭后点击原活动页礼物入口",
+    "closeDurationMs": 160,
+    "buttonPress": {
+      "downMs": 90,
+      "releaseMs": 200,
+      "scale": 0.97,
+      "translateYPt": 1.5
+    },
+    "viewPrize": "dispatch reward:view-prize; production navigation supplied by host",
+    "buttonReadyMs": 440
+  },
+  "reducedMotion": {
+    "durationMs": 180,
+    "particles": false,
+    "scale": false,
+    "rotation": false,
+    "translation": false
+  },
+  "haptics": {
+    "enabledInWebPreview": false,
+    "recommendation": "optional, supplied by host"
+  },
+  "sourceOfValues": {
+    "layout": "Figma 37:28417",
+    "animation": "Authored V3 fade and scale, staggered text and button; image static within container."
+  },
+  "version": 3,
+  "name": "淡入缩放",
+  "imagePolicy": "No independent image transform, fade, curl or particles. Original image is fixed in the content group and only revealed by its parent.",
+  "curveByTrack": {},
+  "spring": null
+}

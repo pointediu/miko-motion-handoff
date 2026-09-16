@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Miko 21天活动 · 练后日历盖章</title>
+    <style>
+      * { box-sizing: border-box; }
+      [hidden] { display: none !important; }
+      html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+      body { background: #fff; font-family: "STBaoYuan-SC", "Yuanti SC", "PingFang SC", sans-serif; font-weight: 700; }
+      button { font: inherit; -webkit-tap-highlight-color: transparent; }
+      img { display: block; user-select: none; -webkit-user-drag: none; pointer-events: none; }
+      .phone {
+        position: absolute; left: 50%; top: 50%; width: 393px; height: 852px;
+        overflow: hidden; border-radius: 32px; outline: 1px solid #dedede; background: #fff;
+        transform: translate(-50%, -50%) scale(var(--phone-scale, 1)); transform-origin: center;
+      }
+      .activity, .training { position: absolute; inset: 0; }
+      .training { z-index: 3; background: #fff; }
+      .training img { width: 393px; height: 852px; }
+      .viewport { position: absolute; inset: 0; overflow: hidden; overscroll-behavior: contain; scrollbar-width: none; }
+      .viewport::-webkit-scrollbar { display: none; }
+      .phone[data-phase="complete"] .viewport { overflow-y: auto; }
+      .content { position: relative; width: 393px; height: 1365px; }
+      .kv { position: absolute; left: 0; top: 0; width: 393px; height: 852px; }
+      .rules {
+        position: absolute; top: 148px; left: 0; width: 44px; height: 28px;
+        display: grid; place-items: center; border-radius: 0 12px 12px 0;
+        background: #fff; color: #000; font-size: 14px; line-height: 20px;
+      }
+      .navigation {
+        position: absolute; left: 0; top: 0; width: 393px; height: 92px; z-index: 2;
+        background: url("/assets/c783e6d184d7a074e763b85f18219b9db37fe13ac88fd1a74685d1e5f2c9d73d.png") 0 0 / 393px 852px no-repeat;
+      }
+      .navigation::after {
+        content: ""; position: absolute; left: 0; top: 100%; width: 100%; height: 28px;
+        background: inherit; background-position: 0 -92px; pointer-events: none;
+        -webkit-mask-image: linear-gradient(to bottom, #000, transparent);
+        mask-image: linear-gradient(to bottom, #000, transparent);
+      }
+      .navigation img { width: 393.5px; height: 92px; }
+      .back { position: absolute; left: 16.5px; top: 48px; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 16px; background: transparent; cursor: pointer; }
+      button:focus-visible { outline: 3px solid #006dff; outline-offset: 4px; }
+      .calendar {
+        position: absolute; left: 15px; top: 203.544px; width: 361px; height: 500px;
+        border: 1px solid #ededed; border-radius: 24px; background: #fff;
+        box-shadow: 0 8px 12px rgba(23, 24, 26, 0.12); transform-origin: center;
+      }
+      .summary { position: absolute; left: 30px; right: 30px; top: 20px; height: 32px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+      .summary p { display: flex; align-items: baseline; gap: 4px; margin: 0; color: #222; font-size: 16px; line-height: 24px; white-space: nowrap; }
+      .summary strong { color: #9bc5ff; font-size: 26px; line-height: 32px; font-weight: 700; }
+      .summary time { color: #bababa; font-size: 12px; line-height: 16px; white-space: nowrap; }
+      .weekdays { position: absolute; top: 71px; left: 18.5px; width: 322px; height: 24px; display: grid; grid-template-columns: repeat(7, 46px); }
+      .weekdays span { display: grid; place-items: center; color: #bababa; font-size: 14px; line-height: 20px; }
+      .activity-band { position: absolute; height: 68px; border-radius: 12px; background: #f1f7ff; }
+      .activity-band:nth-child(1) { left: 155px; top: 105px; width: 184px; }
+      .activity-band:nth-child(2) { left: 17px; top: 183px; width: 322px; }
+      .activity-band:nth-child(3) { left: 17px; top: 261px; width: 322px; }
+      .activity-band:nth-child(4) { left: 17px; top: 339px; width: 138px; }
+      .dates { position: absolute; top: 111px; left: 18.5px; width: 322px; display: grid; grid-template-columns: repeat(7, 46px); grid-auto-rows: 62px; row-gap: 16px; }
+      .day { position: relative; width: 46px; height: 62px; text-align: center; color: #222; font-size: 14px; line-height: 20px; }
+      .day.outside { color: #bababa; }
+      .day-number { height: 16px; display: block; }
+      .day-visual { position: absolute; left: 0; top: 16px; width: 46px; height: 46px; transform-origin: center; }
+      .day img { width: 46px; height: 46px; }
+      .day[data-earned="true"] .day-mark { width: 34px; height: 34px; margin: 0 auto; }
+      .reward-earned {
+        position: absolute; left: 4px; top: 35px; width: 38px; height: 14px;
+        display: grid; place-items: center; border-radius: 4px;
+        background: #e6f4ec; color: #17633e;
+        font: 600 10px/14px "PingFang SC", sans-serif; white-space: nowrap;
+      }
+      .stamp { position: absolute; left: 0; top: 16px; width: 46px; height: 46px; z-index: 1; transform-origin: center; }
+      .stamp img { position: absolute; inset: 0; }
+      .stamp-dark { opacity: 0; filter: brightness(0); }
+      .action { position: absolute; left: 86px; top: 727.544px; width: 220px; height: 60px; padding: 0; border: 0; border-radius: 26px; background: #000; color: #fff; font-size: 20px; line-height: 28px; cursor: default; }
+      .phone[data-stamped="true"] .action { background: #aaa; }
+      .rewards { position: absolute; left: 0; top: 803.544px; width: 393px; height: 561.456px; overflow: hidden; }
+      .rewards img { width: 393px; height: 852px; }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+    </style>
+  </head>
+  <body>
+    <main class="phone" data-phase="training" data-checked-days="4" aria-label="21天活动练后日历盖章">
+      <section class="activity" aria-label="已参与活动页" aria-hidden="true" inert>
+        <div class="viewport">
+          <div class="content">
+            <h1 class="sr-only">21天养人计划</h1>
+            <img class="kv" src="/assets/c783e6d184d7a074e763b85f18219b9db37fe13ac88fd1a74685d1e5f2c9d73d.png" alt="" />
+            <span class="rules">规则</span>
+            <section class="calendar" aria-label="2026年10月活动日历">
+              <div class="summary"><p>已连续打卡 <strong class="streak-count">4</strong> 天</p><time datetime="2026-10-05">今天 10/05</time></div>
+              <div aria-hidden="true"><div class="activity-band"></div><div class="activity-band"></div><div class="activity-band"></div><div class="activity-band"></div></div>
+              <div class="weekdays" aria-hidden="true"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+              <div class="dates" role="list" aria-label="打卡日期"></div>
+            </section>
+            <button class="action" type="button" disabled>完成今日训练</button>
+            <section class="rewards" aria-label="打卡里程碑与活动奖励"><img src="/assets/8604c7404882273d252e6a6524424eed695780aae5397f33da8fcab6526b302d.png" alt="打卡里程碑：贴纸、握力器和包" /></section>
+          </div>
+        </div>
+        <header class="navigation" aria-label="顶部导航">
+          <img src="/assets/6bd994ffa8e91b8c60e66c166351ec46031088bf416bcebea3cecf91b13011f8.png" alt="9:41，返回，活动奖励，分享" />
+          <button class="back" type="button" aria-label="返回跟练页" title="返回跟练页"></button>
+        </header>
+      </section>
+      <section class="training" aria-label="前置跟练页"><img src="/assets/eee62bf729c07491770edc72ec6d7eae5938d3dc0102f047a9211352081379b3.png" alt="弓步蹲，第10/10个动作，剩余00:01，99 kcal" /></section>
+      <div class="sr-only" role="status" aria-live="polite"></div>
+    </main>
+    <script>const embeddedAssetMap={"assets/day-checked.png":"/assets/d0d589e7a8069910d127f827ea1c378185ea176798c908027139d84b38815148.png","assets/day-empty.png":"/assets/b3a6f32b4d6948a377689ab99a7498c63b1e1ed41747284c6c7438922408163b.png","assets/kv-joined.png":"/assets/c783e6d184d7a074e763b85f18219b9db37fe13ac88fd1a74685d1e5f2c9d73d.png","assets/navigation.png":"/assets/6bd994ffa8e91b8c60e66c166351ec46031088bf416bcebea3cecf91b13011f8.png","assets/prize-bag.png":"/assets/a2985858f7bea4f8665e027b9488f4767ecc58dc8c0db13397f5f4a54103d859.png","assets/prize-grip.png":"/assets/c4d04ad6baa9ee1db3963b6df8887d281c5c1835476a73ddc695526283a78c5f.png","assets/prize-sticker.png":"/assets/70d6eb909f0853b88675191711fbe12fbb64675cd9bc0eb6e6dfb503cd9e2511.png","assets/rewards.png":"/assets/8604c7404882273d252e6a6524424eed695780aae5397f33da8fcab6526b302d.png","assets/training.png":"/assets/eee62bf729c07491770edc72ec6d7eae5938d3dc0102f047a9211352081379b3.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const TIMING = { training: 2000, transition: 360, settle: 240, stamp: 640, impact: 680, neighbor: 520 };
+      const STAMP_CONTACT_PROGRESS = 0.6;
+      const STAMP_START_TRANSFORM = "perspective(800px) translateZ(640px) rotate(-10deg)";
+      const STAMP_REST = "perspective(800px) translateZ(0)";
+      const CARD_REST = "scale(1)";
+      // Keep the makeup stamp's contact and rebound; the card responds independently.
+      const STAMP_FRAMES = [
+        { opacity: 0, transform: STAMP_START_TRANSFORM, offset: 0, easing: "cubic-bezier(0.25, 0.46, 0.45, 0.94)" },
+        { opacity: 1, transform: "perspective(800px) translateZ(600px) rotate(-8deg)", offset: 0.12, easing: "cubic-bezier(0.55, 0.055, 0.675, 0.19)" },
+        { opacity: 1, transform: "perspective(800px) translateZ(0) rotate(0deg) scale(1.12, 0.84)", offset: STAMP_CONTACT_PROGRESS, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
+        { opacity: 1, transform: "perspective(800px) translateZ(0) rotate(0deg) scale(0.96, 1.08)", offset: 0.78, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
+        { opacity: 1, transform: STAMP_REST, offset: 1 },
+      ];
+      const CARD_FRAMES = [
+        { transform: CARD_REST, offset: 0, easing: "cubic-bezier(0.37, 0, 0.63, 1)" },
+        { transform: "scale(0.98)", offset: 0.35, easing: "cubic-bezier(0.37, 0, 0.63, 1)" },
+        { transform: CARD_REST, offset: 1 },
+      ];
+      const phone = document.querySelector(".phone");
+      const training = document.querySelector(".training");
+      const activity = document.querySelector(".activity");
+      const viewport = document.querySelector(".viewport");
+      const calendar = document.querySelector(".calendar");
+      const dates = document.querySelector(".dates");
+      const action = document.querySelector(".action");
+      const count = document.querySelector(".streak-count");
+      const status = document.querySelector('[role="status"]');
+      const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+      const animations = new Set();
+      const pausedAnimations = new Set();
+      let generation = 0;
+      let ready = false;
+      const normalizeDay = (value) => Number.isFinite(Number(value)) ? Math.max(1, Math.min(31, Math.trunc(Number(value)))) : 5;
+      let stampDay = normalizeDay(document.documentElement.dataset.stampDay ?? new URLSearchParams(location.search).get("stampDay") ?? 5);
+      const dayCells = [];
+      let target;
+      const prizes = {
+        3: { src: "/assets/70d6eb909f0853b88675191711fbe12fbb64675cd9bc0eb6e6dfb503cd9e2511.png", label: "贴纸奖励" },
+        7: { src: "/assets/c4d04ad6baa9ee1db3963b6df8887d281c5c1835476a73ddc695526283a78c5f.png", label: "握力器奖励" },
+        21: { src: "/assets/a2985858f7bea4f8665e027b9488f4767ecc58dc8c0db13397f5f4a54103d859.png", label: "包奖励" },
+      };
+      const monthStart = new Date(Date.UTC(2026, 9, 1));
+      const mondayOffset = (monthStart.getUTCDay() + 6) % 7;
+      for (let index = 0; index < 35; index += 1) {
+        const date = new Date(Date.UTC(2026, 9, 1 - mondayOffset + index));
+        const day = date.getUTCDate();
+        const inMonth = date.getUTCMonth() === 9;
+        const checked = inMonth && day < stampDay;
+        const prize = inMonth ? prizes[day] : null;
+        const cell = document.createElement("div");
+        cell.className = inMonth ? "day" : "day outside";
+        cell.setAttribute("role", "listitem");
+        cell.setAttribute("aria-label", `${date.getUTCMonth() + 1}月${day}日${checked ? "，已打卡" : ""}${prize ? `，${prize.label}，${checked ? "已获得" : "未获得"}` : ""}`);
+        if (inMonth) { cell.dataset.day = String(day); cell.dataset.checked = String(checked); }
+        const number = document.createElement("span");
+        number.className = "day-number";
+        number.textContent = String(day);
+        number.setAttribute("aria-hidden", "true");
+        cell.append(number);
+        if (inMonth) {
+          const visual = document.createElement("span");
+          visual.className = "day-visual";
+          const mark = document.createElement("img");
+          mark.className = "day-mark";
+          mark.src = prize ? prize.src : checked ? "/assets/d0d589e7a8069910d127f827ea1c378185ea176798c908027139d84b38815148.png" : "/assets/b3a6f32b4d6948a377689ab99a7498c63b1e1ed41747284c6c7438922408163b.png";
+          mark.alt = "";
+          if (prize) { mark.dataset.prize = String(day); cell.dataset.earned = String(checked); }
+          visual.append(mark);
+          let earned = null;
+          if (prize) {
+            earned = document.createElement("span");
+            earned.className = "reward-earned";
+            earned.textContent = "已获得";
+            earned.hidden = !checked;
+            earned.setAttribute("aria-hidden", "true");
+            visual.append(earned);
+          }
+          cell.append(visual);
+          dayCells.push({ day, cell, visual, mark, prize, earned, row: Math.floor(index / 7), column: index % 7 });
+        }
+        dates.append(cell);
+      }
+      const stamp = document.createElement("span");
+      stamp.className = "stamp";
+      stamp.hidden = true;
+      stamp.setAttribute("aria-hidden", "true");
+      const stampLight = document.createElement("img");
+      stampLight.className = "stamp-light";
+      stampLight.src = "/assets/d0d589e7a8069910d127f827ea1c378185ea176798c908027139d84b38815148.png";
+      stampLight.alt = "";
+      const stampDark = stampLight.cloneNode();
+      stampDark.className = "stamp-dark";
+      stamp.append(stampLight, stampDark);
+
+      function updateCalendar(checkedDays) {
+        phone.dataset.checkedDays = String(checkedDays);
+        count.textContent = String(checkedDays);
+        for (const item of dayCells) {
+          const checked = item.day <= checkedDays;
+          item.cell.dataset.checked = String(checked);
+          item.mark.src = item.prize ? item.prize.src : checked ? "/assets/d0d589e7a8069910d127f827ea1c378185ea176798c908027139d84b38815148.png" : "/assets/b3a6f32b4d6948a377689ab99a7498c63b1e1ed41747284c6c7438922408163b.png";
+          item.cell.setAttribute("aria-label", `10月${item.day}日${checked ? "，已打卡" : "，待打卡"}${item.prize ? `，${item.prize.label}，${checked ? "已获得" : "未获得"}` : ""}`);
+          if (item.prize) { item.cell.dataset.earned = String(checked); item.earned.hidden = !checked; }
+        }
+      }
+
+      function neighborFrames(dx, dy) {
+        const diagonal = dx !== 0 && dy !== 0;
+        const x = dx * (diagonal ? 2.5 : 4);
+        const y = dy ? dy * (diagonal ? 1.5 : 2) : -1;
+        const angle = dx * (diagonal ? 1.8 : 3);
+        return [
+          { transform: "translate(0px, 0px) rotate(0deg)", offset: 0, easing: "cubic-bezier(0.37, 0, 0.63, 1)" },
+          { transform: `translate(${x}px, ${y}px) rotate(${angle}deg)`, offset: 0.32, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
+          { transform: `translate(${-x * 0.08}px, ${-y * 0.08}px) rotate(${-angle * 0.08}deg)`, offset: 0.76, easing: "cubic-bezier(0.37, 0, 0.63, 1)" },
+          { transform: "translate(0px, 0px) rotate(0deg)", offset: 1 },
+        ];
+      }
+
+      function fitPhone() {
+        document.documentElement.style.setProperty("--phone-scale", String(Math.min(1, innerWidth / 393, innerHeight / 852)));
+      }
+
+      function clearTimeline() {
+        generation += 1;
+        for (const animation of animations) animation.cancel();
+        animations.clear();
+        pausedAnimations.clear();
+      }
+
+      function animate(element, keyframes, options) {
+        const animation = element.animate(keyframes, { fill: "none", easing: "linear", ...options });
+        animations.add(animation);
+        if (document.hidden) { animation.pause(); pausedAnimations.add(animation); }
+        return animation.finished.then(() => true, () => false).finally(() => {
+          animations.delete(animation);
+          pausedAnimations.delete(animation);
+        });
+      }
+
+      function showActivity() {
+        training.hidden = true;
+        activity.inert = false;
+        activity.setAttribute("aria-hidden", "false");
+      }
+
+      function markTarget() {
+        updateCalendar(stampDay);
+        target.visual.hidden = !target.prize;
+        phone.dataset.stamped = "true";
+        action.textContent = "已完成今日训练";
+        status.textContent = `10月${stampDay}日打卡成功，已连续打卡${stampDay}天`;
+      }
+
+      function finish() {
+        clearTimeline();
+        showActivity();
+        markTarget();
+        target.visual.hidden = false;
+        stamp.hidden = true;
+        phone.dataset.phase = "complete";
+      }
+
+      async function playSequence(run) {
+        await animate(training, [{ transform: "translateX(0%)" }, { transform: "translateX(0%)" }], { id: "training-hold", duration: TIMING.training });
+        if (run !== generation) return;
+        if (reducedMotion.matches) { finish(); return; }
+        phone.dataset.phase = "returning";
+        await animate(training, [{ transform: "translateX(0%)" }, { transform: "translateX(100%)" }], { id: "training-return", duration: TIMING.transition, easing: "cubic-bezier(0.4, 0, 0.2, 1)" });
+        if (run !== generation) return;
+        showActivity();
+        phone.dataset.phase = "settling";
+        await animate(activity, [{ opacity: 1 }, { opacity: 1 }], { id: "activity-settle", duration: TIMING.settle });
+        if (run !== generation) return;
+        phone.dataset.phase = "stamping";
+        stamp.hidden = false;
+        const contact = TIMING.stamp * STAMP_CONTACT_PROGRESS;
+        const pending = [
+          animate(stamp, STAMP_FRAMES, { id: "calendar-stamp", duration: TIMING.stamp }),
+          animate(stampDark, [{ opacity: 1, offset: 0 }, { opacity: 1, offset: 0.6 }, { opacity: 0, offset: 0.88 }, { opacity: 0, offset: 1 }], { id: "stamp-dark", duration: TIMING.stamp }),
+          animate(stampLight, [{ opacity: 0, offset: 0 }, { opacity: 0, offset: 0.6 }, { opacity: 1, offset: 0.88 }, { opacity: 1, offset: 1 }], { id: "stamp-light", duration: TIMING.stamp }),
+          animate(calendar, CARD_FRAMES, { id: "calendar-impact", duration: TIMING.impact, delay: contact }),
+          animate(target.mark, [{ opacity: 1 }, { opacity: 1 }], { id: "stamp-contact", duration: contact }).then((completed) => {
+            if (completed && run === generation) markTarget();
+          }),
+        ];
+        for (const item of dayCells) {
+          const dx = item.column - target.column;
+          const dy = item.row - target.row;
+          if (item === target || Math.abs(dx) > 1 || Math.abs(dy) > 1) continue;
+          pending.push(animate(item.visual, neighborFrames(dx, dy), {
+            id: `neighbor-${item.day}`, duration: TIMING.neighbor, delay: contact + (dx && dy ? 35 : 0),
+          }));
+        }
+        if (target.prize) {
+          pending.push(animate(stamp, [{ opacity: 1 }, { opacity: 0 }], { id: "reward-reveal", delay: TIMING.stamp, duration: 180 }).then((completed) => {
+            if (completed && run === generation) stamp.hidden = true;
+          }));
+        }
+        await Promise.all(pending);
+        if (run === generation) finish();
+      }
+
+      function reset() {
+        clearTimeline();
+        phone.dataset.phase = "training";
+        phone.dataset.stamped = "false";
+        phone.dataset.stampDay = String(stampDay);
+        training.hidden = false;
+        activity.inert = true;
+        activity.setAttribute("aria-hidden", "true");
+        viewport.scrollTop = 0;
+        for (const item of dayCells) { item.visual.hidden = false; item.cell.removeAttribute("data-stamp-target"); }
+        target = dayCells.find((item) => item.day === stampDay);
+        target.cell.dataset.stampTarget = "true";
+        stamp.hidden = true;
+        target.cell.append(stamp);
+        updateCalendar(stampDay - 1);
+        const today = document.querySelector(".summary time");
+        today.dateTime = `2026-10-${String(stampDay).padStart(2, "0")}`;
+        today.textContent = `今天 10/${String(stampDay).padStart(2, "0")}`;
+        action.textContent = "完成今日训练";
+        status.textContent = "";
+        if (ready) void playSequence(generation);
+      }
+
+      document.querySelector(".back").addEventListener("click", reset);
+      window.addEventListener("message", (event) => {
+        if (window.parent === window || event.source !== window.parent || event.data?.type !== "fiko-21day-stamp-settings") return;
+        if (typeof event.data.stampDay !== "number" || !Number.isFinite(event.data.stampDay)) return;
+        const nextDay = normalizeDay(event.data.stampDay);
+        if (nextDay === stampDay) return;
+        stampDay = nextDay;
+        reset();
+      });
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          for (const animation of animations) if (animation.playState === "running") { animation.pause(); pausedAnimations.add(animation); }
+        } else {
+          for (const animation of pausedAnimations) if (animations.has(animation)) animation.play();
+          pausedAnimations.clear();
+        }
+      });
+      reducedMotion.addEventListener("change", () => {
+        if (reducedMotion.matches && ["returning", "settling", "stamping"].includes(phone.dataset.phase)) finish();
+      });
+      window.addEventListener("resize", fitPhone);
+      window.addEventListener("pagehide", clearTimeline);
+      fitPhone();
+      reset();
+      if (window.parent !== window) window.parent.postMessage({ type: "fiko-21day-stamp-ready" }, "*");
+      Promise.allSettled([...document.images].map((image) => image.decode())).then(() => {
+        ready = true;
+        void playSequence(generation);
+      });
+    </script>
+  </body>
+</html>

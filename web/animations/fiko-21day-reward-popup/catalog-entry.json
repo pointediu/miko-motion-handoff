@@ -1,0 +1,448 @@
+{
+  "id": "fiko-21day-reward-popup",
+  "title": "领奖弹窗",
+  "group": "21天活动",
+  "path": "animations/fiko-21day-reward-popup/index.html",
+  "status": "待确认",
+  "description": "按原稿呈现白色领奖弹窗：贴纸轻弹一次，12 片浅色彩纸向外散开，约 1.5 秒后停稳。关闭后点击礼物入口可再次查看。",
+  "tags": [
+    "贴纸弹出",
+    "少量彩纸",
+    "1.5秒",
+    "Figma 原稿"
+  ],
+  "sections": [
+    {
+      "title": "触发与交互",
+      "rows": [
+        [
+          "自动播放",
+          "选择此动效后，素材载入完成时播放一次；完成后停在原稿状态。"
+        ],
+        [
+          "重播",
+          "交付页「重播 / 刷新」；关闭后点活动页顶部礼物入口。"
+        ],
+        [
+          "关闭",
+          "点击右上角关闭或 Esc，160ms 淡出；背景恢复。"
+        ],
+        [
+          "查看奖品",
+          "保留按钮点击反馈，派发 reward:view-prize 回调；奖品详情跳转由业务接入。"
+        ]
+      ]
+    },
+    {
+      "title": "入场时间轴",
+      "rows": [
+        [
+          "总时长",
+          "1500ms，播放一次，不循环。"
+        ],
+        [
+          "0–200ms",
+          "遮罩透明度 0→0.5；弹窗透明度 0→1。"
+        ],
+        [
+          "0–420ms",
+          "弹窗从下方 18pt 进入；缩放 0.94→1.018（260ms）→1（420ms）。"
+        ],
+        [
+          "120–400ms",
+          "「连续打卡已达标」120–320ms 淡入；奖品标题 180–400ms 淡入。"
+        ],
+        [
+          "180–800ms",
+          "贴纸缩放 0.56→1.10（480ms）→0.985（650ms）→1（800ms）；旋转 −8°→2.5°→0°，Y 16→−7→0pt。"
+        ],
+        [
+          "360–1500ms",
+          "12 片浅色彩纸一次散开；分 3 组错开 30ms，各自持续 1080ms，最后一片在 1500ms 完全消失。"
+        ],
+        [
+          "500–800ms",
+          "按钮 500–780ms 淡入，Y 8→0pt 于 800ms 落定；关闭按钮 320–520ms 淡入。"
+        ]
+      ]
+    },
+    {
+      "title": "原稿最终布局",
+      "rows": [
+        [
+          "原型节点",
+          "CjLvBzUqSgYA2qFWtGYxOs / 37:28417"
+        ],
+        [
+          "画布",
+          "393 × 852pt"
+        ],
+        [
+          "弹窗",
+          "x 36.5 / y 219 / 321 × 415pt / 圆角 32pt"
+        ],
+        [
+          "贴纸区域",
+          "x 97 / y 335 / 200 × 200pt / 圆角 26.556pt / #F1F7FF"
+        ],
+        [
+          "贴纸图层",
+          "x 107.2832 / y 345 / 180 × 180pt；使用原稿透明切图。"
+        ],
+        [
+          "主按钮",
+          "x 88 / y 554 / 220 × 60pt / 圆角 26pt"
+        ],
+        [
+          "标题与素材",
+          "STBaoYuan-SC Bold：说明 16pt / 行高 24pt，奖品名 28pt / 行高 36pt，居中；文字切图保留 241pt 宽文字框及透明留白，禁止裁切后拉伸。"
+        ]
+      ]
+    },
+    {
+      "title": "SwiftUI 实现",
+      "rows": [
+        [
+          "时间单位",
+          "JSON 用 ms；SwiftUI 动画与 TimelineView 的时间换算为秒。"
+        ],
+        [
+          "缓动",
+          "每段 easeOutCubic = 1 − (1 − p)³；等价 timingCurve(1/3, 1, 2/3, 1)。"
+        ],
+        [
+          "共同时间源",
+          "一个 elapsed 驱动弹窗、贴纸、按钮和 Canvas 粒子，结束后停止刷新。"
+        ],
+        [
+          "粒子",
+          "Canvas 中绘制 12 个小矩形，按下方 JSON 的起点、速度、重力、旋转和淡出曲线计算。"
+        ],
+        [
+          "减少动态效果",
+          "180ms 淡入最终状态；无缩放、位移、旋转或彩纸。"
+        ],
+        [
+          "触感建议",
+          "480ms 贴纸达到峰值时一次 light impact；网页不模拟触感。"
+        ],
+        [
+          "生命周期",
+          "退到后台暂停；恢复后续播；重播清空上一轮，关闭取消彩纸。"
+        ],
+        [
+          "依据",
+          "尺寸与素材来自原型；动效参数为本次新增方案，原 Figma 未配置动画轨道。"
+        ]
+      ]
+    }
+  ],
+  "spec": {
+    "id": "fiko-21day-reward-popup",
+    "durationMs": 1500,
+    "figmaNode": "37:28417",
+    "canvas": {
+      "widthPt": 393,
+      "heightPt": 852
+    },
+    "layout": {
+      "card": {
+        "x": 36.5,
+        "y": 219,
+        "width": 321,
+        "height": 415,
+        "radius": 32
+      },
+      "heading": {
+        "x": 76.5,
+        "y": 251,
+        "width": 241,
+        "height": 24
+      },
+      "title": {
+        "x": 76.5,
+        "y": 283,
+        "width": 241,
+        "height": 36
+      },
+      "stage": {
+        "x": 97,
+        "y": 335,
+        "width": 200,
+        "height": 200,
+        "radius": 26.556
+      },
+      "prize": {
+        "x": 107.283203125,
+        "y": 345,
+        "width": 180,
+        "height": 180
+      },
+      "button": {
+        "x": 88,
+        "y": 554,
+        "width": 220,
+        "height": 60,
+        "radius": 26
+      },
+      "close": {
+        "x": 301.5,
+        "y": 235,
+        "width": 40,
+        "height": 40
+      }
+    },
+    "easing": {
+      "name": "easeOutCubic",
+      "formula": "1 - (1 - progress)^3",
+      "swiftUI": "Animation.timingCurve(0.333333, 1, 0.666667, 1, duration: seconds)"
+    },
+    "tracks": {
+      "maskOpacity": [
+        [
+          0,
+          0
+        ],
+        [
+          180,
+          0.5
+        ]
+      ],
+      "cardOpacity": [
+        [
+          0,
+          0
+        ],
+        [
+          200,
+          1
+        ]
+      ],
+      "cardScale": [
+        [
+          0,
+          0.94
+        ],
+        [
+          260,
+          1.018
+        ],
+        [
+          420,
+          1
+        ]
+      ],
+      "cardY": [
+        [
+          0,
+          18
+        ],
+        [
+          360,
+          0
+        ]
+      ],
+      "headingOpacity": [
+        [
+          0,
+          0
+        ],
+        [
+          120,
+          0
+        ],
+        [
+          320,
+          1
+        ]
+      ],
+      "titleOpacity": [
+        [
+          0,
+          0
+        ],
+        [
+          180,
+          0
+        ],
+        [
+          400,
+          1
+        ]
+      ],
+      "prizeOpacity": [
+        [
+          0,
+          0
+        ],
+        [
+          180,
+          0
+        ],
+        [
+          300,
+          1
+        ]
+      ],
+      "prizeScale": [
+        [
+          0,
+          0.56
+        ],
+        [
+          180,
+          0.56
+        ],
+        [
+          480,
+          1.1
+        ],
+        [
+          650,
+          0.985
+        ],
+        [
+          800,
+          1
+        ]
+      ],
+      "prizeY": [
+        [
+          0,
+          16
+        ],
+        [
+          180,
+          16
+        ],
+        [
+          480,
+          -7
+        ],
+        [
+          780,
+          0
+        ]
+      ],
+      "prizeRotation": [
+        [
+          0,
+          -8
+        ],
+        [
+          180,
+          -8
+        ],
+        [
+          480,
+          2.5
+        ],
+        [
+          760,
+          0
+        ]
+      ],
+      "buttonOpacity": [
+        [
+          0,
+          0
+        ],
+        [
+          500,
+          0
+        ],
+        [
+          780,
+          1
+        ]
+      ],
+      "buttonY": [
+        [
+          0,
+          8
+        ],
+        [
+          500,
+          8
+        ],
+        [
+          800,
+          0
+        ]
+      ],
+      "closeOpacity": [
+        [
+          0,
+          0
+        ],
+        [
+          320,
+          0
+        ],
+        [
+          520,
+          1
+        ]
+      ]
+    },
+    "confetti": {
+      "count": 12,
+      "startMs": 360,
+      "staggerMs": 30,
+      "staggerGroups": 3,
+      "lifetimeMs": 1080,
+      "completeMs": 1500,
+      "centerPt": [
+        197.283203125,
+        435
+      ],
+      "colors": [
+        "#9EC6FF",
+        "#BBD9FF",
+        "#F4DDA7",
+        "#F5CBC1"
+      ],
+      "angleStepDeg": 137.508,
+      "angleOffsetDeg": -115,
+      "initialRadiusPt": 38,
+      "travelBasePt": 88,
+      "travelStepPt": 19,
+      "gravityPt": 70,
+      "spinDeg": 210,
+      "fadeInProgress": 0.08,
+      "fadeOutStartProgress": 0.62,
+      "widthBasePt": 4,
+      "widthStepPt": 1.2,
+      "heightBasePt": 7,
+      "heightStepPt": 1.5
+    },
+    "interaction": {
+      "autoplay": true,
+      "replay": "交付页「重播 / 刷新」；关闭后点击原活动页礼物入口",
+      "closeDurationMs": 160,
+      "buttonPress": {
+        "downMs": 90,
+        "releaseMs": 200,
+        "scale": 0.97,
+        "translateYPt": 1.5
+      },
+      "viewPrize": "dispatch reward:view-prize; production navigation supplied by host"
+    },
+    "reducedMotion": {
+      "durationMs": 180,
+      "particles": false,
+      "scale": false,
+      "rotation": false,
+      "translation": false
+    },
+    "haptics": {
+      "recommendedTimeMs": 480,
+      "type": "light impact, once",
+      "enabledInWebPreview": false
+    },
+    "sourceOfValues": {
+      "layout": "Figma 37:28417",
+      "animation": "New motion authored for the requested 1.5 second sticker pop and sparse confetti"
+    }
+  }
+}

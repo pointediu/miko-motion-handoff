@@ -1,0 +1,400 @@
+{
+  "id": "fiko-21day-reward-popup-v3",
+  "title": "领奖弹窗 · V3 淡入缩放",
+  "group": "21天活动",
+  "path": "animations/fiko-21day-reward-popup-v3/index.html",
+  "status": "待确认",
+  "description": "完整弹窗轻柔淡入并由 94% 放大到 100%；两行文字依次轻移显现，按钮稍后落定。图片只随容器显现，不做独立动效。",
+  "tags": [
+    "V3",
+    "Fade in & Scale",
+    "图片静止"
+  ],
+  "sections": [
+    {
+      "title": "触发与交互",
+      "rows": [
+        [
+          "自动播放",
+          "选择此动效后，素材载入完成时播放一次；完成后停在原稿状态。"
+        ],
+        [
+          "重播",
+          "交付页「重播 / 刷新」；关闭后点活动页顶部礼物入口。"
+        ],
+        [
+          "关闭",
+          "点击右上角关闭或 Esc，160ms 淡出；背景恢复。"
+        ],
+        [
+          "查看奖品",
+          "保留按钮点击反馈，派发 reward:view-prize 回调；奖品详情跳转由业务接入。"
+        ]
+      ]
+    },
+    {
+      "title": "入场时间轴",
+      "rows": [
+        [
+          "0–420ms",
+          "遮罩淡入；弹窗透明度 0→1，整体缩放 0.94→1，无回弹。"
+        ],
+        [
+          "100–500ms",
+          "说明先上移 6pt 显现，奖品名错后 80ms、上移 8pt 显现。"
+        ],
+        [
+          "340–680ms",
+          "按钮淡入，上移 10pt，缩放 0.98→1 后停稳。"
+        ],
+        [
+          "图片",
+          "原图位置、尺寸、角度不单独变化；只随整个弹窗淡入缩放。"
+        ],
+        [
+          "总时长",
+          "1500ms；680ms 视觉落定，余下时间停留。"
+        ]
+      ]
+    },
+    {
+      "title": "原稿最终布局",
+      "rows": [
+        [
+          "原型节点",
+          "CjLvBzUqSgYA2qFWtGYxOs / 37:28417"
+        ],
+        [
+          "画布",
+          "393 × 852pt"
+        ],
+        [
+          "弹窗",
+          "x 36.5 / y 219 / 321 × 415pt / 圆角 32pt"
+        ],
+        [
+          "贴纸区域",
+          "x 97 / y 335 / 200 × 200pt / 圆角 26.556pt / #F1F7FF"
+        ],
+        [
+          "贴纸图层",
+          "x 107.2832 / y 345 / 180 × 180pt；使用原稿透明切图。"
+        ],
+        [
+          "主按钮",
+          "x 88 / y 554 / 220 × 60pt / 圆角 26pt"
+        ],
+        [
+          "标题与素材",
+          "STBaoYuan-SC Bold：说明 16pt / 行高 24pt，奖品名 28pt / 行高 36pt，居中；文字切图保留 241pt 宽文字框及透明留白，禁止裁切后拉伸。"
+        ]
+      ]
+    },
+    {
+      "title": "SwiftUI 实现",
+      "rows": [
+        [
+          "参数",
+          "RewardPopupV3Parameters.swift，秒 / pt；页面复制 JSON 使用 ms。"
+        ],
+        [
+          "缓动",
+          "普通轨道使用 easeOutCubic；V4 容器展开使用 easeInOutCubic。"
+        ],
+        [
+          "弹跳物理",
+          "V4：mass 1、stiffness 360、damping 25；统一时钟采样欠阻尼弹簧，520ms 精确归位。"
+        ],
+        [
+          "图片约束",
+          "保持原图与 180 × 180pt 图层尺寸；不添加独立图片动画。"
+        ],
+        [
+          "减少动态效果",
+          "180ms 淡入完整终态；跳过弹跳、缩放、展开和文字位移。"
+        ],
+        [
+          "生命周期",
+          "复用暂停恢复、重播重置、关闭淡出；正式奖品跳转由业务接入。"
+        ]
+      ]
+    }
+  ],
+  "spec": {
+    "id": "fiko-21day-reward-popup-v3",
+    "durationMs": 1500,
+    "figmaNode": "37:28417",
+    "canvas": {
+      "widthPt": 393,
+      "heightPt": 852
+    },
+    "layout": {
+      "card": {
+        "x": 36.5,
+        "y": 219,
+        "width": 321,
+        "height": 415,
+        "radius": 32
+      },
+      "heading": {
+        "x": 76.5,
+        "y": 251,
+        "width": 241,
+        "height": 24
+      },
+      "title": {
+        "x": 76.5,
+        "y": 283,
+        "width": 241,
+        "height": 36
+      },
+      "stage": {
+        "x": 97,
+        "y": 335,
+        "width": 200,
+        "height": 200,
+        "radius": 26.556
+      },
+      "prize": {
+        "x": 107.283203125,
+        "y": 345,
+        "width": 180,
+        "height": 180
+      },
+      "button": {
+        "x": 88,
+        "y": 554,
+        "width": 220,
+        "height": 60,
+        "radius": 26
+      },
+      "close": {
+        "x": 301.5,
+        "y": 235,
+        "width": 40,
+        "height": 40
+      }
+    },
+    "easing": {
+      "name": "easeOutCubic",
+      "formula": "1 - (1 - progress)^3",
+      "swiftUI": "Animation.timingCurve(0.333333, 1, 0.666667, 1, duration: seconds)"
+    },
+    "tracks": {
+      "maskOpacity": [
+        [
+          0,
+          0
+        ],
+        [
+          220,
+          0.5
+        ]
+      ],
+      "cardOpacity": [
+        [
+          0,
+          0
+        ],
+        [
+          280,
+          1
+        ]
+      ],
+      "cardScale": [
+        [
+          0,
+          0.94
+        ],
+        [
+          420,
+          1
+        ]
+      ],
+      "cardY": [
+        [
+          0,
+          0
+        ]
+      ],
+      "shellWidth": [
+        [
+          0,
+          321
+        ]
+      ],
+      "shellHeight": [
+        [
+          0,
+          415
+        ]
+      ],
+      "shellRadius": [
+        [
+          0,
+          32
+        ]
+      ],
+      "contentOpacity": [
+        [
+          0,
+          1
+        ]
+      ],
+      "toastOpacity": [
+        [
+          0,
+          0
+        ]
+      ],
+      "headingOpacity": [
+        [
+          0,
+          0
+        ],
+        [
+          100,
+          0
+        ],
+        [
+          340,
+          1
+        ]
+      ],
+      "headingY": [
+        [
+          0,
+          6
+        ],
+        [
+          100,
+          6
+        ],
+        [
+          380,
+          0
+        ]
+      ],
+      "titleOpacity": [
+        [
+          0,
+          0
+        ],
+        [
+          180,
+          0
+        ],
+        [
+          460,
+          1
+        ]
+      ],
+      "titleY": [
+        [
+          0,
+          8
+        ],
+        [
+          180,
+          8
+        ],
+        [
+          500,
+          0
+        ]
+      ],
+      "buttonOpacity": [
+        [
+          0,
+          0
+        ],
+        [
+          340,
+          0
+        ],
+        [
+          620,
+          1
+        ]
+      ],
+      "buttonY": [
+        [
+          0,
+          10
+        ],
+        [
+          340,
+          10
+        ],
+        [
+          680,
+          0
+        ]
+      ],
+      "buttonScale": [
+        [
+          0,
+          0.98
+        ],
+        [
+          340,
+          0.98
+        ],
+        [
+          680,
+          1
+        ]
+      ],
+      "closeOpacity": [
+        [
+          0,
+          0
+        ],
+        [
+          260,
+          0
+        ],
+        [
+          460,
+          1
+        ]
+      ]
+    },
+    "confetti": {
+      "count": 0
+    },
+    "interaction": {
+      "autoplay": true,
+      "replay": "交付页「重播 / 刷新」；关闭后点击原活动页礼物入口",
+      "closeDurationMs": 160,
+      "buttonPress": {
+        "downMs": 90,
+        "releaseMs": 200,
+        "scale": 0.97,
+        "translateYPt": 1.5
+      },
+      "viewPrize": "dispatch reward:view-prize; production navigation supplied by host",
+      "buttonReadyMs": 440
+    },
+    "reducedMotion": {
+      "durationMs": 180,
+      "particles": false,
+      "scale": false,
+      "rotation": false,
+      "translation": false
+    },
+    "haptics": {
+      "enabledInWebPreview": false,
+      "recommendation": "optional, supplied by host"
+    },
+    "sourceOfValues": {
+      "layout": "Figma 37:28417",
+      "animation": "Authored V3 fade and scale, staggered text and button; image static within container."
+    },
+    "version": 3,
+    "name": "淡入缩放",
+    "imagePolicy": "No independent image transform, fade, curl or particles. Original image is fixed in the content group and only revealed by its parent.",
+    "curveByTrack": {},
+    "spring": null
+  }
+}

@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fiko 跑步距离</title>
+    <style>
+      :root {
+        --phone-width: 393px;
+        --phone-height: 852px;
+        --ink: #050505;
+        --muted: rgba(5, 5, 5, 0.32);
+        --soft: cubic-bezier(0.4, 0, 0.2, 1);
+        --font-rounded: "Yuanti SC", "YouYuan", "PingFang SC", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { min-height: 100%; }
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background: #111;
+        color: var(--ink);
+        font-family: var(--font-rounded);
+      }
+      button {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        font: inherit;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .phone {
+        position: relative;
+        width: min(100vw, var(--phone-width));
+        height: min(100vh, var(--phone-height));
+        aspect-ratio: 393 / 852;
+        overflow: hidden;
+        border-radius: 32px;
+        background: #fff;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+      }
+      .screen {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+      .intro {
+        z-index: 2;
+        opacity: 1;
+        transform: translateX(0);
+        transition: opacity 360ms var(--soft), transform 360ms var(--soft);
+      }
+      .phone.is-detail .intro {
+        opacity: 0;
+        transform: translateX(-30px);
+        pointer-events: none;
+      }
+      .intro-shot,
+      .detail-bg,
+      .status-bar,
+      .back-icon,
+      .other-action,
+      .track,
+      .runner-sprite,
+      .distance-sign {
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+      .intro-shot,
+      .detail-bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .stat-hotspot {
+        position: absolute;
+        left: 201px;
+        top: 306px;
+        width: 176px;
+        height: 224px;
+        border-radius: 30px;
+        cursor: pointer;
+      }
+      .stat-hotspot::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: rgba(0, 0, 0, 0.04);
+        opacity: 0;
+        transform: scale(0.98);
+        transition: opacity 160ms ease, transform 280ms var(--soft);
+      }
+      .stat-hotspot.is-pressing::after {
+        opacity: 1;
+        transform: scale(1);
+      }
+      .detail {
+        z-index: 1;
+        opacity: 0;
+        transform: translateX(30px);
+        transition: opacity 360ms var(--soft), transform 360ms var(--soft);
+      }
+      .phone.is-detail .detail {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      .status-bar {
+        position: absolute;
+        z-index: 8;
+        top: 0;
+        left: 0;
+        width: 393px;
+        height: 44px;
+        object-fit: cover;
+      }
+      .back-button {
+        position: absolute;
+        z-index: 9;
+        top: 56px;
+        left: 15px;
+        width: 48px;
+        height: 48px;
+        border-radius: 17px;
+        background: rgba(246, 246, 246, 0.94);
+        cursor: pointer;
+        --press-scale: 0.93;
+        --press-y: 1px;
+      }
+      .back-icon {
+        display: block;
+        width: 40px;
+        height: 40px;
+        margin: 4px;
+        object-fit: contain;
+        pointer-events: none;
+      }
+      .replay-button {
+        position: absolute;
+        z-index: 9;
+        top: 68px;
+        right: 15px;
+        width: 73px;
+        height: 40px;
+        border-radius: 20px;
+        cursor: pointer;
+        --press-scale: 0.95;
+        --press-y: 1px;
+      }
+      .other-action {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        pointer-events: none;
+      }
+      .result-copy {
+        position: absolute;
+        z-index: 7;
+        top: 131px;
+        left: 17px;
+        right: 17px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        column-gap: 12px;
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      .detail.is-loaded .result-copy {
+        animation: copyIn 380ms var(--soft) 100ms both;
+      }
+      .label {
+        margin: 0 0 7px;
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1;
+        font-weight: 900;
+      }
+      .count {
+        display: flex;
+        align-items: baseline;
+        gap: 2px;
+        font-weight: 900;
+      }
+      .count-number { font-size: 51px; line-height: 0.95; }
+      .count-unit { font-size: 24px; line-height: 1; }
+      .result-equivalent {
+        margin: 0 0 9px;
+        font-size: 20px;
+        line-height: 1;
+        font-weight: 900;
+        text-align: right;
+      }
+      .track {
+        position: absolute;
+        z-index: 2;
+        left: 0;
+        top: 255px;
+        width: 394px;
+        height: 592px;
+        object-fit: contain;
+        opacity: 0;
+        transform: translateY(12px);
+        pointer-events: none;
+      }
+      .detail.is-loaded .track {
+        animation: sceneIn 460ms var(--soft) 130ms both;
+      }
+      .runner-motion {
+        position: absolute;
+        z-index: 5;
+        top: 0;
+        left: 0;
+        width: 70px;
+        height: 70px;
+        opacity: 0;
+        transform-origin: 50% 72%;
+        will-change: transform;
+        pointer-events: none;
+      }
+      .runner-motion.is-visible { opacity: 1; }
+      .runner-sprite {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transform-origin: 50% 76%;
+      }
+      .runner-motion.is-running .runner-sprite {
+        animation: runnerBob 260ms ease-in-out infinite;
+      }
+      .runner-motion.is-arrived .runner-sprite {
+        animation: runnerSettle 420ms var(--soft) both;
+      }
+      .motion-guide {
+        position: absolute;
+        inset: 0;
+        width: 393px;
+        height: 852px;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .is-pressing {
+        transform: translateY(var(--press-y, 1.5px)) scale(var(--press-scale, 0.965));
+        filter: brightness(0.96);
+        transition: transform 90ms cubic-bezier(0.2, 0, 0.2, 1), filter 90ms ease;
+      }
+      .is-releasing { animation: pressRelease 320ms var(--soft) both !important; }
+
+      @keyframes copyIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes sceneIn {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes runnerBob {
+        0%, 100% { transform: translateY(0) rotate(-1deg) scale(1); }
+        50% { transform: translateY(-2.5px) rotate(1deg) scale(1.01, 0.99); }
+      }
+      @keyframes runnerSettle {
+        0% { transform: translateY(-2px) scale(1.01, 0.99); }
+        45% { transform: translateY(1px) scale(0.995, 1.006); }
+        100% { transform: translateY(0) scale(1); }
+      }
+      @keyframes pressRelease {
+        from { transform: translateY(var(--press-y, 1.5px)) scale(var(--press-scale, 0.965)); filter: brightness(0.96); }
+        to { transform: translateY(0) scale(1); filter: brightness(1); }
+      }
+
+      @media (max-width: 420px) {
+        body { background: #fff; }
+        .phone { width: 100vw; height: 100vh; border-radius: 0; box-shadow: none; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 1ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 1ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" id="phone" aria-label="跑步距离动画">
+      <section class="screen intro" aria-label="个人页">
+        <img class="intro-shot" src="/assets/5242d89335f4c8ff14831f448dd54e2f7f704ad69d996d328dbd81f421a2496d.png" alt="个人页" />
+        <button class="stat-hotspot" id="statHotspot" type="button" aria-label="查看累计跑步距离"></button>
+      </section>
+
+      <section class="screen detail" id="detailScreen" aria-label="累计跑步距离详情">
+        <img class="detail-bg" src="/assets/a98351845a993d4b28e11cff9f30e7ed9748ffa2ac26bc45992968327255ed9d.png" alt="" />
+        <img class="status-bar" src="/assets/3469a636cffe5cf6bca0bf2e1879f536b814adcf2139e410cb2f97b24839501e.png" alt="" />
+        <button class="back-button" id="backButton" type="button" aria-label="返回">
+          <img class="back-icon" src="/assets/00d8e77e8c7441a4d73ae28c8dcb0742b4751e3c4a4f1518ec2b2f56ebf4396e.png" alt="" />
+        </button>
+        <button class="replay-button" id="replayButton" type="button" aria-label="重新播放跑步动画">
+          <img class="other-action" src="/assets/77b9eb1827a82f8e0c79efc33bb8bacd9c55247df3b6e7396a3ecc9678f43578.png" alt="" />
+        </button>
+
+        <div class="result-copy">
+          <div>
+            <p class="label">累计「举重」</p>
+            <div class="count"><span class="count-number">100</span><span class="count-unit">次</span></div>
+          </div>
+          <p class="result-equivalent">≈环绕6圈操场</p>
+        </div>
+
+        <img class="track" src="/assets/ade4ddcd32c4e3c5d3699ee626175fbc8ee03ad71442993d730d830e087c6784.png" alt="S形步道" />
+        <div class="runner-motion" id="runnerMotion" aria-hidden="true">
+          <img class="runner-sprite" src="/assets/e52e928e89ea9b4325f484bf9837ac7b32b99768e91220d2109d073a12fcbfb3.png" alt="" />
+        </div>
+
+        <svg class="motion-guide" viewBox="0 0 393 852" aria-hidden="true">
+          <path id="runPath" d="M 210 838 C 278 838 333 839 333 789 C 333 748 311 717 276 717 L 108 717 C 70 717 56 690 56 660 C 56 625 76 600 111 600 L 279 600 C 317 600 334 574 334 548 C 334 516 312 492 278 492 L 110 492 C 72 492 56 465 56 438 C 56 407 76 383 111 383 L 278 383 C 302 383 324 398 333 425" fill="none" />
+        </svg>
+      </section>
+    </main>
+
+    <script>const embeddedAssetMap={"assets/bg.png":"/assets/a98351845a993d4b28e11cff9f30e7ed9748ffa2ac26bc45992968327255ed9d.png","assets/其他动作.png":"/assets/77b9eb1827a82f8e0c79efc33bb8bacd9c55247df3b6e7396a3ecc9678f43578.png","assets/前置页面.png":"/assets/5242d89335f4c8ff14831f448dd54e2f7f704ad69d996d328dbd81f421a2496d.png","assets/步道.png":"/assets/ade4ddcd32c4e3c5d3699ee626175fbc8ee03ad71442993d730d830e087c6784.png","assets/状态栏.png":"/assets/3469a636cffe5cf6bca0bf2e1879f536b814adcf2139e410cb2f97b24839501e.png","assets/猫.png":"/assets/745fc5dee58f9925584574c6a3040807d743207e9c13da06355250394a7e3070.png","assets/猫猫.png":"/assets/e52e928e89ea9b4325f484bf9837ac7b32b99768e91220d2109d073a12fcbfb3.png","assets/路.png":"/assets/2fca5b77dfb2127239d4fd08be571850174302159bbcb881c27d2a99279a7900.png","assets/路牌.png":"/assets/834fa5924c6985393ab461f31e20554cfca0d60c6f1899ccc27b8d72f8bb0f05.png","assets/返回.png":"/assets/00d8e77e8c7441a4d73ae28c8dcb0742b4751e3c4a4f1518ec2b2f56ebf4396e.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const phone = document.querySelector("#phone");
+      const detailScreen = document.querySelector("#detailScreen");
+      const statHotspot = document.querySelector("#statHotspot");
+      const backButton = document.querySelector("#backButton");
+      const replayButton = document.querySelector("#replayButton");
+      const runnerMotion = document.querySelector("#runnerMotion");
+      const runPath = document.querySelector("#runPath");
+
+      const motion = {
+        pageTransitionMs: 360,
+        sceneEntranceMs: 460,
+        runDelayMs: 420,
+        runDurationMs: 3000,
+        samples: 180,
+        runnerWidth: 70,
+        runnerHeight: 70,
+        runnerAnchorY: 0.72,
+      };
+
+      let screenTimer = 0;
+      let runTimer = 0;
+      let runAnimation = null;
+      let runToken = 0;
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function releasePressable(button) {
+        if (!button.classList.contains("is-pressing")) return;
+        button.classList.remove("is-pressing", "is-releasing");
+        void button.offsetWidth;
+        button.classList.add("is-releasing");
+        window.setTimeout(() => button.classList.remove("is-releasing"), 330);
+      }
+
+      function bindPressables() {
+        document.querySelectorAll("button").forEach(button => {
+          button.addEventListener("pointerdown", event => {
+            if (button.disabled) return;
+            button.classList.remove("is-releasing");
+            button.classList.add("is-pressing");
+            button.setPointerCapture?.(event.pointerId);
+          });
+          button.addEventListener("pointerup", () => releasePressable(button));
+          button.addEventListener("pointercancel", () => button.classList.remove("is-pressing", "is-releasing"));
+          button.addEventListener("pointerleave", () => button.classList.remove("is-pressing"));
+        });
+      }
+
+      function cancelRun() {
+        window.clearTimeout(runTimer);
+        runToken += 1;
+        runAnimation?.cancel();
+        runAnimation = null;
+        runnerMotion.classList.remove("is-visible", "is-running", "is-arrived");
+      }
+
+      function buildRunnerFrames() {
+        const length = runPath.getTotalLength();
+        const frames = [];
+        for (let index = 0; index <= motion.samples; index += 1) {
+          const progress = index / motion.samples;
+          const distance = length * progress;
+          const point = runPath.getPointAtLength(distance);
+          const before = runPath.getPointAtLength(Math.max(0, distance - 2));
+          const after = runPath.getPointAtLength(Math.min(length, distance + 2));
+          const dx = after.x - before.x;
+          const dy = after.y - before.y;
+          const lean = clamp(Math.atan2(dy, Math.max(3, Math.abs(dx))) * 180 / Math.PI * 0.12, -7, 7);
+          const x = point.x - motion.runnerWidth / 2;
+          const y = point.y - motion.runnerHeight * motion.runnerAnchorY;
+          frames.push({
+            offset: progress,
+            transform: `translate3d(${x}px, ${y}px, 0) rotate(${lean}deg)`,
+          });
+        }
+        return frames;
+      }
+
+      function startRun() {
+        cancelRun();
+        const token = runToken;
+        const frames = buildRunnerFrames();
+        runnerMotion.style.transform = frames[0].transform;
+        runnerMotion.classList.add("is-visible", "is-running");
+        runAnimation = runnerMotion.animate(frames, {
+          duration: motion.runDurationMs,
+          easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+          fill: "forwards",
+        });
+        runAnimation.finished.then(() => {
+          if (token !== runToken) return;
+          runnerMotion.classList.remove("is-running");
+          runnerMotion.classList.add("is-arrived");
+        }).catch(() => {});
+      }
+
+      function scheduleRun() {
+        cancelRun();
+        runTimer = window.setTimeout(startRun, motion.runDelayMs);
+      }
+
+      function showDetail() {
+        window.clearTimeout(screenTimer);
+        detailScreen.classList.remove("is-loaded");
+        phone.classList.add("is-detail");
+        screenTimer = window.setTimeout(() => {
+          void detailScreen.offsetWidth;
+          detailScreen.classList.add("is-loaded");
+          scheduleRun();
+        }, 280);
+      }
+
+      function showIntro() {
+        window.clearTimeout(screenTimer);
+        cancelRun();
+        detailScreen.classList.remove("is-loaded");
+        phone.classList.remove("is-detail");
+      }
+
+      statHotspot.addEventListener("click", showDetail);
+      backButton.addEventListener("click", showIntro);
+      replayButton.addEventListener("click", scheduleRun);
+      bindPressables();
+    </script>
+  </body>
+</html>

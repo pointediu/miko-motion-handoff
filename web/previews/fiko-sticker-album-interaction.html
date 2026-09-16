@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fiko 贴纸册交互动画</title>
+    <style>
+      :root {
+        --phone-width: 393px;
+        --phone-height: 852px;
+        --ink: #050505;
+        --muted: #b7b7b7;
+        --font-rounded: "Yuanti SC", "YouYuan", "PingFang SC", sans-serif;
+        --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+        --ease-soft-out: cubic-bezier(0.22, 0.72, 0.2, 1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        background: #111;
+        color: var(--ink);
+        font-family: var(--font-rounded);
+      }
+
+      button {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100vw, var(--phone-width));
+        height: min(100vh, var(--phone-height));
+        aspect-ratio: 393 / 852;
+        overflow: hidden;
+        border-radius: 32px;
+        background: #fff;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+      }
+
+      .album-screen,
+      .final-screen {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        background: #fff;
+      }
+
+      .album-screen {
+        z-index: 3;
+      }
+
+      .final-screen {
+        z-index: 1;
+        opacity: 0;
+        background: #fff;
+      }
+
+      .album-img,
+      .status {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        user-select: none;
+        -webkit-user-drag: none;
+        pointer-events: none;
+      }
+
+      .status {
+        height: 44px;
+        object-fit: cover;
+        z-index: 5;
+      }
+
+      .wave-dots {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        opacity: 1;
+        pointer-events: none;
+      }
+
+      .sticker-hit {
+        position: absolute;
+        left: 57px;
+        top: 354px;
+        width: 98px;
+        height: 120px;
+        border-radius: 28px;
+        z-index: 5;
+        --press-scale: 0.965;
+        --press-y: 1px;
+        --press-dim: 0.96;
+        --press-overlay: 0.035;
+      }
+
+      .album-sticker {
+        position: absolute;
+        left: 57px;
+        top: 354px;
+        width: 98px;
+        height: 98px;
+        object-fit: contain;
+        z-index: 4;
+        pointer-events: none;
+        filter: drop-shadow(0 7px 8px rgba(0, 0, 0, 0.08));
+      }
+
+      .close {
+        position: absolute;
+        left: 16px;
+        top: 76px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        opacity: 0;
+        z-index: 8;
+        pointer-events: none;
+        --press-scale: 0.93;
+        --press-y: 1px;
+        --press-dim: 0.96;
+        --press-overlay: 0.035;
+      }
+
+      .close img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+
+      .flying-sticker {
+        position: absolute;
+        left: 57px;
+        top: 354px;
+        width: 98px;
+        height: 98px;
+        object-fit: contain;
+        z-index: 6;
+        opacity: 0;
+        pointer-events: none;
+        transform-origin: 50% 58%;
+        filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.08));
+      }
+
+      .final-copy,
+      .date-copy,
+      .share-button {
+        position: absolute;
+        z-index: 4;
+        opacity: 0;
+        transform: translateY(18px);
+        pointer-events: none;
+      }
+
+      .final-copy {
+        top: 223px;
+        left: 0;
+        right: 0;
+        text-align: center;
+      }
+
+      .final-copy h1 {
+        margin: 0;
+        font-size: 31px;
+        line-height: 1.08;
+        font-weight: 900;
+        letter-spacing: 0;
+      }
+
+      .final-copy p {
+        margin: 13px 0 0;
+        font-size: 18px;
+        line-height: 1.1;
+        font-weight: 900;
+      }
+
+      .date-copy {
+        margin: 0;
+        left: 0;
+        right: 0;
+        top: 574px;
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1;
+        font-weight: 900;
+        text-align: center;
+      }
+
+      .share-button {
+        left: 72px;
+        top: 629px;
+        width: 249px;
+        height: 66px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        background: #000;
+        color: #fff;
+        font-size: 29px;
+        line-height: 1;
+        font-weight: 900;
+        --press-scale: 0.955;
+        --press-y: 2px;
+        --press-dim: 0.94;
+        --press-overlay: 0.1;
+      }
+
+      .pressable {
+        transform-origin: 50% 50%;
+        transition:
+          transform 90ms cubic-bezier(0.2, 0, 0.2, 1),
+          filter 90ms ease;
+      }
+
+      .pressable::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: rgba(0, 0, 0, var(--press-overlay, 0.035));
+        opacity: 0;
+        transition: opacity 90ms ease;
+        pointer-events: none;
+      }
+
+      .share-button::after {
+        background: rgba(255, 255, 255, 0.16);
+      }
+
+      .pressable.is-pressing {
+        transform: translateY(var(--press-y)) scale(var(--press-scale));
+        filter: brightness(var(--press-dim));
+      }
+
+      .pressable.is-pressing::after {
+        opacity: 1;
+      }
+
+      .pressable.is-releasing {
+        animation: pressRelease 320ms var(--ease-standard) both;
+      }
+
+      .phone.is-playing .album-screen {
+        animation: albumExit 520ms var(--ease-standard) 120ms both;
+      }
+
+      .phone.is-playing .album-sticker {
+        animation: sourceStickerHide 80ms linear 180ms both;
+      }
+
+      .phone.is-playing .final-screen {
+        animation: finalIn 420ms var(--ease-standard) 180ms both;
+      }
+
+      .phone.is-playing .flying-sticker {
+        animation: stickerFromAlbum 800ms var(--ease-standard) 180ms both;
+      }
+
+      .phone.is-playing .close {
+        pointer-events: auto;
+        animation: uiRiseIn 460ms var(--ease-standard) 700ms both;
+      }
+
+      .phone.is-playing .final-copy {
+        animation: uiRiseIn 520ms var(--ease-standard) 780ms both;
+      }
+
+      .phone.is-playing .date-copy {
+        animation: uiRiseIn 520ms var(--ease-standard) 900ms both;
+      }
+
+      .phone.is-playing .share-button {
+        pointer-events: auto;
+        animation: uiRiseIn 520ms var(--ease-standard) 960ms both;
+      }
+
+      @keyframes albumExit {
+        0% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        100% {
+          opacity: 0;
+          transform: scale(1.018);
+        }
+      }
+
+      @keyframes finalIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes sourceStickerHide {
+        to {
+          opacity: 0;
+        }
+      }
+
+      @keyframes stickerFromAlbum {
+        0% {
+          opacity: 1;
+          transform: translate(0, 0) rotate(0deg) scaleX(1) scaleY(1);
+          filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.08));
+          animation-timing-function: cubic-bezier(0.45, 0, 0.2, 1);
+        }
+        72% {
+          opacity: 1;
+          transform: translate(92px, -14px) rotate(0deg) scaleX(1.724) scaleY(1.724);
+          filter: drop-shadow(0 11px 15px rgba(0, 0, 0, 0.082));
+          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        87% {
+          opacity: 1;
+          transform: translate(92px, -7.2px) rotate(0deg) scaleX(1.726) scaleY(1.714);
+          filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.073));
+          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        94% {
+          opacity: 1;
+          transform: translate(92px, -8.2px) rotate(0deg) scaleX(1.719) scaleY(1.721);
+          filter: drop-shadow(0 9px 11px rgba(0, 0, 0, 0.077));
+          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        100% {
+          opacity: 1;
+          transform: translate(92px, -8px) rotate(0deg) scaleX(1.72) scaleY(1.72);
+          filter: drop-shadow(0 9px 12px rgba(0, 0, 0, 0.08));
+        }
+      }
+
+      @keyframes uiRiseIn {
+        from {
+          opacity: 0;
+          transform: translateY(18px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pressRelease {
+        from {
+          transform: translateY(var(--press-y)) scale(var(--press-scale));
+          filter: brightness(var(--press-dim));
+        }
+        to {
+          transform: translateY(0) scale(1);
+          filter: brightness(1);
+        }
+      }
+
+      @media (max-width: 420px) {
+        body {
+          background: #fff;
+        }
+
+        .phone {
+          width: 100vw;
+          height: 100vh;
+          border-radius: 0;
+          box-shadow: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 1ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 1ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" aria-label="Fiko 贴纸册交互动画">
+      <section class="final-screen" aria-hidden="true">
+        <svg class="wave-dots" viewBox="0 0 393 852" aria-hidden="true">
+          <g id="dots"></g>
+        </svg>
+        <img class="status" src="/assets/0edff1c1522f149a308ff45f202b41e19d5d0d2e7d1402c9c1d56e80af98b5c5.png" alt="" />
+        <button class="close pressable" id="closeButton" type="button" aria-label="重播">
+          <img src="/assets/9b8b08b15166230863223a479492c1a800bc952974689d881d6f541b295f47ab.png" alt="" />
+        </button>
+        <section class="final-copy" aria-label="贴纸说明">
+          <h1>午休偷练王</h1>
+          <p>原来是你在午休弯道超车！</p>
+        </section>
+        <p class="date-copy">生产日期： 2026.6.20</p>
+        <button class="share-button pressable" type="button">分享</button>
+      </section>
+
+      <section class="album-screen" aria-label="贴纸册">
+        <img class="album-img" src="/assets/ba3282c1b3c99da40f10f639936d3af892eeb8fa96e22ec4225d55ed7ce40bc6.png" alt="" />
+        <img class="album-sticker" src="/assets/bdb3b74da9a2f3810e650b667c4421220333a6c1f23d86ab27581dbf925639f5.png" alt="" />
+        <button class="sticker-hit pressable" id="stickerHit" type="button" aria-label="查看贴纸"></button>
+      </section>
+
+      <img class="flying-sticker" src="/assets/bdb3b74da9a2f3810e650b667c4421220333a6c1f23d86ab27581dbf925639f5.png" alt="" />
+    </main>
+
+    <script>const embeddedAssetMap={"assets/bg.png":"/assets/8d96870c15196ff1f1b136a8bb0900e9648069f821f55d778f576977b47d9104.png","assets/关闭.png":"/assets/9b8b08b15166230863223a479492c1a800bc952974689d881d6f541b295f47ab.png","assets/状态栏.png":"/assets/0edff1c1522f149a308ff45f202b41e19d5d0d2e7d1402c9c1d56e80af98b5c5.png","assets/贴纸.png":"/assets/bdb3b74da9a2f3810e650b667c4421220333a6c1f23d86ab27581dbf925639f5.png","assets/贴纸册.png":"/assets/ba3282c1b3c99da40f10f639936d3af892eeb8fa96e22ec4225d55ed7ce40bc6.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const SVG_NS = "http://www.w3.org/2000/svg";
+      const phone = document.querySelector(".phone");
+      const finalScreen = document.querySelector(".final-screen");
+      const stickerHit = document.querySelector("#stickerHit");
+      const closeButton = document.querySelector("#closeButton");
+      const dotsGroup = document.querySelector("#dots");
+      const pressables = document.querySelectorAll(".pressable");
+      const waveCenter = { x: 196.5, y: 405 };
+      const dotItems = [];
+      const baseRadius = 1;
+      const baseColor = { r: 207, g: 207, b: 207 };
+      const peakColor = { r: 188, g: 218, b: 255 };
+      const waveConfig = {
+        startDelayMs: 760,
+        repeatDelayMs: 700,
+        propagationMsPerPx: 2.9,
+        pulseMs: 2320,
+        radiusAdd: 2.6,
+        opacityBase: 1,
+        opacityPeak: 0.1,
+        visibleThreshold: 0.68,
+        globalEaseMix: 0.35,
+        rippleLayers: [
+          { delayMs: 0, strength: 1 },
+        ],
+      };
+      let waveRaf = 0;
+      let waveStart = 0;
+      let waveTimer = 0;
+      let resetTimer = 0;
+
+      function lerp(a, b, t) {
+        return a + (b - a) * t;
+      }
+
+      function easeInOutSine(t) {
+        return -(Math.cos(Math.PI * t) - 1) / 2;
+      }
+
+      function smoothstep(edge0, edge1, x) {
+        const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+        return t * t * (3 - 2 * t);
+      }
+
+      function colorAt(amount) {
+        const r = Math.round(lerp(baseColor.r, peakColor.r, amount));
+        const g = Math.round(lerp(baseColor.g, peakColor.g, amount));
+        const b = Math.round(lerp(baseColor.b, peakColor.b, amount));
+        return `rgb(${r}, ${g}, ${b})`;
+      }
+
+      function createDotGrid() {
+        const fragment = document.createDocumentFragment();
+
+        for (let y = 3.5; y <= 848.5; y += 13) {
+          for (let x = 1.5; x <= 391.5; x += 13) {
+            const circle = document.createElementNS(SVG_NS, "circle");
+            const distance = Math.hypot(x - waveCenter.x, y - waveCenter.y);
+
+            circle.setAttribute("cx", x.toFixed(1));
+            circle.setAttribute("cy", y.toFixed(1));
+            circle.setAttribute("r", baseRadius);
+            circle.setAttribute("fill", colorAt(0));
+            circle.setAttribute("fill-opacity", waveConfig.opacityBase);
+
+            dotItems.push({ node: circle, distance });
+            fragment.append(circle);
+          }
+        }
+
+        dotsGroup.append(fragment);
+      }
+
+      function resetDots() {
+        dotItems.forEach(({ node }) => {
+          node.setAttribute("r", baseRadius);
+          node.setAttribute("fill", colorAt(0));
+          node.setAttribute("fill-opacity", waveConfig.opacityBase);
+        });
+      }
+
+      function animateWave(now) {
+        if (!waveStart) waveStart = now;
+
+        const maxDistance = 560;
+        const maxLayerDelay = Math.max(...waveConfig.rippleLayers.map((layer) => layer.delayMs));
+        const totalDuration = maxDistance * waveConfig.propagationMsPerPx + maxLayerDelay + waveConfig.pulseMs;
+        const elapsed = now - waveStart;
+        const easedElapsed = lerp(
+          elapsed,
+          totalDuration * easeInOutSine(Math.min(1, elapsed / totalDuration)),
+          waveConfig.globalEaseMix
+        );
+        const { propagationMsPerPx, pulseMs, radiusAdd, opacityBase, opacityPeak, rippleLayers } = waveConfig;
+
+        dotItems.forEach(({ node, distance }) => {
+          let waveAmount = 0;
+
+          rippleLayers.forEach((layer) => {
+            const local = easedElapsed - distance * propagationMsPerPx - layer.delayMs;
+            if (local < 0 || local > pulseMs) return;
+            const progress = local / pulseMs;
+            const bell = Math.sin(Math.PI * easeInOutSine(progress)) * layer.strength;
+            waveAmount = Math.max(waveAmount, bell);
+          });
+
+          const visibleAmount = smoothstep(waveConfig.visibleThreshold, 1, waveAmount);
+          const radius = baseRadius + radiusAdd * visibleAmount;
+          const opacity = lerp(opacityBase, opacityPeak, visibleAmount);
+
+          node.setAttribute("r", radius.toFixed(3));
+          node.setAttribute("fill", colorAt(visibleAmount));
+          node.setAttribute("fill-opacity", opacity.toFixed(3));
+        });
+
+        if (elapsed < totalDuration) {
+          waveRaf = requestAnimationFrame(animateWave);
+        } else {
+          resetDots();
+          waveStart = 0;
+          waveTimer = window.setTimeout(startWave, waveConfig.repeatDelayMs);
+        }
+      }
+
+      function startWave() {
+        resetDots();
+        waveStart = 0;
+        cancelAnimationFrame(waveRaf);
+        waveRaf = requestAnimationFrame(animateWave);
+      }
+
+      function scheduleWave() {
+        window.clearTimeout(waveTimer);
+        waveTimer = window.setTimeout(startWave, waveConfig.startDelayMs);
+      }
+
+      function stopWave() {
+        window.clearTimeout(waveTimer);
+        cancelAnimationFrame(waveRaf);
+        waveStart = 0;
+        resetDots();
+      }
+
+      function releasePressed(button, delay = 0) {
+        window.setTimeout(() => {
+          button.classList.remove("is-pressing");
+          button.classList.remove("is-releasing");
+          button.offsetHeight;
+          button.classList.add("is-releasing");
+          window.setTimeout(() => {
+            button.classList.remove("is-releasing");
+          }, 320);
+        }, delay);
+      }
+
+      pressables.forEach((button) => {
+        button.addEventListener("pointerdown", (event) => {
+          button.classList.remove("is-releasing");
+          button.classList.add("is-pressing");
+          button.setPointerCapture?.(event.pointerId);
+        });
+
+        button.addEventListener("pointerup", () => releasePressed(button));
+        button.addEventListener("pointercancel", () => {
+          button.classList.remove("is-pressing", "is-releasing");
+        });
+        button.addEventListener("pointerleave", () => {
+          button.classList.remove("is-pressing");
+        });
+      });
+
+      function play() {
+        window.clearTimeout(resetTimer);
+        stopWave();
+        phone.classList.remove("is-playing");
+        phone.offsetHeight;
+        phone.classList.add("is-playing");
+        scheduleWave();
+      }
+
+      function reset() {
+        window.clearTimeout(resetTimer);
+        stopWave();
+        phone.classList.remove("is-playing");
+      }
+
+      stickerHit.addEventListener("click", play);
+      closeButton.addEventListener("click", reset);
+      createDotGrid();
+    </script>
+  </body>
+</html>

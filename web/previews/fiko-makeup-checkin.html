@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Miko 补签动画</title>
+    <style>
+      :root {
+        font-family: "STBaoYuan-SC", "Yuanti SC", "PingFang SC", sans-serif;
+        font-weight: 700;
+        color: #000;
+        letter-spacing: 0;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+      body { background: #fff; }
+      button { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+      button:disabled { cursor: default; }
+      button:focus-visible { outline: 2px solid #80afff; outline-offset: 4px; }
+      img { display: block; user-select: none; -webkit-user-drag: none; }
+      [hidden] { display: none !important; }
+      .phone {
+        position: absolute; left: 50%; top: 50%; width: 393px; height: 852px;
+        overflow: hidden; border-radius: 32px; outline: 1px solid #dedede;
+        background: #fff; isolation: isolate;
+        transform: translate(-50%, -50%) scale(var(--phone-scale, 1));
+        transform-origin: center;
+      }
+      .home, .home-image, .scrim { position: absolute; inset: 0; width: 393px; height: 852px; }
+      .home-image { object-fit: fill; }
+      .record-button { position: absolute; left: 271px; top: 54px; width: 61px; height: 36px; border-radius: 14px; }
+      .scrim { z-index: 1; background: #000; opacity: 0; }
+      .sheet {
+        position: absolute; z-index: 2; left: 0; top: 450px; width: 393px; height: 402px;
+        transform: translateY(490px); outline: none; overflow: visible;
+      }
+      .sheet-bg { position: absolute; inset: 0; width: 393px; height: 402px; }
+      .illustration { position: absolute; left: 126px; top: -81px; width: 141px; height: 137px; object-fit: contain; }
+      .copy { position: absolute; left: 67px; top: 64px; width: 260px; text-align: center; }
+      .copy h1 { margin: 0; color: #222; font-size: 20px; line-height: 28px; font-weight: 700; }
+      .copy p { margin: 8px 0 0; color: #8c8c8c; font-size: 14px; line-height: 20px; overflow-wrap: break-word; }
+      .calendar {
+        position: absolute; left: 24.5px; top: 156px; width: 345px; height: 100px;
+        border: 1px solid #ededed; border-radius: 26px 24px 24px 24px; background: #fff;
+        transform-origin: 50% 100%;
+      }
+      .week { position: absolute; left: 8px; top: 12px; width: 327px; height: 74px; display: flex; justify-content: space-between; }
+      .day { position: relative; width: 46px; height: 74px; flex: 0 0 46px; }
+      .day-label { display: flex; align-items: center; justify-content: center; height: 28px; font-size: 12px; line-height: 16px; }
+      .today .day-label { width: 40px; height: 26px; margin: 0 auto 2px; border-radius: 30px; color: #fff; background: #000; }
+      .mark { position: absolute; left: 0; top: 28px; width: 46px; height: 46px; }
+      .mark img { position: absolute; inset: 0; width: 46px; height: 46px; object-fit: contain; }
+      .dot { position: absolute; left: 20.5px; top: 49px; width: 4px; height: 4px; border-radius: 50%; background: #e0e0e0; }
+      .fish-stamp { z-index: 2; opacity: 0; transform-origin: center; }
+      .stamp-dark { filter: brightness(0); }
+      .stamp-light { opacity: 0; }
+      .confirm-button {
+        position: absolute; left: 87px; top: 280px; width: 220px; height: 60px;
+        border-radius: 26px; background: #000; color: #fff; font-size: 20px; line-height: 28px;
+        transition: transform 110ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .confirm-button:active:not(:disabled) { transform: scale(0.965); }
+      .home-indicator { position: absolute; z-index: 3; left: 125px; top: 839px; width: 144px; height: 5px; border-radius: 3px; background: #000; pointer-events: none; }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+      @media (prefers-reduced-motion: reduce) { .confirm-button { transition: none; } }
+    </style>
+  </head>
+  <body>
+    <main class="phone" data-phase="home" aria-label="补签动画预览">
+      <section id="home" class="home" aria-label="首页">
+        <img class="home-image" src="/assets/0529bdb22278fed21b6ced975b2b25882a108b133098a12d085772cbdbfde400.png" alt="Miko 首页，连胜 27 天，今日训练计划" />
+        <button id="recordButton" class="record-button" type="button" aria-label="查看补签记录" title="查看补签记录"></button>
+      </section>
+      <button id="scrim" class="scrim" type="button" tabindex="-1" aria-label="关闭补签结果" hidden></button>
+      <section id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" aria-describedby="sheetDescription" tabindex="-1" hidden inert>
+        <img class="sheet-bg" src="/assets/3866284309a4b13fb6b7d7bc02c89c5e1e3e00b1706a1270f9aec10fbd482018.png" alt="" />
+        <img class="illustration" src="/assets/1d329d4823ad7a0c4adc9d7885b39a624266eecedff7160b389cbf8121ea47ce.png" alt="" />
+        <div class="copy">
+          <h1 id="sheetTitle">补签成功</h1>
+          <p id="sheetDescription">Hi 阿蛋，昨天忘了打卡了吧。Miko使用小鱼干，帮你打了，懒鬼！</p>
+        </div>
+        <div id="calendarCard" class="calendar" role="group" aria-label="本周打卡记录">
+          <div class="week">
+            <div class="day" aria-label="周一，已打卡"><span class="day-label" aria-hidden="true">一</span><span id="mondayMark" class="mark"><img src="/assets/eebce0a3d4eb2edd9b9cce275a3bdeea961c6ccdd41b63c33e5bcd48b47ea0d0.png" alt="" /></span></div>
+            <div class="day" aria-label="周二，已补签"><span class="day-label" aria-hidden="true">二</span><span id="tuesdayMark" class="mark"><img src="/assets/ebda376b07897147d105ca53b2562345e09334836024929cbeb041e3237c94b7.png" alt="" /></span></div>
+            <div class="day" aria-label="周三，已打卡"><span class="day-label" aria-hidden="true">三</span><span id="wednesdayMark" class="mark"><img src="/assets/eebce0a3d4eb2edd9b9cce275a3bdeea961c6ccdd41b63c33e5bcd48b47ea0d0.png" alt="" /></span></div>
+            <div id="thursday" class="day" aria-label="周四，待补签">
+              <span class="day-label" aria-hidden="true">四</span><span id="thursdayDot" class="dot"></span>
+              <span id="fishStamp" class="mark fish-stamp" aria-hidden="true">
+                <img id="stampLight" class="stamp-light" src="/assets/ebda376b07897147d105ca53b2562345e09334836024929cbeb041e3237c94b7.png" alt="" />
+                <img id="stampDark" class="stamp-dark" src="/assets/ebda376b07897147d105ca53b2562345e09334836024929cbeb041e3237c94b7.png" alt="" />
+              </span>
+            </div>
+            <div class="day today" aria-label="今天，周五，未打卡"><span class="day-label" aria-hidden="true">今</span><span id="fridayMark" class="dot"></span></div>
+            <div class="day" aria-label="周六，未打卡"><span class="day-label" aria-hidden="true">六</span><span id="saturdayMark" class="dot"></span></div>
+            <div class="day" aria-label="周日，未打卡"><span class="day-label" aria-hidden="true">日</span><span id="sundayMark" class="dot"></span></div>
+          </div>
+        </div>
+        <button id="confirmButton" class="confirm-button" type="button" disabled>好吧谢谢你</button>
+      </section>
+      <div id="homeIndicator" class="home-indicator" hidden></div>
+      <span id="announcement" class="sr-only" role="status" aria-live="polite"></span>
+    </main>
+    <script>const embeddedAssetMap={"assets/cat.png":"/assets/eebce0a3d4eb2edd9b9cce275a3bdeea961c6ccdd41b63c33e5bcd48b47ea0d0.png","assets/fish.png":"/assets/ebda376b07897147d105ca53b2562345e09334836024929cbeb041e3237c94b7.png","assets/home.png":"/assets/0529bdb22278fed21b6ced975b2b25882a108b133098a12d085772cbdbfde400.png","assets/illustration.png":"/assets/1d329d4823ad7a0c4adc9d7885b39a624266eecedff7160b389cbf8121ea47ce.png","assets/sheet.png":"/assets/3866284309a4b13fb6b7d7bc02c89c5e1e3e00b1706a1270f9aec10fbd482018.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const TIMING = { home: 1000, sheet: 520, stamp: 640, dismiss: 360 };
+      const SHEET_HIDDEN = "translateY(490px)";
+      const SHEET_REST = "translateY(0)";
+      const STAMP_CONTACT_PROGRESS = 0.6;
+      const STAMP_START_TRANSFORM = "perspective(800px) translateZ(640px) rotate(-10deg)";
+      const STAMP_REST = "perspective(800px) translateZ(0)";
+      const IMPACT = { duration: 520, stagger: 35, rest: "translate(0px, 0px) rotate(0deg)" };
+      const CARD_REST = "translateY(0px) scale(1, 1)";
+      const CARD_FRAMES = [
+        { transform: CARD_REST, offset: 0, easing: "cubic-bezier(0.37, 0, 0.63, 1)" },
+        { transform: "translateY(2px) scale(1.004, 0.985)", offset: 0.32, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
+        { transform: "translateY(-0.3px) scale(0.999, 1.003)", offset: 0.76, easing: "cubic-bezier(0.37, 0, 0.63, 1)" },
+        { transform: CARD_REST, offset: 1 },
+      ];
+      // These contact/squash/recovery frames match the original Streak Feedback stamp.
+      const STAMP_FRAMES = [
+        { opacity: 0, transform: STAMP_START_TRANSFORM, offset: 0, easing: "cubic-bezier(0.25, 0.46, 0.45, 0.94)" },
+        { opacity: 1, transform: "perspective(800px) translateZ(600px) rotate(-8deg)", offset: 0.12, easing: "cubic-bezier(0.55, 0.055, 0.675, 0.19)" },
+        { opacity: 1, transform: "perspective(800px) translateZ(0) rotate(0deg) scale(1.12, 0.84)", offset: STAMP_CONTACT_PROGRESS, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
+        { opacity: 1, transform: "perspective(800px) translateZ(0) rotate(0deg) scale(0.96, 1.08)", offset: 0.78, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
+        { opacity: 1, transform: STAMP_REST, offset: 1 },
+      ];
+      const phone = document.querySelector(".phone");
+      const home = document.querySelector("#home");
+      const sheet = document.querySelector("#sheet");
+      const scrim = document.querySelector("#scrim");
+      const recordButton = document.querySelector("#recordButton");
+      const confirmButton = document.querySelector("#confirmButton");
+      const calendarCard = document.querySelector("#calendarCard");
+      const stamp = document.querySelector("#fishStamp");
+      const stampDark = document.querySelector("#stampDark");
+      const stampLight = document.querySelector("#stampLight");
+      const thursday = document.querySelector("#thursday");
+      const dot = document.querySelector("#thursdayDot");
+      const homeIndicator = document.querySelector("#homeIndicator");
+      const announcement = document.querySelector("#announcement");
+      const neighbors = [
+        { selector: "#mondayMark", distance: -3 },
+        { selector: "#tuesdayMark", distance: -2 },
+        { selector: "#wednesdayMark", distance: -1 },
+        { selector: "#fridayMark", distance: 1 },
+        { selector: "#saturdayMark", distance: 2 },
+        { selector: "#sundayMark", distance: 3 },
+      ].map(({ selector, distance }) => ({ element: document.querySelector(selector), distance }));
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const animations = new Set();
+      const neighborAnimations = new Set();
+      const timers = new Set();
+      let generation = 0;
+      let neighborImpactEnabled = (new URLSearchParams(window.location.search).get("neighborImpact")
+        ?? document.documentElement.dataset.neighborImpact) !== "false";
+      phone.dataset.neighborImpact = String(neighborImpactEnabled);
+
+      function setNeighborImpact(enabled) {
+        neighborImpactEnabled = enabled;
+        phone.dataset.neighborImpact = String(enabled);
+        if (enabled) return;
+        neighborAnimations.forEach((animation) => {
+          animation.cancel();
+          animations.delete(animation);
+        });
+        neighborAnimations.clear();
+        neighbors.forEach(({ element }) => { element.style.transform = IMPACT.rest; });
+      }
+
+      function later(callback, delay) {
+        const token = generation;
+        const timer = window.setTimeout(() => {
+          timers.delete(timer);
+          if (token === generation) callback();
+        }, delay);
+        timers.add(timer);
+      }
+
+      function clearTimeline() {
+        generation += 1;
+        timers.forEach((timer) => window.clearTimeout(timer));
+        timers.clear();
+        animations.forEach((animation) => animation.cancel());
+        animations.clear();
+        neighborAnimations.clear();
+        neighbors.forEach(({ element }) => { element.style.transform = IMPACT.rest; });
+        calendarCard.style.transform = CARD_REST;
+      }
+
+      async function animate(element, frames, duration, easing = "cubic-bezier(0.4, 0, 0.2, 1)", delay = 0, optionalNeighbor = false) {
+        const token = generation;
+        if (typeof element.animate !== "function") {
+          const { offset, easing: _easing, ...style } = frames[frames.length - 1];
+          Object.assign(element.style, style);
+          return true;
+        }
+        const animation = element.animate(frames, { duration, easing, delay, fill: "both" });
+        animations.add(animation);
+        if (optionalNeighbor) neighborAnimations.add(animation);
+        try { await animation.finished; return token === generation; }
+        // Disabling only the optional shake must not abort the fish/card sequence.
+        catch (_error) { return optionalNeighbor && token === generation; }
+      }
+
+      function markThursday() {
+        dot.hidden = true;
+        thursday.setAttribute("aria-label", "周四，已补签");
+      }
+
+      function impactFrames(distance) {
+        const direction = Math.sign(distance);
+        const strength = [null, { x: 4, y: 1, angle: 3 }, { x: 2.5, y: 0.6, angle: 1.8 }, { x: 1.2, y: 0.3, angle: 0.8 }][Math.abs(distance)];
+        const x = direction * strength.x;
+        const angle = direction * strength.angle;
+        return [
+          { transform: IMPACT.rest, offset: 0, easing: "cubic-bezier(0.37, 0, 0.63, 1)" },
+          { transform: `translate(${x}px, ${-strength.y}px) rotate(${angle}deg)`, offset: 0.32, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
+          { transform: `translate(${-x * 0.08}px, 0px) rotate(${-angle * 0.08}deg)`, offset: 0.76, easing: "cubic-bezier(0.37, 0, 0.63, 1)" },
+          { transform: IMPACT.rest, offset: 1 },
+        ];
+      }
+
+      function showFinal() {
+        clearTimeline();
+        sheet.hidden = false;
+        sheet.inert = false;
+        home.inert = true;
+        scrim.hidden = false;
+        scrim.style.opacity = "0.4";
+        sheet.style.transform = SHEET_REST;
+        Object.assign(stamp.style, { opacity: "1", transform: STAMP_REST });
+        stampDark.style.opacity = "0";
+        stampLight.style.opacity = "1";
+        homeIndicator.hidden = false;
+        markThursday();
+        confirmButton.disabled = false;
+        phone.dataset.phase = "complete";
+        announcement.textContent = "周四补签成功";
+      }
+
+      async function openSheet() {
+        if (!["home", "dismissed"].includes(phone.dataset.phase)) return;
+        clearTimeline();
+        const token = generation;
+        announcement.textContent = "";
+        phone.dataset.phase = "entering";
+        home.inert = true;
+        sheet.hidden = false;
+        sheet.inert = false;
+        scrim.hidden = false;
+        scrim.style.opacity = "0";
+        sheet.style.transform = SHEET_HIDDEN;
+        homeIndicator.hidden = false;
+        confirmButton.disabled = true;
+        dot.hidden = false;
+        thursday.setAttribute("aria-label", "周四，待补签");
+        Object.assign(stamp.style, { opacity: "0", transform: STAMP_START_TRANSFORM });
+        stampDark.style.opacity = "1";
+        stampLight.style.opacity = "0";
+        sheet.focus({ preventScroll: true });
+        if (reducedMotion.matches) { showFinal(); return; }
+        const entered = await Promise.all([
+          animate(sheet, [{ transform: SHEET_HIDDEN }, { transform: SHEET_REST }], TIMING.sheet, "cubic-bezier(0.22, 1, 0.36, 1)"),
+          animate(scrim, [{ opacity: 0 }, { opacity: 0.4 }], TIMING.sheet),
+        ]);
+        if (token !== generation || !entered.every(Boolean)) return;
+        phone.dataset.phase = "stamping";
+        later(markThursday, TIMING.stamp * STAMP_CONTACT_PROGRESS);
+        const stamped = await Promise.all([
+          animate(stamp, STAMP_FRAMES, TIMING.stamp, "linear"),
+          animate(stampDark, [{ opacity: 1, offset: 0 }, { opacity: 1, offset: STAMP_CONTACT_PROGRESS }, { opacity: 0, offset: 0.88 }, { opacity: 0, offset: 1 }], TIMING.stamp, "linear"),
+          animate(stampLight, [{ opacity: 0, offset: 0 }, { opacity: 0, offset: STAMP_CONTACT_PROGRESS }, { opacity: 1, offset: 0.88 }, { opacity: 1, offset: 1 }], TIMING.stamp, "linear"),
+          // Delays share the stamp clock: nothing reacts before contact, and completion waits for every return.
+          animate(calendarCard, CARD_FRAMES, IMPACT.duration, "linear", TIMING.stamp * STAMP_CONTACT_PROGRESS),
+          ...(neighborImpactEnabled ? neighbors : []).map(({ element, distance }) => animate(
+            element, impactFrames(distance), IMPACT.duration, "linear",
+            TIMING.stamp * STAMP_CONTACT_PROGRESS + (Math.abs(distance) - 1) * IMPACT.stagger,
+            true,
+          )),
+        ]);
+        if (token !== generation || !stamped.every(Boolean)) return;
+        showFinal();
+      }
+
+      function finishDismiss() {
+        clearTimeline();
+        sheet.hidden = true;
+        sheet.inert = true;
+        scrim.hidden = true;
+        homeIndicator.hidden = true;
+        home.inert = false;
+        phone.dataset.phase = "dismissed";
+        recordButton.focus({ preventScroll: true });
+      }
+
+      async function dismissSheet() {
+        if (!["entering", "stamping", "complete"].includes(phone.dataset.phase)) return;
+        // Capture the current position before cancellation so early dismissal never jumps.
+        const transform = window.getComputedStyle(sheet).transform;
+        const opacity = window.getComputedStyle(scrim).opacity;
+        clearTimeline();
+        const token = generation;
+        sheet.style.transform = transform;
+        scrim.style.opacity = opacity;
+        phone.dataset.phase = "dismissing";
+        confirmButton.disabled = true;
+        sheet.inert = true;
+        if (reducedMotion.matches) { finishDismiss(); return; }
+        const dismissed = await Promise.all([
+          animate(sheet, [{ transform }, { transform: SHEET_HIDDEN }], TIMING.dismiss),
+          animate(scrim, [{ opacity }, { opacity: 0 }], TIMING.dismiss),
+        ]);
+        if (token !== generation || !dismissed.every(Boolean)) return;
+        finishDismiss();
+      }
+
+      function fitPhone() {
+        const scale = Math.max(0.01, Math.min(1, (window.innerWidth - 2) / 393, (window.innerHeight - 2) / 852));
+        document.documentElement.style.setProperty("--phone-scale", String(scale));
+      }
+      confirmButton.addEventListener("click", () => { if (!confirmButton.disabled) dismissSheet(); });
+      scrim.addEventListener("click", dismissSheet);
+      recordButton.addEventListener("click", openSheet);
+      window.addEventListener("keydown", (event) => {
+        if (!["entering", "stamping", "complete"].includes(phone.dataset.phase)) return;
+        if (event.key === "Escape") { event.preventDefault(); dismissSheet(); }
+        if (event.key === "Tab") {
+          event.preventDefault();
+          (confirmButton.disabled ? sheet : confirmButton).focus({ preventScroll: true });
+        }
+      });
+      reducedMotion.addEventListener("change", () => {
+        if (!reducedMotion.matches) return;
+        if (phone.dataset.phase === "dismissing") finishDismiss();
+        else if (["entering", "stamping"].includes(phone.dataset.phase)) showFinal();
+      });
+      window.addEventListener("resize", fitPhone);
+      window.addEventListener("pagehide", clearTimeline);
+      window.addEventListener("message", (event) => {
+        if (window.parent === window || event.source !== window.parent) return;
+        if (event.data?.type === "fiko-makeup-settings" && typeof event.data.neighborImpact === "boolean") {
+          setNeighborImpact(event.data.neighborImpact);
+        }
+      });
+      fitPhone();
+      later(openSheet, TIMING.home);
+      if (window.parent !== window) window.parent.postMessage({ type: "fiko-makeup-ready" }, "*");
+    </script>
+  </body>
+</html>

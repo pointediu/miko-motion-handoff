@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Miko 21天活动 · 参与活动</title>
+    <style>
+      * { box-sizing: border-box; }
+      [hidden] { display: none !important; }
+      html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+      body { background: #fff; font-family: "STBaoYuan-SC", "Yuanti SC", "PingFang SC", sans-serif; font-weight: 700; }
+      button { font: inherit; -webkit-tap-highlight-color: transparent; }
+      img { display: block; user-select: none; -webkit-user-drag: none; pointer-events: none; }
+      .phone {
+        position: absolute; left: 50%; top: 50%; width: 393px; height: 852px;
+        overflow: hidden; border-radius: 32px; outline: 1px solid #dedede; background: #fff;
+        transform: translate(-50%, -50%) scale(var(--phone-scale, 1)); transform-origin: center;
+      }
+      .viewport { position: absolute; inset: 0; overflow: hidden; overscroll-behavior: contain; scrollbar-width: none; }
+      .viewport::-webkit-scrollbar { display: none; }
+      .phone[data-state="joined"] .viewport { overflow-y: auto; }
+      .content { position: relative; width: 393px; height: 852px; }
+      .phone:not([data-state="idle"]) .content { height: 1313px; }
+      .kv { position: absolute; left: 0; top: 0; width: 393px; height: 852px; }
+      .rules {
+        position: absolute; top: 148px; left: 0; width: 44px; height: 28px;
+        display: grid; place-items: center; border-radius: 0 12px 12px 0;
+        background: #fff; color: #000; font-size: 14px; line-height: 20px;
+      }
+      .navigation {
+        position: absolute; left: 0; top: 0; width: 393px; height: 92px; z-index: 2;
+        background: url("/assets/c783e6d184d7a074e763b85f18219b9db37fe13ac88fd1a74685d1e5f2c9d73d.png") 0 0 / 393px 852px no-repeat;
+      }
+      .navigation::after {
+        content: ""; position: absolute; left: 0; top: 100%; width: 100%; height: 28px;
+        background: inherit; background-position: 0 -92px; pointer-events: none;
+        -webkit-mask-image: linear-gradient(to bottom, #000, transparent);
+        mask-image: linear-gradient(to bottom, #000, transparent);
+      }
+      .navigation img { width: 393.5px; height: 92px; }
+      .back { position: absolute; left: 16.5px; top: 48px; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 16px; background: transparent; cursor: pointer; }
+      button:focus-visible { outline: 3px solid #006dff; outline-offset: 4px; }
+      .calendar {
+        position: absolute; left: 15px; top: 203.544px; width: 361px; height: 448px;
+        border: 1px solid #ededed; border-radius: 24px; background: #fff;
+        box-shadow: 0 8px 12px rgba(23, 24, 26, 0.12); opacity: 0;
+      }
+      .weekdays { position: absolute; top: 19px; left: 18.5px; width: 322px; height: 24px; display: grid; grid-template-columns: repeat(7, 46px); }
+      .weekdays span { display: grid; place-items: center; color: #bababa; font-size: 14px; line-height: 20px; }
+      .activity-band { position: absolute; height: 68px; border-radius: 12px; background: #f1f7ff; }
+      .activity-band:nth-child(1) { left: 155px; top: 53px; width: 184px; }
+      .activity-band:nth-child(2) { left: 17px; top: 131px; width: 322px; }
+      .activity-band:nth-child(3) { left: 17px; top: 209px; width: 322px; }
+      .activity-band:nth-child(4) { left: 17px; top: 287px; width: 138px; }
+      .dates { position: absolute; top: 59px; left: 18.5px; width: 322px; display: grid; grid-template-columns: repeat(7, 46px); grid-auto-rows: 62px; row-gap: 16px; }
+      .day { position: relative; width: 46px; height: 62px; text-align: center; color: #222; font-size: 14px; line-height: 20px; }
+      .day.outside { color: #bababa; }
+      .day-number { height: 16px; display: block; }
+      .day img { width: 46px; height: 46px; }
+      .day[data-earned="true"] img { width: 34px; height: 34px; margin: 0 auto; }
+      .reward-earned {
+        position: absolute; left: 4px; top: 51px; width: 38px; height: 14px;
+        display: grid; place-items: center; border-radius: 4px;
+        background: #e6f4ec; color: #17633e;
+        font: 600 10px/14px "PingFang SC", sans-serif; white-space: nowrap;
+      }
+      .action-position { position: absolute; left: 86px; top: 736px; width: 220px; height: 60px; }
+      .action {
+        position: relative; display: block; width: 220px; height: 60px; padding: 0;
+        border: 0; border-radius: 26px; background: #000; color: #fff;
+        font-size: 20px; line-height: 28px; cursor: pointer; transition: transform 100ms ease;
+        translate: 0 0; scale: 1; transform-origin: center;
+      }
+      .action:active:not(:disabled) { transform: scale(0.98); }
+      .action:disabled { cursor: default; }
+      .action span { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+      .joined-label { opacity: 0; }
+      .rewards { position: absolute; left: 0; top: 751.544px; width: 393px; height: 561.456px; overflow: hidden; opacity: 0; }
+      .rewards img { width: 393px; height: 852px; }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+      @media (prefers-reduced-motion: reduce) { .action { transition: none; } }
+    </style>
+  </head>
+  <body>
+    <main class="phone" data-state="idle" aria-label="21天活动详情页">
+      <div class="viewport">
+        <div class="content">
+          <h1 class="sr-only">21天养人计划</h1>
+          <p class="sr-only">活动时间：10月1日-10月31日</p>
+          <img class="kv" src="/assets/c783e6d184d7a074e763b85f18219b9db37fe13ac88fd1a74685d1e5f2c9d73d.png" alt="" />
+          <img class="kv before" src="/assets/608bd55fc1bb9825bdd54f682da3750fbe9f57e1a4fbaa7417432a5676ee5cb8.png" alt="活动奖励：贴纸、握力器和包" />
+          <span class="rules">规则</span>
+          <section class="calendar" aria-label="2026年10月活动日历" hidden inert>
+            <div aria-hidden="true">
+              <div class="activity-band"></div><div class="activity-band"></div>
+              <div class="activity-band"></div><div class="activity-band"></div>
+            </div>
+            <div class="weekdays" aria-hidden="true"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+            <div class="dates" role="list" aria-label="打卡日期"></div>
+          </section>
+          <section class="rewards" aria-label="打卡里程碑与活动奖励" hidden inert>
+            <img src="/assets/8604c7404882273d252e6a6524424eed695780aae5397f33da8fcab6526b302d.png" alt="打卡里程碑：贴纸、握力器和包，奖励说明见图" />
+          </section>
+          <div class="action-position">
+            <button class="action" type="button" aria-label="参与活动">
+              <span class="join-label" aria-hidden="true">参与活动</span>
+              <span class="joined-label" aria-hidden="true">完成今日训练</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <header class="navigation" aria-label="顶部导航">
+        <img src="/assets/6bd994ffa8e91b8c60e66c166351ec46031088bf416bcebea3cecf91b13011f8.png" alt="9:41，返回，活动奖励，分享" />
+        <button class="back" type="button" aria-label="返回未参与状态" title="返回未参与状态"></button>
+      </header>
+      <div class="sr-only" role="status" aria-live="polite"></div>
+    </main>
+    <script>const embeddedAssetMap={"assets/day-checked.png":"/assets/d0d589e7a8069910d127f827ea1c378185ea176798c908027139d84b38815148.png","assets/day-empty.png":"/assets/b3a6f32b4d6948a377689ab99a7498c63b1e1ed41747284c6c7438922408163b.png","assets/kv-before.png":"/assets/608bd55fc1bb9825bdd54f682da3750fbe9f57e1a4fbaa7417432a5676ee5cb8.png","assets/kv-joined.png":"/assets/c783e6d184d7a074e763b85f18219b9db37fe13ac88fd1a74685d1e5f2c9d73d.png","assets/navigation.png":"/assets/6bd994ffa8e91b8c60e66c166351ec46031088bf416bcebea3cecf91b13011f8.png","assets/prize-bag.png":"/assets/a2985858f7bea4f8665e027b9488f4767ecc58dc8c0db13397f5f4a54103d859.png","assets/prize-grip.png":"/assets/c4d04ad6baa9ee1db3963b6df8887d281c5c1835476a73ddc695526283a78c5f.png","assets/prize-sticker.png":"/assets/70d6eb909f0853b88675191711fbe12fbb64675cd9bc0eb6e6dfb503cd9e2511.png","assets/rewards.png":"/assets/8604c7404882273d252e6a6524424eed695780aae5397f33da8fcab6526b302d.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const phone = document.querySelector(".phone");
+      const viewport = document.querySelector(".viewport");
+      const before = document.querySelector(".before");
+      const calendar = document.querySelector(".calendar");
+      const rewards = document.querySelector(".rewards");
+      const actionPosition = document.querySelector(".action-position");
+      const action = document.querySelector(".action");
+      const joinLabel = document.querySelector(".join-label");
+      const joinedLabel = document.querySelector(".joined-label");
+      const status = document.querySelector('[role="status"]');
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const ease = "cubic-bezier(0.22, 1, 0.36, 1)";
+      let animations = [];
+      let generation = 0;
+      let buttonGuide = null;
+      const initialDays = Number(document.documentElement.dataset.checkedDays ?? new URLSearchParams(location.search).get("checkedDays") ?? 0);
+      let checkedDays = Number.isFinite(initialDays) ? Math.max(0, Math.min(21, Math.trunc(initialDays))) : 0;
+      const dayCells = [];
+
+      const prizes = {
+        3: { src: "/assets/70d6eb909f0853b88675191711fbe12fbb64675cd9bc0eb6e6dfb503cd9e2511.png", label: "贴纸奖励" },
+        7: { src: "/assets/c4d04ad6baa9ee1db3963b6df8887d281c5c1835476a73ddc695526283a78c5f.png", label: "握力器奖励" },
+        21: { src: "/assets/a2985858f7bea4f8665e027b9488f4767ecc58dc8c0db13397f5f4a54103d859.png", label: "包奖励" },
+      };
+      const dates = document.querySelector(".dates");
+      const monthStart = new Date(Date.UTC(2026, 9, 1));
+      const mondayOffset = (monthStart.getUTCDay() + 6) % 7;
+      const cellCount = Math.ceil((mondayOffset + 31) / 7) * 7;
+      for (let index = 0; index < cellCount; index += 1) {
+        const date = new Date(Date.UTC(2026, 9, 1 - mondayOffset + index));
+        const day = date.getUTCDate();
+        const inMonth = date.getUTCMonth() === 9;
+        const prize = inMonth ? prizes[day] : null;
+        const cell = document.createElement("div");
+        cell.className = inMonth ? "day" : "day outside";
+        cell.setAttribute("role", "listitem");
+        cell.setAttribute("aria-label", `${date.getUTCMonth() + 1}月${day}日${prize ? `，${prize.label}` : ""}`);
+        const number = document.createElement("span");
+        number.className = "day-number";
+        number.textContent = String(day);
+        number.setAttribute("aria-hidden", "true");
+        cell.append(number);
+        if (inMonth) {
+          const mark = document.createElement("img");
+          mark.src = prize ? prize.src : "/assets/b3a6f32b4d6948a377689ab99a7498c63b1e1ed41747284c6c7438922408163b.png";
+          mark.alt = "";
+          if (prize) mark.dataset.prize = String(day);
+          cell.append(mark);
+          let earnedLabel = null;
+          if (prize) {
+            earnedLabel = document.createElement("span");
+            earnedLabel.className = "reward-earned";
+            earnedLabel.textContent = "已获得";
+            earnedLabel.hidden = true;
+            earnedLabel.setAttribute("aria-hidden", "true");
+            cell.append(earnedLabel);
+          }
+          dayCells.push({ cell, mark, day, prize, earnedLabel });
+        }
+        dates.append(cell);
+      }
+
+      function updateCalendar() {
+        phone.dataset.checkedDays = String(checkedDays);
+        for (const { cell, mark, day, prize, earnedLabel } of dayCells) {
+          const checked = day <= checkedDays;
+          cell.dataset.checked = String(checked);
+          mark.src = prize ? prize.src : checked ? "/assets/d0d589e7a8069910d127f827ea1c378185ea176798c908027139d84b38815148.png" : "/assets/b3a6f32b4d6948a377689ab99a7498c63b1e1ed41747284c6c7438922408163b.png";
+          if (prize) {
+            cell.dataset.earned = String(checked);
+            earnedLabel.hidden = !checked;
+          }
+          cell.setAttribute("aria-label", `10月${day}日${checked ? "，已打卡" : ""}${prize ? `，${prize.label}，${checked ? "已获得" : "未获得"}` : ""}`);
+        }
+        if (phone.dataset.state === "joined") status.textContent = `已参与活动，已打卡 ${checkedDays} 天`;
+      }
+
+      function fitPhone() {
+        document.documentElement.style.setProperty("--phone-scale", String(Math.min(1, innerWidth / 393, innerHeight / 852)));
+      }
+
+      function cancelAnimations() {
+        generation += 1;
+        animations.forEach((animation) => animation.cancel());
+        animations = [];
+      }
+
+      function stopButtonGuide() {
+        buttonGuide?.cancel();
+        buttonGuide = null;
+      }
+
+      function startButtonGuide() {
+        stopButtonGuide();
+        if (reducedMotion.matches) return;
+        const motionMs = 900;
+        const periodMs = 2240;
+        const repeats = 3;
+        const duration = periodMs * (repeats - 1) + motionMs;
+        const steps = [
+          { progress: 0, y: 0, scale: 1 },
+          { progress: 0.38, y: -6, scale: 1.05 },
+          { progress: 0.72, y: 2, scale: 1 },
+          { progress: 1, y: 0, scale: 1 },
+        ];
+        const keyframes = [];
+        for (let cycle = 0; cycle < repeats; cycle += 1) {
+          for (const step of steps) {
+            keyframes.push({
+              offset: (cycle * periodMs + step.progress * motionMs) / duration,
+              translate: `0 ${step.y}px`, scale: String(step.scale),
+              easing: "cubic-bezier(0.65, 0, 0.35, 1)",
+            });
+          }
+        }
+        // Separate guide properties from the page-position transform and press feedback.
+        const guide = action.animate(keyframes, { id: "activity-button-guide", delay: 1100, duration, fill: "none" });
+        buttonGuide = guide;
+        guide.onfinish = () => { if (buttonGuide === guide) buttonGuide = null; };
+        if (document.hidden) guide.pause();
+      }
+
+      function finishJoined() {
+        cancelAnimations();
+        phone.dataset.state = "joined";
+        phone.removeAttribute("aria-busy");
+        before.hidden = true;
+        before.style.opacity = "0";
+        for (const element of [calendar, rewards]) {
+          element.hidden = false;
+          element.inert = false;
+          element.style.opacity = "1";
+          element.style.transform = "none";
+        }
+        actionPosition.style.transform = "translateY(-60.456px)";
+        joinLabel.style.opacity = "0";
+        joinedLabel.style.opacity = "1";
+        action.disabled = false;
+        action.setAttribute("aria-label", "完成今日训练");
+        status.textContent = `已参与活动，已打卡 ${checkedDays} 天，活动日历和打卡里程碑已展示`;
+        startButtonGuide();
+      }
+
+      function reset() {
+        stopButtonGuide();
+        cancelAnimations();
+        phone.dataset.state = "idle";
+        phone.removeAttribute("aria-busy");
+        viewport.scrollTop = 0;
+        before.hidden = false;
+        before.style.opacity = "1";
+        for (const element of [calendar, rewards]) {
+          element.hidden = true;
+          element.inert = true;
+          element.style.opacity = "0";
+          element.style.transform = "none";
+        }
+        actionPosition.style.transform = "none";
+        joinLabel.style.opacity = "1";
+        joinedLabel.style.opacity = "0";
+        action.disabled = false;
+        action.setAttribute("aria-label", "参与活动");
+        status.textContent = "";
+        startButtonGuide();
+      }
+
+      function animate(element, keyframes, delay, duration) {
+        const animation = element.animate(keyframes, { delay, duration, easing: ease, fill: "both" });
+        animations.push(animation);
+        return animation.finished.catch(() => {});
+      }
+
+      async function join() {
+        if (phone.dataset.state !== "idle") return;
+        stopButtonGuide();
+        phone.dataset.state = "joining";
+        phone.setAttribute("aria-busy", "true");
+        action.disabled = true;
+        calendar.hidden = false;
+        rewards.hidden = false;
+        if (reducedMotion.matches) { finishJoined(); return; }
+        const run = ++generation;
+        // Keep the shared background/title and navigation stationary while the two content states overlap.
+        const pending = [
+          animate(before, [{ opacity: 1 }, { opacity: 0 }], 0, 220),
+          animate(calendar, [{ opacity: 0, transform: "translateY(44px)" }, { opacity: 1, transform: "translateY(0px)" }], 140, 640),
+          animate(actionPosition, [{ transform: "translateY(0px)" }, { transform: "translateY(-60.456px)" }], 220, 520),
+          animate(joinLabel, [{ opacity: 1 }, { opacity: 0 }], 0, 120),
+          animate(joinedLabel, [{ opacity: 0 }, { opacity: 1 }], 140, 180),
+          animate(rewards, [{ opacity: 0, transform: "translateY(40px)" }, { opacity: 1, transform: "translateY(0px)" }], 260, 560),
+        ];
+        await Promise.all(pending);
+        if (generation === run) finishJoined();
+      }
+
+      action.addEventListener("click", () => {
+        if (phone.dataset.state === "idle") join();
+        else if (phone.dataset.state === "joined") {
+          stopButtonGuide();
+          // Training is the next product route, outside this participation animation preview.
+          phone.dispatchEvent(new CustomEvent("activity-training-request", { bubbles: true }));
+        }
+      });
+      document.querySelector(".back").addEventListener("click", reset);
+      reducedMotion.addEventListener("change", () => {
+        if (!reducedMotion.matches) return;
+        stopButtonGuide();
+        if (phone.dataset.state === "joining") finishJoined();
+      });
+      document.addEventListener("visibilitychange", () => {
+        if (!buttonGuide) return;
+        if (document.hidden) buttonGuide.pause();
+        else buttonGuide.play();
+      });
+      window.addEventListener("resize", fitPhone);
+      window.addEventListener("message", (event) => {
+        if (window.parent === window || event.source !== window.parent) return;
+        if (event.data?.type !== "fiko-21day-settings" || typeof event.data.checkedDays !== "number" || !Number.isFinite(event.data.checkedDays)) return;
+        checkedDays = Math.max(0, Math.min(21, Math.trunc(event.data.checkedDays)));
+        updateCalendar();
+        if (event.data.showCalendar === true && phone.dataset.state === "idle") finishJoined();
+      });
+      fitPhone();
+      reset();
+      updateCalendar();
+      if (window.parent !== window) window.parent.postMessage({ type: "fiko-21day-ready" }, "*");
+    </script>
+  </body>
+</html>

@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fiko Popup Menu</title>
+    <style>
+      :root {
+        --phone-width: 393px;
+        --phone-height: 852px;
+        --ink: #050505;
+        --font-rounded: "Yuanti SC", "YouYuan", "PingFang SC", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        background: #111;
+        font-family: var(--font-rounded);
+      }
+
+      button {
+        font: inherit;
+        transform-origin: 50% 50%;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100vw, var(--phone-width));
+        height: min(100vh, var(--phone-height));
+        aspect-ratio: 393 / 852;
+        overflow: hidden;
+        border-radius: 32px;
+        background: #fff;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+        color: var(--ink);
+      }
+
+      .bg {
+        position: absolute;
+        z-index: 0;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .scrim {
+        position: absolute;
+        z-index: 1;
+        inset: 0;
+        padding: 0;
+        border: 0;
+        background: rgba(0, 0, 0, 0.05);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 260ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .scrim.is-open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .menu-button {
+        position: absolute;
+        z-index: 3;
+        right: 20px;
+        top: 368px;
+        width: 49px;
+        height: 49px;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        cursor: pointer;
+        --press-scale: 0.93;
+        --press-y: 1px;
+        --press-over: 1;
+      }
+
+      .menu-button::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: rgba(0, 0, 0, 0.055);
+        opacity: 0;
+        transform: scale(0.88);
+        transition:
+          opacity 180ms ease,
+          transform 280ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .menu-button:active::after,
+      .menu-button.is-open::after {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .popup {
+        position: absolute;
+        z-index: 4;
+        right: 18px;
+        top: 385px;
+        width: 144px;
+        padding: 14px 14px 13px;
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.97);
+        box-shadow: none;
+        opacity: 0;
+        pointer-events: none;
+        transform: translate(8px, -10px) scale(0.9);
+        transform-origin: 92% 18%;
+        will-change: opacity, transform;
+      }
+
+      .popup.is-open {
+        pointer-events: auto;
+        animation: popupIn 320ms cubic-bezier(0.4, 0, 0.2, 1) both;
+      }
+
+      .popup.is-closing {
+        animation: popupOut 240ms cubic-bezier(0.4, 0, 0.2, 1) both;
+      }
+
+      .menu-item {
+        width: 100%;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 0 2px;
+        border: 0;
+        border-radius: 12px;
+        background: transparent;
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 900;
+        text-align: left;
+        cursor: pointer;
+        opacity: 0;
+        transform: translateY(6px);
+        transform-origin: 50% 50%;
+        --press-scale: 0.965;
+        --press-y: 1.5px;
+        --press-over: 1;
+      }
+
+      .popup.is-open .menu-item {
+        animation: itemIn 300ms cubic-bezier(0.4, 0, 0.2, 1) both;
+      }
+
+      .popup.is-open .menu-item:nth-child(1) {
+        animation-delay: 92ms;
+      }
+
+      .popup.is-open .menu-item:nth-child(2) {
+        animation-delay: 136ms;
+      }
+
+      .popup.is-open .menu-item:nth-child(3) {
+        animation-delay: 180ms;
+      }
+
+      .menu-item.is-pressing {
+        background: rgba(0, 0, 0, 0.045);
+        animation: none !important;
+        transform: translateY(var(--press-y)) scale(var(--press-scale));
+        filter: brightness(0.96);
+        transition:
+          transform 90ms cubic-bezier(0.2, 0, 0.2, 1),
+          filter 90ms ease;
+      }
+
+      .menu-button.is-pressing {
+        transform: translateY(var(--press-y)) scale(var(--press-scale));
+        filter: brightness(0.96);
+        transition:
+          transform 90ms cubic-bezier(0.2, 0, 0.2, 1),
+          filter 90ms ease;
+      }
+
+      .menu-button.is-releasing,
+      .menu-item.is-releasing {
+        animation: pressRelease 320ms cubic-bezier(0.4, 0, 0.2, 1) both !important;
+      }
+
+      .menu-icon {
+        width: 20px;
+        height: 20px;
+        flex: 0 0 20px;
+        object-fit: contain;
+      }
+
+      .tap-shine {
+        position: absolute;
+        z-index: 5;
+        left: 348px;
+        top: 392px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        border: 2px solid #62cfff;
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.45);
+        pointer-events: none;
+      }
+
+      .tap-shine.is-active {
+        animation: tapPulse 420ms cubic-bezier(0.4, 0, 0.2, 1) both;
+      }
+
+      @keyframes popupIn {
+        from {
+          opacity: 0;
+          transform: translate(8px, -10px) scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: translate(0, 0) scale(1);
+        }
+      }
+
+      @keyframes popupOut {
+        from {
+          opacity: 1;
+          transform: translate(0, 0) scale(1);
+        }
+        to {
+          opacity: 0;
+          transform: translate(6px, -8px) scale(0.94);
+        }
+      }
+
+      @keyframes itemIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pressRelease {
+        from {
+          transform: translateY(var(--press-y, 1.5px)) scale(var(--press-scale, 0.965));
+          filter: brightness(0.96);
+        }
+        to {
+          transform: translateY(0) scale(1);
+          filter: brightness(1);
+        }
+      }
+
+      @keyframes tapPulse {
+        0% {
+          opacity: 0;
+          transform: translate(-50%, -50%) scale(0.45);
+        }
+        34% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+          transform: translate(-50%, -50%) scale(1.35);
+        }
+      }
+
+      @media (max-width: 420px) {
+        body {
+          background: #fff;
+        }
+
+        .phone {
+          width: 100vw;
+          height: 100vh;
+          border-radius: 0;
+          box-shadow: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 1ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 1ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" id="phone" aria-label="Fiko popup menu animation">
+      <img class="bg" src="/assets/2370f168f97056b07ef06c7949fe4bcb425fc06d1adda33d59706f52f66638fc.png" alt="" />
+      <button class="scrim" id="scrim" type="button" aria-label="关闭训练菜单"></button>
+      <button class="menu-button" id="menuButton" type="button" aria-label="打开训练菜单"></button>
+      <span class="tap-shine" id="tapShine" aria-hidden="true"></span>
+      <section class="popup" id="popup" aria-label="训练菜单">
+        <button class="menu-item" type="button">
+          <img class="menu-icon" src="/assets/a74b12adc1acaf9925683a5f0d7ca6fcf3dd6c630030d849594567bcff15b7f0.png" alt="" />
+          <span>调整计划</span>
+        </button>
+        <button class="menu-item" type="button">
+          <img class="menu-icon" src="/assets/99fe107fc585d4204239850aefc7c248dfa3f0932da1a16cfeac575cff277d2d.png" alt="" />
+          <span>添加动作</span>
+        </button>
+        <button class="menu-item" type="button">
+          <img class="menu-icon" src="/assets/4b525e22beaa4afa07b0f96a8cf815de8d37c807aaedd042f3a378e5e38f1940.png" alt="" />
+          <span>再练一次</span>
+        </button>
+      </section>
+    </main>
+
+    <script>const embeddedAssetMap={"assets/add-circle.png":"/assets/99fe107fc585d4204239850aefc7c248dfa3f0932da1a16cfeac575cff277d2d.png","assets/bg.png":"/assets/2370f168f97056b07ef06c7949fe4bcb425fc06d1adda33d59706f52f66638fc.png","assets/refresh.png":"/assets/4b525e22beaa4afa07b0f96a8cf815de8d37c807aaedd042f3a378e5e38f1940.png","assets/sliders.png":"/assets/a74b12adc1acaf9925683a5f0d7ca6fcf3dd6c630030d849594567bcff15b7f0.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const phone = document.querySelector("#phone");
+      const menuButton = document.querySelector("#menuButton");
+      const popup = document.querySelector("#popup");
+      const scrim = document.querySelector("#scrim");
+      const tapShine = document.querySelector("#tapShine");
+      let closeTimer = 0;
+      const pressReleaseMs = 320;
+
+      function releasePressable(button) {
+        if (!button.classList.contains("is-pressing")) return;
+        button.classList.remove("is-pressing", "is-releasing");
+        void button.offsetWidth;
+        button.classList.add("is-releasing");
+        window.setTimeout(() => button.classList.remove("is-releasing"), pressReleaseMs);
+      }
+
+      function bindPressables() {
+        document.querySelectorAll("button").forEach((button) => {
+          if (button.dataset.pressBound) return;
+          button.dataset.pressBound = "true";
+
+          button.addEventListener("pointerdown", (event) => {
+            if (button.disabled || button.hidden) return;
+            button.classList.remove("is-releasing");
+            button.classList.add("is-pressing");
+            button.setPointerCapture?.(event.pointerId);
+          });
+
+          button.addEventListener("pointerup", () => releasePressable(button));
+          button.addEventListener("pointercancel", () => {
+            button.classList.remove("is-pressing", "is-releasing");
+          });
+          button.addEventListener("pointerleave", () => {
+            button.classList.remove("is-pressing");
+          });
+        });
+      }
+
+      function pulseTap() {
+        tapShine.classList.remove("is-active");
+        void tapShine.offsetWidth;
+        tapShine.classList.add("is-active");
+      }
+
+      function openPopup() {
+        window.clearTimeout(closeTimer);
+        popup.classList.remove("is-closing");
+        popup.classList.add("is-open");
+        scrim.classList.add("is-open");
+        menuButton.classList.add("is-open");
+        menuButton.setAttribute("aria-label", "关闭训练菜单");
+        pulseTap();
+      }
+
+      function closePopup() {
+        if (!popup.classList.contains("is-open")) return;
+        popup.classList.remove("is-open");
+        popup.classList.add("is-closing");
+        scrim.classList.remove("is-open");
+        menuButton.classList.remove("is-open");
+        menuButton.setAttribute("aria-label", "打开训练菜单");
+        closeTimer = window.setTimeout(() => {
+          popup.classList.remove("is-closing");
+        }, 270);
+      }
+
+      function togglePopup() {
+        if (popup.classList.contains("is-open")) {
+          closePopup();
+        } else {
+          openPopup();
+        }
+      }
+
+      menuButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        togglePopup();
+      });
+
+      popup.addEventListener("click", (event) => {
+        event.stopPropagation();
+      });
+
+      scrim.addEventListener("click", closePopup);
+      bindPressables();
+    </script>
+  </body>
+</html>

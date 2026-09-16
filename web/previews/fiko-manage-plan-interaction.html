@@ -1,0 +1,1409 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fiko 管理计划交互</title>
+    <style>
+      :root {
+        --phone-w: 393px;
+        --phone-h: 852px;
+        --ink: #050505;
+        --muted: rgba(5, 5, 5, 0.42);
+        --line: rgba(5, 5, 5, 0.08);
+        --soft: #f7f7f6;
+        --cream: #fffdf0;
+        --font-rounded: "Yuanti SC", "YouYuan", "PingFang SC", sans-serif;
+        --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+        --press-down: 90ms cubic-bezier(0.2, 0, 0.2, 1);
+        --press-up: 320ms var(--ease-soft);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        background: #111;
+        color: var(--ink);
+        font-family: var(--font-rounded);
+      }
+
+      button {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100vw, var(--phone-w));
+        height: min(100vh, var(--phone-h));
+        aspect-ratio: 393 / 852;
+        overflow: hidden;
+        border-radius: 32px;
+        background: #fff;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+      }
+
+      .screen {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        background: #fff;
+        transition:
+          transform 360ms var(--ease-soft),
+          opacity 260ms var(--ease-soft);
+      }
+
+      .screen.is-active {
+        z-index: 3;
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: auto;
+      }
+
+      .screen.is-behind {
+        z-index: 1;
+        opacity: 0.82;
+        transform: translateX(-24px);
+        pointer-events: none;
+      }
+
+      .sub-screen {
+        z-index: 4;
+        opacity: 0;
+        transform: translateX(100%);
+        pointer-events: none;
+      }
+
+      .home-screen {
+        z-index: 5;
+        opacity: 0;
+        transform: translateY(18px);
+        pointer-events: none;
+      }
+
+      .home-screen.is-active {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .status {
+        height: 44px;
+        padding: 13px 28px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1;
+      }
+
+      .status-icons {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .bar-icon {
+        width: 18px;
+        height: 10px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2px;
+        align-items: end;
+      }
+
+      .bar-icon span {
+        display: block;
+        border-radius: 2px;
+        background: #000;
+      }
+
+      .bar-icon span:nth-child(1) {
+        height: 4px;
+      }
+
+      .bar-icon span:nth-child(2) {
+        height: 6px;
+      }
+
+      .bar-icon span:nth-child(3) {
+        height: 8px;
+      }
+
+      .bar-icon span:nth-child(4) {
+        height: 10px;
+      }
+
+      .wifi {
+        width: 16px;
+        height: 11px;
+        border: 3px solid #000;
+        border-left-color: transparent;
+        border-right-color: transparent;
+        border-bottom: 0;
+        border-radius: 14px 14px 0 0;
+      }
+
+      .battery {
+        width: 24px;
+        height: 12px;
+        border: 2px solid #000;
+        border-radius: 4px;
+        position: relative;
+      }
+
+      .battery::before {
+        content: "";
+        position: absolute;
+        right: -4px;
+        top: 3px;
+        width: 2px;
+        height: 4px;
+        border-radius: 1px;
+        background: #000;
+      }
+
+      .battery::after {
+        content: "";
+        position: absolute;
+        inset: 2px;
+        border-radius: 2px;
+        background: #000;
+      }
+
+      .header {
+        height: 50px;
+        position: relative;
+        display: grid;
+        place-items: center;
+      }
+
+      .title {
+        font-size: 16px;
+        font-weight: 900;
+      }
+
+      .icon-button {
+        position: absolute;
+        left: 23px;
+        top: 7px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #f7f7f7;
+        display: grid;
+        place-items: center;
+      }
+
+      .icon-button img {
+        width: 24px;
+        height: 24px;
+        pointer-events: none;
+      }
+
+      .back-icon {
+        width: 11px;
+        height: 11px;
+        border-left: 3px solid #111;
+        border-bottom: 3px solid #111;
+        transform: rotate(45deg);
+      }
+
+      .save {
+        position: absolute;
+        right: 22px;
+        top: 7px;
+        min-width: 48px;
+        height: 36px;
+        padding: 0 13px;
+        border-radius: 18px;
+        background: #f7f7f7;
+        color: rgba(5, 5, 5, 0.22);
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .save.is-enabled {
+        background: #000;
+        color: #fff;
+      }
+
+      .content {
+        height: calc(100% - 94px);
+        overflow: auto;
+        padding: 3px 24px 28px;
+        scrollbar-width: none;
+      }
+
+      .content::-webkit-scrollbar {
+        display: none;
+      }
+
+      .section {
+        margin-top: 24px;
+      }
+
+      .section:first-child {
+        margin-top: 10px;
+      }
+
+      .section-title {
+        margin: 0 0 14px;
+        font-size: 16px;
+        line-height: 1;
+        font-weight: 900;
+      }
+
+      .cell {
+        width: 100%;
+        min-height: 76px;
+        padding: 12px 14px;
+        border-radius: 24px;
+        border: 1px solid var(--line);
+        background: var(--soft);
+        display: grid;
+        grid-template-columns: 48px 1fr 22px;
+        align-items: center;
+        gap: 12px;
+        text-align: left;
+      }
+
+      .goal-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 16px;
+        object-fit: cover;
+      }
+
+      .cell-title {
+        display: block;
+        font-size: 15px;
+        font-weight: 900;
+        line-height: 1.1;
+      }
+
+      .cell-sub {
+        display: block;
+        margin-top: 7px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .chevron {
+        width: 24px;
+        height: 24px;
+        opacity: 0.9;
+      }
+
+      .pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .pill {
+        min-width: 61px;
+        height: 34px;
+        padding: 0 16px;
+        border-radius: 17px;
+        border: 1px solid var(--line);
+        background: #f8f8f8;
+        color: rgba(5, 5, 5, 0.62);
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      .pill.is-selected {
+        border-color: #000;
+        background: #000;
+        color: #fff;
+      }
+
+      .time-card {
+        min-height: 99px;
+        padding: 0 0 0 18px;
+        border-radius: 24px;
+        border: 1px solid var(--line);
+        background: var(--soft);
+      }
+
+      .time-line {
+        height: 49px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-right: 17px;
+        font-size: 15px;
+        font-weight: 900;
+      }
+
+      .time-line + .time-line {
+        border-top: 1px solid rgba(5, 5, 5, 0.045);
+      }
+
+      .time-button {
+        min-width: 100%;
+        height: 49px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: inherit;
+        text-align: left;
+      }
+
+      .time-value {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: rgba(5, 5, 5, 0.72);
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      .tiny-chevron {
+        width: 9px;
+        height: 9px;
+        border-right: 2px solid #111;
+        border-bottom: 2px solid #111;
+        transform: rotate(-45deg);
+      }
+
+      .switch-img {
+        width: 40px;
+        height: 24px;
+        display: block;
+      }
+
+      .limit-cell {
+        min-height: 52px;
+        grid-template-columns: 1fr auto auto;
+        border-radius: 18px;
+        padding: 0 12px 0 18px;
+      }
+
+      .limit-count {
+        color: rgba(5, 5, 5, 0.56);
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .home-indicator {
+        position: absolute;
+        left: 50%;
+        bottom: 8px;
+        width: 142px;
+        height: 5px;
+        transform: translateX(-50%);
+        border-radius: 999px;
+        background: #000;
+        z-index: 12;
+      }
+
+      .time-picker {
+        position: absolute;
+        right: 24px;
+        top: 268px;
+        width: 192px;
+        height: 146px;
+        z-index: 8;
+        padding: 12px 14px;
+        border-radius: 22px;
+        background: #fff;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.11);
+        opacity: 0;
+        transform: translateY(8px) scale(0.96);
+        pointer-events: none;
+        transition:
+          opacity 220ms var(--ease-soft),
+          transform 260ms var(--ease-soft);
+      }
+
+      .time-picker.is-open {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+      }
+
+      .time-wheel {
+        position: relative;
+        height: 122px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        overflow: hidden;
+        text-align: center;
+      }
+
+      .time-wheel::before {
+        content: "";
+        position: absolute;
+        left: 4px;
+        right: 4px;
+        top: 50%;
+        height: 30px;
+        border-radius: 15px;
+        background: rgba(5, 5, 5, 0.055);
+        transform: translateY(-50%);
+        pointer-events: none;
+      }
+
+      .time-wheel-column {
+        position: relative;
+        z-index: 1;
+        height: 100%;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scroll-snap-type: y mandatory;
+        scrollbar-width: none;
+        touch-action: pan-y;
+        cursor: grab;
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 22px, #000 calc(100% - 22px), transparent 100%);
+        mask-image: linear-gradient(to bottom, transparent 0, #000 22px, #000 calc(100% - 22px), transparent 100%);
+      }
+
+      .time-wheel-column::-webkit-scrollbar {
+        display: none;
+      }
+
+      .time-wheel-column.is-dragging {
+        cursor: grabbing;
+        scroll-snap-type: none;
+      }
+
+      .time-wheel-column::before,
+      .time-wheel-column::after {
+        content: "";
+        display: block;
+        height: 46px;
+      }
+
+      .time-wheel-item {
+        height: 30px;
+        display: grid;
+        place-items: center;
+        scroll-snap-align: center;
+        color: rgba(5, 5, 5, 0.18);
+        font-size: 13px;
+        font-weight: 900;
+        line-height: 1;
+        user-select: none;
+        pointer-events: none;
+        transition:
+          color 160ms var(--ease-soft),
+          font-size 180ms var(--ease-soft),
+          transform 180ms var(--ease-soft);
+      }
+
+      .time-wheel-item.is-selected {
+        color: #000;
+        font-size: 18px;
+        transform: scale(1.04);
+      }
+
+      .time-separator {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        z-index: 1;
+        color: #000;
+        font-size: 18px;
+        font-weight: 900;
+        line-height: 1;
+        transform: translate(-50%, -50%);
+      }
+
+      .choice-list {
+        display: grid;
+        gap: 14px;
+        padding-top: 12px;
+      }
+
+      .choice-cell {
+        width: 100%;
+        min-height: 80px;
+        padding: 12px 15px;
+        border-radius: 24px;
+        border: 1px solid var(--line);
+        background: #fbfbfb;
+        display: grid;
+        grid-template-columns: 48px 1fr 24px;
+        gap: 13px;
+        align-items: center;
+        text-align: left;
+      }
+
+      .choice-check {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        opacity: 0;
+        background: #000;
+        transform: scale(0.9);
+        transition:
+          opacity 180ms var(--ease-soft),
+          transform 220ms var(--ease-soft);
+      }
+
+      .choice-cell.is-selected .choice-check,
+      .restriction.is-selected .choice-check {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .choice-check img {
+        width: 24px;
+        height: 24px;
+      }
+
+      .restriction-list {
+        display: grid;
+        gap: 14px;
+        padding-top: 12px;
+      }
+
+      .restriction {
+        width: 100%;
+        height: 54px;
+        padding: 0 14px 0 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: #fbfbfb;
+        font-size: 15px;
+        font-weight: 900;
+      }
+
+      .pressable {
+        position: relative;
+        transform-origin: 50% 50%;
+        transition:
+          transform var(--press-down),
+          filter 90ms ease;
+      }
+
+      .pressable::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: rgba(0, 0, 0, var(--press-overlay, 0.04));
+        opacity: 0;
+        transition: opacity 90ms ease;
+        pointer-events: none;
+      }
+
+      .pressable.is-pressing {
+        transform: translateY(var(--press-y, 1.5px)) scale(var(--press-scale, 0.965));
+        filter: brightness(0.96);
+      }
+
+      .pressable.is-pressing::after {
+        opacity: 1;
+      }
+
+      .pressable.is-releasing {
+        animation: pressRelease var(--press-up) both;
+      }
+
+      .header .icon-button,
+      .header .save {
+        position: absolute;
+      }
+
+      @keyframes pressRelease {
+        from {
+          transform: translateY(var(--press-y, 1.5px)) scale(var(--press-scale, 0.965));
+          filter: brightness(0.96);
+        }
+        to {
+          transform: translateY(0) scale(1);
+          filter: brightness(1);
+        }
+      }
+
+      .saving-indicator {
+        position: absolute;
+        left: 50%;
+        top: 292px;
+        z-index: 20;
+        width: 48px;
+        height: 48px;
+        display: grid;
+        place-items: center;
+        border-radius: 13px;
+        background: #050505;
+        opacity: 0;
+        transform: translate(-50%, 8px) scale(0.96);
+        pointer-events: none;
+        transition:
+          opacity 180ms var(--ease-soft),
+          transform 220ms var(--ease-soft);
+      }
+
+      .saving-indicator.is-visible {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+      }
+
+      .spinner {
+        width: 21px;
+        height: 21px;
+        border-radius: 50%;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-top-color: #fff;
+        animation: spin 820ms linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .home-bg {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(rgba(5, 5, 5, 0.12) 1px, transparent 1px) 0 0 / 14px 14px,
+          #fff;
+      }
+
+      .home-content {
+        position: relative;
+        z-index: 1;
+        padding: 0 20px 34px;
+      }
+
+      .home-logo {
+        margin-top: 18px;
+        font-size: 36px;
+        line-height: 1;
+        font-weight: 900;
+        letter-spacing: 0;
+      }
+
+      .avatar {
+        position: absolute;
+        right: 22px;
+        top: 54px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background:
+          radial-gradient(circle at 50% 35%, #c94c2b 0 18%, transparent 19%),
+          #007c80;
+      }
+
+      .cat-talk {
+        margin-top: 28px;
+        display: grid;
+        grid-template-columns: 66px 1fr;
+        align-items: center;
+        gap: 9px;
+      }
+
+      .simple-cat {
+        width: 66px;
+        height: 50px;
+        border: 3px solid #000;
+        border-radius: 50% 45% 42% 44%;
+        position: relative;
+        background: #fff;
+      }
+
+      .simple-cat::before {
+        content: "";
+        position: absolute;
+        left: 4px;
+        top: -6px;
+        width: 28px;
+        height: 22px;
+        border-radius: 80% 30% 70% 30%;
+        background: #000;
+      }
+
+      .simple-cat::after {
+        content: "ಠ ᴥ ಠ";
+        position: absolute;
+        left: 12px;
+        top: 20px;
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .bubble {
+        min-height: 58px;
+        padding: 13px 18px;
+        border: 3px solid #000;
+        border-radius: 17px;
+        font-size: 14px;
+        line-height: 1.45;
+        font-weight: 900;
+        background: #fff;
+      }
+
+      .calendar-row {
+        margin-top: 25px;
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        align-items: center;
+        text-align: center;
+        font-size: 15px;
+        font-weight: 900;
+      }
+
+      .today-pill {
+        display: inline-grid;
+        place-items: center;
+        width: 44px;
+        height: 32px;
+        border-radius: 18px;
+        background: #000;
+        color: #fff;
+      }
+
+      .progress-card {
+        margin: 22px -20px 0;
+        min-height: 560px;
+        padding: 30px 20px;
+        border-radius: 34px 34px 0 0;
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 -1px 8px rgba(0, 0, 0, 0.045);
+      }
+
+      .kcal-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .kcal {
+        font-size: 30px;
+        font-weight: 900;
+      }
+
+      .kcal small {
+        color: var(--muted);
+        font-size: 16px;
+      }
+
+      .sketch-progress {
+        width: 150px;
+        height: 14px;
+        border: 2px solid #111;
+        border-radius: 99px;
+      }
+
+      .training-head {
+        margin-top: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .training-head strong {
+        font-size: 23px;
+        font-weight: 900;
+      }
+
+      .toast {
+        padding: 8px 13px;
+        border-radius: 999px;
+        background: #000;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 900;
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      .home-screen.is-active .toast {
+        animation: toastIn 420ms 180ms var(--ease-soft) both;
+      }
+
+      @keyframes toastIn {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .workout-list {
+        display: grid;
+        gap: 14px;
+        margin-top: 18px;
+      }
+
+      .workout {
+        height: 88px;
+        padding: 20px 23px;
+        border-radius: 24px;
+        border: 1px solid rgba(5, 5, 5, 0.06);
+        background: var(--cream);
+      }
+
+      .workout strong {
+        display: block;
+        font-size: 20px;
+        font-weight: 900;
+      }
+
+      .workout span {
+        display: block;
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      @media (max-width: 420px) {
+        body {
+          background: #fff;
+        }
+
+        .phone {
+          width: 100vw;
+          height: 100vh;
+          border-radius: 0;
+          box-shadow: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 1ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 1ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" aria-label="Fiko 管理计划交互">
+      <section class="screen adjust-screen is-active" id="adjustScreen">
+        <div class="status">
+          <span>9:41</span>
+          <div class="status-icons" aria-hidden="true">
+            <span class="bar-icon"><span></span><span></span><span></span><span></span></span>
+            <span class="wifi"></span>
+            <span class="battery"></span>
+          </div>
+        </div>
+        <header class="header">
+          <button class="icon-button pressable" id="closeButton" type="button" aria-label="关闭">
+            <img src="/assets/9b8b08b15166230863223a479492c1a800bc952974689d881d6f541b295f47ab.png" alt="" />
+          </button>
+          <div class="title" id="adjustTitle">调整计划</div>
+          <button class="save pressable" id="saveButton" type="button">保存</button>
+        </header>
+        <div class="content">
+          <section class="section">
+            <h2 class="section-title">训练目标</h2>
+            <button class="cell pressable" id="goalEntry" type="button">
+              <img class="goal-icon" id="goalIcon" src="/assets/65e6261400ee76e74df2ae76602c0383b61d4de068420a3700bf711b0f12212f.png" alt="" />
+              <span>
+                <span class="cell-title" id="goalTitle">我要变瘦</span>
+                <span class="cell-sub" id="goalSub">甩掉赘肉，走路带风</span>
+              </span>
+              <img class="chevron" src="/assets/32d7e75d2e2413cbb4a8c97e1ad083547992187b0437cfc68aa7a83705453ffe.png" alt="" />
+            </button>
+          </section>
+
+          <section class="section">
+            <h2 class="section-title">难度</h2>
+            <div class="pills" data-single="difficulty">
+              <button class="pill pressable is-selected" type="button">初学者</button>
+              <button class="pill pressable" type="button">中等水平</button>
+              <button class="pill pressable" type="button">进阶</button>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-title">训练日</h2>
+            <div class="pills" data-multi="days">
+              <button class="pill pressable is-selected" type="button">周一</button>
+              <button class="pill pressable" type="button">周二</button>
+              <button class="pill pressable" type="button">周三</button>
+              <button class="pill pressable is-selected" type="button">周四</button>
+              <button class="pill pressable is-selected" type="button">周五</button>
+              <button class="pill pressable" type="button">周六</button>
+              <button class="pill pressable" type="button">周日</button>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-title">时间</h2>
+            <div class="time-card">
+              <div class="time-line">
+                <span>提醒</span>
+                <button class="pressable" id="reminderSwitch" type="button" aria-label="提醒开关">
+                  <img class="switch-img" id="switchImage" src="/assets/fa969bf1e4d4c48b11061df75b88c19d7322771bc1047a83184e0dc8df0684d0.png" alt="" />
+                </button>
+              </div>
+              <div class="time-line">
+                <button class="time-button pressable" id="timeEntry" type="button">
+                  <span>时间</span>
+                  <span class="time-value"><span id="timeValue">08:00</span><span class="tiny-chevron"></span></span>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-title">偏好</h2>
+            <div class="pills" data-multi="prefs">
+              <button class="pill pressable is-selected" type="button">安静不扰民</button>
+              <button class="pill pressable" type="button">不用器械</button>
+              <button class="pill pressable is-selected" type="button">不用趴地</button>
+              <button class="pill pressable" type="button">不能暴汗</button>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-title">限制</h2>
+            <button class="cell limit-cell pressable" id="limitEntry" type="button">
+              <span class="cell-title">身体限制</span>
+              <span class="limit-count" id="limitCount">3项</span>
+              <img class="chevron" src="/assets/32d7e75d2e2413cbb4a8c97e1ad083547992187b0437cfc68aa7a83705453ffe.png" alt="" />
+            </button>
+          </section>
+        </div>
+
+        <div class="time-picker" id="timePicker" aria-label="时间选择器" data-selected-time="08:00">
+          <div class="time-wheel" role="group" aria-label="选择提醒时间">
+            <div class="time-wheel-column" data-wheel="hour" role="listbox" aria-label="小时" tabindex="0">
+              <div class="time-wheel-item" role="option" data-value="0" aria-selected="false">00</div>
+              <div class="time-wheel-item" role="option" data-value="1" aria-selected="false">01</div>
+              <div class="time-wheel-item" role="option" data-value="2" aria-selected="false">02</div>
+              <div class="time-wheel-item" role="option" data-value="3" aria-selected="false">03</div>
+              <div class="time-wheel-item" role="option" data-value="4" aria-selected="false">04</div>
+              <div class="time-wheel-item" role="option" data-value="5" aria-selected="false">05</div>
+              <div class="time-wheel-item" role="option" data-value="6" aria-selected="false">06</div>
+              <div class="time-wheel-item" role="option" data-value="7" aria-selected="false">07</div>
+              <div class="time-wheel-item is-selected" role="option" data-value="8" aria-selected="true">08</div>
+              <div class="time-wheel-item" role="option" data-value="9" aria-selected="false">09</div>
+              <div class="time-wheel-item" role="option" data-value="10" aria-selected="false">10</div>
+              <div class="time-wheel-item" role="option" data-value="11" aria-selected="false">11</div>
+              <div class="time-wheel-item" role="option" data-value="12" aria-selected="false">12</div>
+              <div class="time-wheel-item" role="option" data-value="13" aria-selected="false">13</div>
+              <div class="time-wheel-item" role="option" data-value="14" aria-selected="false">14</div>
+              <div class="time-wheel-item" role="option" data-value="15" aria-selected="false">15</div>
+              <div class="time-wheel-item" role="option" data-value="16" aria-selected="false">16</div>
+              <div class="time-wheel-item" role="option" data-value="17" aria-selected="false">17</div>
+              <div class="time-wheel-item" role="option" data-value="18" aria-selected="false">18</div>
+              <div class="time-wheel-item" role="option" data-value="19" aria-selected="false">19</div>
+              <div class="time-wheel-item" role="option" data-value="20" aria-selected="false">20</div>
+              <div class="time-wheel-item" role="option" data-value="21" aria-selected="false">21</div>
+              <div class="time-wheel-item" role="option" data-value="22" aria-selected="false">22</div>
+              <div class="time-wheel-item" role="option" data-value="23" aria-selected="false">23</div>
+            </div>
+            <span class="time-separator" aria-hidden="true">:</span>
+            <div class="time-wheel-column" data-wheel="minute" role="listbox" aria-label="分钟" tabindex="0">
+              <div class="time-wheel-item" role="option" data-value="0" aria-selected="false">00</div>
+              <div class="time-wheel-item" role="option" data-value="15" aria-selected="false">15</div>
+              <div class="time-wheel-item" role="option" data-value="30" aria-selected="false">30</div>
+              <div class="time-wheel-item" role="option" data-value="45" aria-selected="false">45</div>
+              <div class="time-wheel-item" role="option" data-value="0" aria-selected="false">00</div>
+              <div class="time-wheel-item" role="option" data-value="15" aria-selected="false">15</div>
+              <div class="time-wheel-item" role="option" data-value="30" aria-selected="false">30</div>
+              <div class="time-wheel-item" role="option" data-value="45" aria-selected="false">45</div>
+              <div class="time-wheel-item is-selected" role="option" data-value="0" aria-selected="true">00</div>
+              <div class="time-wheel-item" role="option" data-value="15" aria-selected="false">15</div>
+              <div class="time-wheel-item" role="option" data-value="30" aria-selected="false">30</div>
+              <div class="time-wheel-item" role="option" data-value="45" aria-selected="false">45</div>
+              <div class="time-wheel-item" role="option" data-value="0" aria-selected="false">00</div>
+              <div class="time-wheel-item" role="option" data-value="15" aria-selected="false">15</div>
+              <div class="time-wheel-item" role="option" data-value="30" aria-selected="false">30</div>
+              <div class="time-wheel-item" role="option" data-value="45" aria-selected="false">45</div>
+              <div class="time-wheel-item" role="option" data-value="0" aria-selected="false">00</div>
+              <div class="time-wheel-item" role="option" data-value="15" aria-selected="false">15</div>
+              <div class="time-wheel-item" role="option" data-value="30" aria-selected="false">30</div>
+              <div class="time-wheel-item" role="option" data-value="45" aria-selected="false">45</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen sub-screen" id="goalScreen">
+        <div class="status">
+          <span>9:41</span>
+          <div class="status-icons" aria-hidden="true">
+            <span class="bar-icon"><span></span><span></span><span></span><span></span></span>
+            <span class="wifi"></span>
+            <span class="battery"></span>
+          </div>
+        </div>
+        <header class="header">
+          <button class="icon-button pressable" data-back type="button" aria-label="返回">
+            <span class="back-icon" aria-hidden="true"></span>
+          </button>
+          <div class="title">训练目标</div>
+        </header>
+        <div class="content">
+          <div class="choice-list" id="goalChoices">
+            <button class="choice-cell pressable is-selected" data-goal="lean" type="button">
+              <img class="goal-icon" src="/assets/65e6261400ee76e74df2ae76602c0383b61d4de068420a3700bf711b0f12212f.png" alt="" />
+              <span><span class="cell-title">我要变瘦</span><span class="cell-sub">甩掉赘肉，走路带风</span></span>
+              <span class="choice-check"><img src="/assets/38b5ae2adc5ba899aadb0607b8d79d86887c155ca2262bb1c9ee7d57afc030a7.png" alt="" /></span>
+            </button>
+            <button class="choice-cell pressable" data-goal="strong" type="button">
+              <img class="goal-icon" src="/assets/864b46c49af701553b877acd37167618380b687db29952501b19f70bd9a4fb42.png" alt="" />
+              <span><span class="cell-title">我要变强</span><span class="cell-sub">爬楼不喘，搬砖不软</span></span>
+              <span class="choice-check"><img src="/assets/38b5ae2adc5ba899aadb0607b8d79d86887c155ca2262bb1c9ee7d57afc030a7.png" alt="" /></span>
+            </button>
+            <button class="choice-cell pressable" data-goal="healthy" type="button">
+              <img class="goal-icon" src="/assets/deb8c82d1614dd7ac926a0f4fb06e9cf948921f8b309231ceb1df02f64c69d81.png" alt="" />
+              <span><span class="cell-title">我要更健康</span><span class="cell-sub">每天运动，身体棒棒</span></span>
+              <span class="choice-check"><img src="/assets/38b5ae2adc5ba899aadb0607b8d79d86887c155ca2262bb1c9ee7d57afc030a7.png" alt="" /></span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen sub-screen" id="limitScreen">
+        <div class="status">
+          <span>9:41</span>
+          <div class="status-icons" aria-hidden="true">
+            <span class="bar-icon"><span></span><span></span><span></span><span></span></span>
+            <span class="wifi"></span>
+            <span class="battery"></span>
+          </div>
+        </div>
+        <header class="header">
+          <button class="icon-button pressable" data-back type="button" aria-label="返回">
+            <span class="back-icon" aria-hidden="true"></span>
+          </button>
+          <div class="title">身体限制</div>
+        </header>
+        <div class="content">
+          <h2 class="section-title">选择身体限制</h2>
+          <div class="restriction-list" id="restrictionList">
+            <button class="restriction pressable is-selected" type="button">手腕疼痛<span class="choice-check"><img src="/assets/38b5ae2adc5ba899aadb0607b8d79d86887c155ca2262bb1c9ee7d57afc030a7.png" alt="" /></span></button>
+            <button class="restriction pressable is-selected" type="button">肩颈疼痛<span class="choice-check"><img src="/assets/38b5ae2adc5ba899aadb0607b8d79d86887c155ca2262bb1c9ee7d57afc030a7.png" alt="" /></span></button>
+            <button class="restriction pressable" type="button">膝盖痛<span class="choice-check"><img src="/assets/38b5ae2adc5ba899aadb0607b8d79d86887c155ca2262bb1c9ee7d57afc030a7.png" alt="" /></span></button>
+            <button class="restriction pressable" type="button">腰部问题<span class="choice-check"><img src="/assets/38b5ae2adc5ba899aadb0607b8d79d86887c155ca2262bb1c9ee7d57afc030a7.png" alt="" /></span></button>
+            <button class="restriction pressable is-selected" type="button">避免跳跃<span class="choice-check"><img src="/assets/38b5ae2adc5ba899aadb0607b8d79d86887c155ca2262bb1c9ee7d57afc030a7.png" alt="" /></span></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen home-screen" id="homeScreen">
+        <div class="home-bg"></div>
+        <div class="status">
+          <span>9:41</span>
+          <div class="status-icons" aria-hidden="true">
+            <span class="bar-icon"><span></span><span></span><span></span><span></span></span>
+            <span class="wifi"></span>
+            <span class="battery"></span>
+          </div>
+        </div>
+        <div class="home-content">
+          <div class="home-logo">sixteen</div>
+          <div class="avatar"></div>
+          <div class="cat-talk">
+            <div class="simple-cat"></div>
+            <div class="bubble">还没有动起来吗？躺平不如动起来！今日运动计划已准备！</div>
+          </div>
+          <div class="calendar-row">
+            <span>一</span><span>二</span><span>三</span><span>四</span><span class="today-pill">今</span><span>六</span><span>日</span>
+          </div>
+          <section class="progress-card">
+            <div class="kcal-row">
+              <div class="kcal">100<small>/100 kcal</small></div>
+              <div class="sketch-progress"></div>
+            </div>
+            <div class="training-head">
+              <strong>今日训练 (1/5)</strong>
+              <span class="toast">计划完成</span>
+            </div>
+            <div class="workout-list">
+              <div class="workout"><strong>俯卧撑</strong><span>60kcal</span></div>
+              <div class="workout"><strong>深蹲</strong><span>60kcal</span></div>
+              <div class="workout"><strong>弓步蹲</strong><span>60kcal</span></div>
+              <div class="workout"><strong>俯卧撑</strong><span>60kcal</span></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <div class="saving-indicator" id="savingIndicator" aria-hidden="true">
+        <span class="spinner"></span>
+      </div>
+      <div class="home-indicator" aria-hidden="true"></div>
+    </main>
+
+    <script>const embeddedAssetMap={"assets/check.png":"/assets/38b5ae2adc5ba899aadb0607b8d79d86887c155ca2262bb1c9ee7d57afc030a7.png","assets/chevron.png":"/assets/32d7e75d2e2413cbb4a8c97e1ad083547992187b0437cfc68aa7a83705453ffe.png","assets/close.png":"/assets/9b8b08b15166230863223a479492c1a800bc952974689d881d6f541b295f47ab.png","assets/goal-healthy.png":"/assets/deb8c82d1614dd7ac926a0f4fb06e9cf948921f8b309231ceb1df02f64c69d81.png","assets/goal-lean.png":"/assets/65e6261400ee76e74df2ae76602c0383b61d4de068420a3700bf711b0f12212f.png","assets/goal-strong.png":"/assets/864b46c49af701553b877acd37167618380b687db29952501b19f70bd9a4fb42.png","assets/switch-off.png":"/assets/78eb7cb53d3848d25a71f2cc18f748b93ceda3c5f4367fd7d632193627e7b764.png","assets/switch-on.png":"/assets/fa969bf1e4d4c48b11061df75b88c19d7322771bc1047a83184e0dc8df0684d0.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const adjustScreen = document.querySelector("#adjustScreen");
+      const goalScreen = document.querySelector("#goalScreen");
+      const limitScreen = document.querySelector("#limitScreen");
+      const homeScreen = document.querySelector("#homeScreen");
+      const goalEntry = document.querySelector("#goalEntry");
+      const limitEntry = document.querySelector("#limitEntry");
+      const saveButton = document.querySelector("#saveButton");
+      const timeEntry = document.querySelector("#timeEntry");
+      const timePicker = document.querySelector("#timePicker");
+      const timeValue = document.querySelector("#timeValue");
+      const reminderSwitch = document.querySelector("#reminderSwitch");
+      const switchImage = document.querySelector("#switchImage");
+      const savingIndicator = document.querySelector("#savingIndicator");
+      const limitCount = document.querySelector("#limitCount");
+      const pressReleaseMs = 320;
+
+      const goals = {
+        lean: {
+          title: "我要变瘦",
+          sub: "甩掉赘肉，走路带风",
+          icon: "/assets/65e6261400ee76e74df2ae76602c0383b61d4de068420a3700bf711b0f12212f.png",
+        },
+        strong: {
+          title: "我要变强",
+          sub: "爬楼不喘，搬砖不软",
+          icon: "/assets/864b46c49af701553b877acd37167618380b687db29952501b19f70bd9a4fb42.png",
+        },
+        healthy: {
+          title: "我要更健康",
+          sub: "每天运动，身体棒棒",
+          icon: "/assets/deb8c82d1614dd7ac926a0f4fb06e9cf948921f8b309231ceb1df02f64c69d81.png",
+        },
+      };
+
+      let reminderOn = true;
+      let saving = false;
+      let selectedHour = 8;
+      let selectedMinute = 0;
+
+      function markDirty() {
+        saveButton.classList.add("is-enabled");
+      }
+
+      function formatTwoDigit(value) {
+        return String(value).padStart(2, "0");
+      }
+
+      function updateTimePickerValue() {
+        const value = `${formatTwoDigit(selectedHour)}:${formatTwoDigit(selectedMinute)}`;
+        timePicker.dataset.selectedTime = value;
+        timeValue.textContent = value;
+      }
+
+      function updateWheelColumn(column) {
+        const items = [...column.querySelectorAll(".time-wheel-item")];
+        if (!items.length) return;
+
+        const itemHeight = items[0].offsetHeight || 30;
+        const index = Math.max(0, Math.min(items.length - 1, Math.round(column.scrollTop / itemHeight)));
+
+        items.forEach((item, itemIndex) => {
+          const isSelected = itemIndex === index;
+          item.classList.toggle("is-selected", isSelected);
+          item.setAttribute("aria-selected", String(isSelected));
+        });
+
+        const selectedValue = Number(items[index].dataset.value);
+        if (column.dataset.wheel === "hour") {
+          selectedHour = selectedValue;
+        } else {
+          selectedMinute = selectedValue;
+        }
+        updateTimePickerValue();
+      }
+
+      function snapWheelColumn(column, behavior = "smooth") {
+        const items = [...column.querySelectorAll(".time-wheel-item")];
+        if (!items.length) return;
+
+        const itemHeight = items[0].offsetHeight || 30;
+        const index = Math.max(0, Math.min(items.length - 1, Math.round(column.scrollTop / itemHeight)));
+        column.scrollTo({ top: index * itemHeight, behavior });
+        updateWheelColumn(column);
+      }
+
+      function setupTimeWheels() {
+        document.querySelectorAll(".time-wheel-column").forEach((column) => {
+          const selectedItem = column.querySelector(".time-wheel-item.is-selected") || column.querySelector(".time-wheel-item");
+          const selectedIndex = [...column.querySelectorAll(".time-wheel-item")].indexOf(selectedItem);
+
+          requestAnimationFrame(() => {
+            const itemHeight = selectedItem?.offsetHeight || 30;
+            column.scrollTop = Math.max(0, selectedIndex) * itemHeight;
+            updateWheelColumn(column);
+            window.setTimeout(() => {
+              column.dataset.wheelReady = "true";
+            }, 180);
+          });
+
+          let dragStartY = 0;
+          let dragStartScrollTop = 0;
+
+          column.addEventListener("pointerdown", (event) => {
+            column.classList.add("is-dragging");
+            dragStartY = event.clientY;
+            dragStartScrollTop = column.scrollTop;
+            column.setPointerCapture?.(event.pointerId);
+          });
+
+          column.addEventListener("pointermove", (event) => {
+            if (!column.classList.contains("is-dragging")) return;
+            column.scrollTop = dragStartScrollTop - (event.clientY - dragStartY);
+            updateWheelColumn(column);
+          });
+
+          const endDrag = (event) => {
+            if (!column.classList.contains("is-dragging")) return;
+            column.classList.remove("is-dragging");
+            column.releasePointerCapture?.(event.pointerId);
+            snapWheelColumn(column);
+            if (column.dataset.wheelReady === "true" && timePicker.classList.contains("is-open")) markDirty();
+          };
+
+          column.addEventListener("pointerup", endDrag);
+          column.addEventListener("pointercancel", endDrag);
+
+          column.addEventListener("scroll", () => {
+            updateWheelColumn(column);
+            window.clearTimeout(column._snapTimer);
+            if (column.classList.contains("is-dragging")) return;
+            column._snapTimer = window.setTimeout(() => {
+              snapWheelColumn(column);
+              if (column.dataset.wheelReady === "true" && timePicker.classList.contains("is-open")) markDirty();
+            }, 120);
+          });
+        });
+      }
+
+      function openSub(screen) {
+        timePicker.classList.remove("is-open");
+        adjustScreen.classList.add("is-behind");
+        screen.classList.add("is-active");
+      }
+
+      function closeSub() {
+        adjustScreen.classList.remove("is-behind");
+        goalScreen.classList.remove("is-active");
+        limitScreen.classList.remove("is-active");
+      }
+
+      function releasePressable(target) {
+        if (!target.classList.contains("is-pressing")) return;
+        target.classList.remove("is-pressing", "is-releasing");
+        void target.offsetWidth;
+        target.classList.add("is-releasing");
+        window.setTimeout(() => target.classList.remove("is-releasing"), pressReleaseMs);
+      }
+
+      function bindPressables(root = document) {
+        root.querySelectorAll(".pressable").forEach((target) => {
+          if (target.dataset.pressBound) return;
+          target.dataset.pressBound = "true";
+          target.addEventListener("pointerdown", (event) => {
+            if (target.disabled || saving) return;
+            target.classList.remove("is-releasing");
+            target.classList.add("is-pressing");
+            target.setPointerCapture?.(event.pointerId);
+          });
+          target.addEventListener("pointerup", () => releasePressable(target));
+          target.addEventListener("pointercancel", () => target.classList.remove("is-pressing", "is-releasing"));
+          target.addEventListener("pointerleave", () => target.classList.remove("is-pressing"));
+        });
+      }
+
+      document.querySelectorAll("[data-single='difficulty'] .pill").forEach((pill) => {
+        pill.addEventListener("click", () => {
+          pill.parentElement.querySelectorAll(".pill").forEach((item) => item.classList.remove("is-selected"));
+          pill.classList.add("is-selected");
+          markDirty();
+        });
+      });
+
+      document.querySelectorAll("[data-multi] .pill").forEach((pill) => {
+        pill.addEventListener("click", () => {
+          pill.classList.toggle("is-selected");
+          markDirty();
+        });
+      });
+
+      goalEntry.addEventListener("click", () => openSub(goalScreen));
+      limitEntry.addEventListener("click", () => openSub(limitScreen));
+      document.querySelectorAll("[data-back]").forEach((button) => button.addEventListener("click", closeSub));
+
+      document.querySelectorAll("#goalChoices .choice-cell").forEach((cell) => {
+        cell.addEventListener("click", () => {
+          document.querySelectorAll("#goalChoices .choice-cell").forEach((item) => item.classList.remove("is-selected"));
+          cell.classList.add("is-selected");
+          const data = goals[cell.dataset.goal];
+          document.querySelector("#goalTitle").textContent = data.title;
+          document.querySelector("#goalSub").textContent = data.sub;
+          document.querySelector("#goalIcon").src = data.icon;
+          markDirty();
+        });
+      });
+
+      document.querySelectorAll("#restrictionList .restriction").forEach((item) => {
+        item.addEventListener("click", () => {
+          item.classList.toggle("is-selected");
+          const count = document.querySelectorAll("#restrictionList .restriction.is-selected").length;
+          limitCount.textContent = `${count}项`;
+          markDirty();
+        });
+      });
+
+      reminderSwitch.addEventListener("click", () => {
+        reminderOn = !reminderOn;
+        switchImage.src = reminderOn ? "/assets/fa969bf1e4d4c48b11061df75b88c19d7322771bc1047a83184e0dc8df0684d0.png" : "/assets/78eb7cb53d3848d25a71f2cc18f748b93ceda3c5f4367fd7d632193627e7b764.png";
+        markDirty();
+      });
+
+      timeEntry.addEventListener("click", () => {
+        timePicker.classList.toggle("is-open");
+      });
+
+      setupTimeWheels();
+
+      saveButton.addEventListener("click", () => {
+        if (!saveButton.classList.contains("is-enabled") || saving) return;
+        saving = true;
+        timePicker.classList.remove("is-open");
+        savingIndicator.classList.add("is-visible");
+        window.setTimeout(() => {
+          savingIndicator.classList.remove("is-visible");
+          adjustScreen.classList.remove("is-active", "is-behind");
+          goalScreen.classList.remove("is-active");
+          limitScreen.classList.remove("is-active");
+          homeScreen.classList.add("is-active");
+          saving = false;
+        }, 1050);
+      });
+
+      document.querySelector("#closeButton").addEventListener("click", () => {
+        adjustScreen.classList.remove("is-active", "is-behind");
+        homeScreen.classList.add("is-active");
+      });
+
+      bindPressables();
+    </script>
+  </body>
+</html>

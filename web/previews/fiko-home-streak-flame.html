@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Miko 连胜首页的火苗动画</title>
+    <style>
+      :root {
+        --soft-ease: cubic-bezier(0.4, 0, 0.2, 1);
+        font-family: "STBaoYuan-SC", "Yuanti SC", "PingFang SC", sans-serif;
+        color: #000;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+      body { background: #fff; }
+      button { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+      button:disabled { cursor: default; }
+      button:focus-visible { outline: 2px solid #80afff; outline-offset: 4px; }
+      img { display: block; user-select: none; -webkit-user-drag: none; }
+
+      .phone {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 393px;
+        height: 852px;
+        overflow: hidden;
+        border: 1px solid #d7d7d7;
+        border-radius: 32px;
+        background: #fff;
+        isolation: isolate;
+        transform: translate(-50%, -50%) scale(var(--phone-scale, 1));
+        transform-origin: center;
+      }
+
+      .screen {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 360ms var(--soft-ease);
+      }
+      .home-screen { z-index: 0; opacity: 1; transition: none; }
+      .screen.is-current { opacity: 1; pointer-events: auto; }
+      .sticker-screen { z-index: 2; }
+      .sticker-screen.is-leaving { opacity: 0; pointer-events: none; }
+      .page-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; }
+
+      .collect-button {
+        position: absolute;
+        left: 86px;
+        top: 536.5px;
+        width: 220px;
+        height: 60px;
+        border-radius: 26px;
+        transition: transform 100ms var(--soft-ease);
+      }
+      .collect-button img { width: 100%; height: 100%; }
+      .collect-button:active:not(:disabled) { transform: scale(0.96); }
+
+      .streak-badge {
+        position: absolute;
+        z-index: 3;
+        left: 271px;
+        top: 54px;
+        width: 61px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        padding: 5px 8px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 14px;
+        background: #fff;
+        transform-origin: 100% 0%;
+      }
+      .streak-badge.is-animating { will-change: transform; }
+      .flame { width: 24px; height: 24px; flex: 0 0 24px; object-fit: contain; }
+      .numeric {
+        display: inline-flex;
+        width: 17px;
+        height: 24px;
+        flex: 0 0 17px;
+        font-size: 16px;
+        line-height: 24px;
+        font-weight: 700;
+        letter-spacing: 0;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .digit-slot { position: relative; width: 8.5px; height: 24px; flex: 0 0 8.5px; }
+      .digit { position: absolute; inset: 0; display: block; text-align: center; transform-origin: center; }
+      .is-animating .digit { will-change: transform, filter, opacity; }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+      @media (prefers-reduced-motion: reduce) {
+        .screen, .collect-button { transition: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" data-phase="sticker" aria-label="连胜首页的火苗动画预览">
+      <section id="homeScreen" class="screen home-screen" aria-label="首页" aria-hidden="true" inert>
+        <img class="page-bg" src="/assets/5535edb746fbe1590b4803cacc8c26723e6df63b4a6fc338f346dcef2f78d6d0.png" alt="Miko 首页，今日训练计划" />
+        <button id="streakBadge" class="streak-badge" type="button" aria-label="连胜 27 天" title="重播火苗动画" disabled>
+          <img class="flame" src="/assets/ba60c3e65493cecca9185fcf292fba76dbfe24bc3e25c56a533eb513431e700f.png" alt="" />
+          <span id="streakNumber" class="numeric" aria-hidden="true">
+            <span class="digit-slot"><span class="digit">2</span></span>
+            <span class="digit-slot"><span class="digit">7</span></span>
+          </span>
+        </button>
+      </section>
+      <section id="stickerScreen" class="screen sticker-screen is-current" aria-label="解锁新贴纸">
+        <img class="page-bg" src="/assets/c0d511cb8f0aad60b1a0120f92f93498d6b18a9448a105bd958960b8874c0f71.png" alt="解锁新贴纸：走出新手村，第一次完成训练" />
+        <button id="collectButton" class="collect-button" type="button" aria-label="收下贴纸">
+          <img src="/assets/6a653f18169780aba359e54706eb7ba752e7d256ad1c431c3e74010711416b57.png" alt="" />
+        </button>
+      </section>
+      <span id="announcement" class="sr-only" role="status" aria-live="polite"></span>
+    </main>
+
+    <script>const embeddedAssetMap={"assets/bg.png":"/assets/5535edb746fbe1590b4803cacc8c26723e6df63b4a6fc338f346dcef2f78d6d0.png","assets/btn.png":"/assets/6a653f18169780aba359e54706eb7ba752e7d256ad1c431c3e74010711416b57.png","assets/icon.png":"/assets/ba60c3e65493cecca9185fcf292fba76dbfe24bc3e25c56a533eb513431e700f.png","assets/前置页面-bg.png":"/assets/c0d511cb8f0aad60b1a0120f92f93498d6b18a9448a105bd958960b8874c0f71.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const TIMING = { page: 360, settle: 180, grow: 480, number: 800, hold: 180, shrink: 480 };
+      const NUMERIC_EASING = "linear(0,.1052,.3155,.532,.7112,.8414,.9265,.9765,1.0023,1.013,1.0151,1.0133,1.01,1.0068,1.0041,1.0022,1.001,1)";
+      const NUMERIC_CONFIG = { y: 0.35, scale: 0.6, blur: 0.1, rotate: 2, stagger: 0.3 };
+      const BADGE_REST = "translateY(0) scale(1)";
+      // Keep the enlarged badge below the status bar and above the speech bubble.
+      const BADGE_LARGE = "translateY(-10px) scale(1.5)";
+      const phone = document.querySelector(".phone");
+      const stickerScreen = document.querySelector("#stickerScreen");
+      const homeScreen = document.querySelector("#homeScreen");
+      const collectButton = document.querySelector("#collectButton");
+      const badge = document.querySelector("#streakBadge");
+      const number = document.querySelector("#streakNumber");
+      const announcement = document.querySelector("#announcement");
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const timers = new Set();
+      const animations = new Set();
+      let busy = false;
+
+      function later(callback, delay) {
+        const timer = window.setTimeout(() => {
+          timers.delete(timer);
+          callback();
+        }, delay);
+        timers.add(timer);
+      }
+
+      function clearTimeline() {
+        timers.forEach(window.clearTimeout);
+        timers.clear();
+        animations.forEach((animation) => animation.cancel());
+        animations.clear();
+      }
+
+      function animate(element, keyframes, options) {
+        let animation;
+        try {
+          animation = element.animate(keyframes, options);
+        } catch (_error) {
+          animation = element.animate(keyframes, { ...options, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" });
+        }
+        animations.add(animation);
+        return animation;
+      }
+
+      function digit(label) {
+        const element = document.createElement("span");
+        element.className = "digit";
+        element.textContent = label;
+        return element;
+      }
+
+      function setNumber(value) {
+        [...number.children].forEach((slot, index) => slot.replaceChildren(digit(String(value)[index])));
+        badge.setAttribute("aria-label", `连胜 ${value} 天，重播火苗动画`);
+      }
+
+      function rollNumber() {
+        phone.dataset.phase = "counting";
+        // Same character motion as Streak Feedback 2.0; the unchanged prefix stays anchored.
+        const slot = number.children[1];
+        const outgoing = slot.firstElementChild;
+        const incoming = digit("8");
+        slot.append(incoming);
+        [outgoing, incoming].forEach((element, index) => {
+          const exiting = index === 0;
+          const direction = exiting ? -1 : 1;
+          const transform = `translateY(${direction * NUMERIC_CONFIG.y}em) scale(${NUMERIC_CONFIG.scale}) rotateZ(${NUMERIC_CONFIG.rotate}deg)`;
+          const filter = `blur(${NUMERIC_CONFIG.blur}em)`;
+          animate(element, {
+            opacity: exiting ? [1, 0] : [0, 1],
+            transform: exiting ? ["none", transform] : [transform, "none"],
+            filter: exiting ? ["blur(0)", filter] : [filter, "blur(0)"],
+          }, { duration: TIMING.number, easing: NUMERIC_EASING, fill: "both" });
+        });
+        later(() => {
+          slot.replaceChildren(digit("8"));
+          badge.setAttribute("aria-label", "连胜 28 天，重播火苗动画");
+          phone.dataset.phase = "holding";
+        }, TIMING.number);
+      }
+
+      function finish() {
+        clearTimeline();
+        setNumber(28);
+        badge.style.transform = BADGE_REST;
+        badge.classList.remove("is-animating");
+        badge.disabled = false;
+        phone.dataset.phase = "complete";
+        announcement.textContent = "连胜加一，已连续训练 28 天";
+        busy = false;
+      }
+
+      function startBadgeSequence() {
+        if (reducedMotion.matches) { finish(); return; }
+        badge.classList.add("is-animating");
+        phone.dataset.phase = "growing";
+        badge.style.transform = BADGE_LARGE;
+        animate(badge, [{ transform: BADGE_REST }, { transform: BADGE_LARGE }], {
+          duration: TIMING.grow, easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+        });
+        later(rollNumber, TIMING.grow);
+        later(() => {
+          phone.dataset.phase = "shrinking";
+          badge.style.transform = BADGE_REST;
+          animate(badge, [{ transform: BADGE_LARGE }, { transform: BADGE_REST }], {
+            duration: TIMING.shrink, easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+          });
+          later(finish, TIMING.shrink);
+        }, TIMING.grow + TIMING.number + TIMING.hold);
+      }
+
+      function collectSticker() {
+        if (busy) return;
+        busy = true;
+        collectButton.disabled = true;
+        stickerScreen.inert = true;
+        stickerScreen.setAttribute("aria-hidden", "true");
+        homeScreen.inert = false;
+        homeScreen.setAttribute("aria-hidden", "false");
+        stickerScreen.classList.add("is-leaving");
+        homeScreen.classList.add("is-current");
+        phone.dataset.phase = "returning-home";
+        if (reducedMotion.matches) {
+          stickerScreen.classList.remove("is-current", "is-leaving");
+          finish();
+          return;
+        }
+        later(() => {
+          stickerScreen.classList.remove("is-current", "is-leaving");
+          phone.dataset.phase = "home";
+          later(startBadgeSequence, TIMING.settle);
+        }, TIMING.page);
+      }
+
+      function replayBadge() {
+        if (busy) return;
+        clearTimeline();
+        busy = true;
+        badge.disabled = true;
+        announcement.textContent = "";
+        setNumber(27);
+        phone.dataset.phase = "home";
+        later(startBadgeSequence, TIMING.settle);
+      }
+
+      function fitPhone() {
+        const scale = Math.min(1, window.innerWidth / 393, window.innerHeight / 852);
+        document.documentElement.style.setProperty("--phone-scale", scale.toFixed(4));
+      }
+
+      collectButton.addEventListener("click", collectSticker);
+      badge.addEventListener("click", replayBadge);
+      window.addEventListener("resize", fitPhone);
+      window.addEventListener("pagehide", clearTimeline);
+      reducedMotion.addEventListener("change", () => {
+        if (reducedMotion.matches && busy) {
+          stickerScreen.classList.remove("is-current", "is-leaving");
+          finish();
+        }
+      });
+      fitPhone();
+    </script>
+  </body>
+</html>

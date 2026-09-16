@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Miko 连胜反馈</title>
+    <style>
+      :root {
+        --phone-width: 393px;
+        --phone-height: 852px;
+        --ink: #050505;
+        --muted: rgba(5, 5, 5, 0.45);
+        --soft-ease: cubic-bezier(0.4, 0, 0.2, 1);
+        --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
+        --numeric-ease: linear(0, 0.1052, 0.3155, 0.532, 0.7112, 0.8414, 0.9265, 0.9765, 1.0023, 1.013, 1.0151, 1.0133, 1.01, 1.0068, 1.0041, 1.0022, 1.001, 1);
+        --font-rounded: "Yuanti SC", "STYuanti-SC", "YouYuan", "PingFang SC", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background: #111;
+        color: var(--ink);
+        font-family: var(--font-rounded);
+      }
+
+      button {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      img {
+        display: block;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100vw, 393px);
+        height: min(100vh, 852px);
+        overflow: hidden;
+        border: 1px solid #d7d7d7;
+        border-radius: 32px;
+        background: #fff;
+        isolation: isolate;
+      }
+
+      .screen {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transform: translateX(24px);
+        pointer-events: none;
+        transition:
+          opacity 360ms var(--soft-ease),
+          transform 360ms var(--soft-ease);
+      }
+
+      .screen.is-current {
+        z-index: 2;
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: auto;
+      }
+
+      .screen.is-leaving {
+        opacity: 0;
+        transform: translateX(-24px);
+      }
+
+      .pre-shot,
+      .result-bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .status-bar {
+        position: absolute;
+        z-index: 3;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 44px;
+        object-fit: cover;
+      }
+
+      .close-button {
+        position: absolute;
+        z-index: 8;
+        left: 16px;
+        top: 48px;
+        width: 40px;
+        height: 40px;
+        border-radius: 14px;
+        transition:
+          transform 90ms cubic-bezier(0.2, 0, 0.2, 1),
+          filter 90ms ease;
+      }
+
+      .close-button img {
+        width: 100%;
+        height: 100%;
+      }
+
+      .close-button:active {
+        transform: translateY(1px) scale(0.93);
+        filter: brightness(0.96);
+      }
+
+      .hero {
+        position: absolute;
+        z-index: 3;
+        left: 50%;
+        top: 147px;
+        width: 200px;
+        height: 240px;
+        transform: translateX(-50%);
+        text-align: center;
+      }
+
+      .artwork {
+        position: absolute;
+        left: 10px;
+        top: 0;
+        width: 180px;
+        height: 180px;
+        object-fit: contain;
+        opacity: 0;
+        transform-origin: 50% 50%;
+      }
+
+      .hero-copy {
+        position: absolute;
+        left: 0;
+        top: 188px;
+        width: 200px;
+        opacity: 0;
+      }
+
+      .hero-copy h1,
+      .hero-copy p {
+        margin: 0;
+        letter-spacing: 0;
+      }
+
+      .hero-copy h1 {
+        font-size: 20px;
+        line-height: 28px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .hero-copy p {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 24px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .result.is-ready .artwork {
+        animation: roll-in-blurred-bottom 1500ms var(--ease-out-quint) both;
+      }
+
+      .result.is-ready .hero-copy {
+        animation: fade-copy 360ms var(--soft-ease) 1500ms both;
+      }
+
+      .stats-card {
+        position: absolute;
+        z-index: 3;
+        left: 16px;
+        top: 418px;
+        width: 361px;
+        height: 136px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        align-items: center;
+        gap: 11px;
+        padding: 12px 16px;
+        border: 1px solid rgba(5, 5, 5, 0.06);
+        border-radius: 28px;
+        background: rgba(255, 255, 255, 0.94);
+        opacity: 0;
+        transform: translateY(40px);
+      }
+
+      .stat {
+        height: 112px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-align: center;
+      }
+
+      .stat-label {
+        color: rgba(0, 0, 0, 0.62);
+        font-size: 14px;
+        line-height: 20px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .stat-value-row {
+        min-height: 36px;
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+        white-space: nowrap;
+      }
+
+      .numeric {
+        min-width: 1ch;
+        display: inline-flex;
+        justify-content: center;
+        font-size: 28px;
+        line-height: 36px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .unit {
+        margin-left: 1px;
+        font-size: 14px;
+        line-height: 20px;
+        font-weight: 700;
+      }
+
+      .stat-icon {
+        width: 24px;
+        height: 24px;
+        object-fit: contain;
+      }
+
+      .actions {
+        position: absolute;
+        z-index: 4;
+        left: 86px;
+        top: 594px;
+        width: 220px;
+        height: 128px;
+        display: grid;
+        grid-template-rows: repeat(2, 60px);
+        gap: 8px;
+        opacity: 0;
+        transform: translateY(40px);
+      }
+
+      .action {
+        width: 220px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        border-radius: 26px;
+        font-size: 20px;
+        line-height: 28px;
+        font-weight: 700;
+        transition:
+          transform 90ms cubic-bezier(0.2, 0, 0.2, 1),
+          filter 90ms ease;
+      }
+
+      .action.primary {
+        background: #000;
+        color: #fff;
+      }
+
+      .action.secondary img {
+        width: 24px;
+        height: 24px;
+      }
+
+      .action:active {
+        transform: translateY(2px) scale(0.955);
+        filter: brightness(0.96);
+      }
+
+      .result.is-ready .stats-card,
+      .result.is-ready .actions {
+        animation: rise-content 520ms var(--soft-ease) 1900ms both;
+      }
+
+      .home-indicator {
+        position: absolute;
+        z-index: 5;
+        left: 132px;
+        bottom: 8px;
+        width: 129px;
+        height: 5px;
+        border-radius: 999px;
+        background: #050505;
+      }
+
+      @keyframes roll-in-blurred-bottom {
+        0% {
+          opacity: 0;
+          filter: blur(50px);
+          transform: translateY(800px) rotate(720deg);
+        }
+        100% {
+          opacity: 1;
+          filter: blur(0);
+          transform: translateY(0) rotate(0deg);
+        }
+      }
+
+      @keyframes fade-copy {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes rise-content {
+        from {
+          opacity: 0;
+          transform: translateY(40px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 1ms !important;
+          animation-delay: 0ms !important;
+          transition-duration: 1ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" aria-label="连胜反馈动画预览">
+      <section class="screen pre is-current" id="preScreen" aria-label="训练前置页">
+        <img class="pre-shot" src="/assets/3b9f2794b2cb0026126055cf5750c0c7dd15de79f6fa7d94e2ee3f5fabb21dcb.png" alt="弓步蹲训练完成前置页" />
+      </section>
+
+      <section class="screen result" id="resultScreen" aria-label="训练反馈页">
+        <img class="result-bg" src="/assets/5d7f4babc53d1f276981e38b6e8aa28623f9a3f4744bf2daefbd727149649118.png" alt="" />
+        <img class="status-bar" src="/assets/0edff1c1522f149a308ff45f202b41e19d5d0d2e7d1402c9c1d56e80af98b5c5.png" alt="" />
+        <button class="close-button" id="closeButton" type="button" aria-label="重播动画">
+          <img src="/assets/9b8b08b15166230863223a479492c1a800bc952974689d881d6f541b295f47ab.png" alt="" />
+        </button>
+
+        <section class="hero" aria-label="训练反馈">
+          <img class="artwork" src="/assets/576389041c3ecadd1aa98f876205c1040e32b0cd5e00f377337ed06f5a473898.png" alt="戴着耳机休息的猫" />
+          <div class="hero-copy">
+            <h1>运动时长≈ 听完两首歌</h1>
+            <p>歌单翻过两首，运动更进一步</p>
+          </div>
+        </section>
+
+        <section class="stats-card" aria-label="本次训练数据">
+          <div class="stat">
+            <span class="stat-label">运动时长</span>
+            <span class="stat-value-row"><numeric-text class="numeric" data-value="11:56"></numeric-text></span>
+            <img class="stat-icon" src="/assets/8df09e36939163d564518d099cb612e8190d3ce92e950aab194334020857e112.png" alt="" />
+          </div>
+          <div class="stat">
+            <span class="stat-label">消耗热量</span>
+            <span class="stat-value-row"><numeric-text class="numeric" data-value="100"></numeric-text><span class="unit">kcal</span></span>
+            <img class="stat-icon" src="/assets/a4fa1407190276bd68a5f4968dbdc6f9c773fc87a6cd6513850a26510a1238e3.png" alt="" />
+          </div>
+          <div class="stat">
+            <span class="stat-label">完成动作</span>
+            <span class="stat-value-row"><numeric-text class="numeric" data-value="10"></numeric-text><span class="unit">个</span></span>
+            <img class="stat-icon" src="/assets/161a6922959431498426ceb381feeb5c545ba411ecef0f06e859f8ffffcc194c.png" alt="" />
+          </div>
+        </section>
+
+        <div class="actions">
+          <button class="action primary" type="button">继续</button>
+          <button class="action secondary" type="button">
+            <img src="/assets/6b8ed30241d844decb464e12573992c5145bf76d94a395e3c4f38e2b908aa7ef.png" alt="" />
+            <span>分享</span>
+          </button>
+        </div>
+        <div class="home-indicator" aria-hidden="true"></div>
+      </section>
+    </main>
+
+    <script>const embeddedAssetMap={"assets/alarm.png":"/assets/8df09e36939163d564518d099cb612e8190d3ce92e950aab194334020857e112.png","assets/bg.png":"/assets/5d7f4babc53d1f276981e38b6e8aa28623f9a3f4744bf2daefbd727149649118.png","assets/fire.png":"/assets/a4fa1407190276bd68a5f4968dbdc6f9c773fc87a6cd6513850a26510a1238e3.png","assets/rocket-launch.png":"/assets/161a6922959431498426ceb381feeb5c545ba411ecef0f06e859f8ffffcc194c.png","assets/关闭.png":"/assets/9b8b08b15166230863223a479492c1a800bc952974689d881d6f541b295f47ab.png","assets/分享.png":"/assets/6b8ed30241d844decb464e12573992c5145bf76d94a395e3c4f38e2b908aa7ef.png","assets/前置页面.png":"/assets/3b9f2794b2cb0026126055cf5750c0c7dd15de79f6fa7d94e2ee3f5fabb21dcb.png","assets/插画.png":"/assets/576389041c3ecadd1aa98f876205c1040e32b0cd5e00f377337ed06f5a473898.png","assets/状态栏.png":"/assets/0edff1c1522f149a308ff45f202b41e19d5d0d2e7d1402c9c1d56e80af98b5c5.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const PRE_PAGE_HOLD_MS = 2000;
+      const PAGE_TRANSITION_MS = 360;
+      const NUMERIC_DELAY_MS = 2420;
+      const NUMERIC_DURATION_MS = 800;
+      const NUMERIC_EASING =
+        "linear(0,.1052,.3155,.532,.7112,.8414,.9265,.9765,1.0023,1.013,1.0151,1.0133,1.01,1.0068,1.0041,1.0022,1.001,1)";
+      const NUMERIC_CONFIG = { y: 0.35, scale: 0.6, blur: 0.1, rotate: 2, stagger: 0.3 };
+
+      const preScreen = document.querySelector("#preScreen");
+      const resultScreen = document.querySelector("#resultScreen");
+      const closeButton = document.querySelector("#closeButton");
+      let timers = [];
+
+      function later(callback, delay) {
+        const timer = window.setTimeout(callback, delay);
+        timers.push(timer);
+        return timer;
+      }
+
+      function showResult() {
+        preScreen.classList.add("is-leaving");
+        resultScreen.classList.add("is-current");
+        later(() => {
+          preScreen.classList.remove("is-current", "is-leaving");
+          resultScreen.classList.add("is-ready");
+          later(revealNumbers, NUMERIC_DELAY_MS);
+        }, PAGE_TRANSITION_MS);
+      }
+
+      // Start the page transition before the richer number renderer initializes.
+      // This keeps the preview moving even if an embedded browser lacks one of its APIs.
+      later(showResult, PRE_PAGE_HOLD_MS);
+
+      function createNumericElement(className = "", text) {
+        const element = document.createElement("span");
+        element.setAttribute("aria-hidden", "true");
+        if (className) element.className = className;
+        if (text !== undefined) element.textContent = text;
+        return element;
+      }
+
+      function numericCharacters(value) {
+        const segmenter = typeof Intl.Segmenter === "function"
+          ? new Intl.Segmenter(undefined, { granularity: "grapheme" })
+          : null;
+        const characters = segmenter
+          ? [...segmenter.segment(value)].map((item) => item.segment)
+          : Array.from(value);
+        return characters.map((character) => (character === " " ? "\u00a0" : character));
+      }
+
+      function cancelElementAnimations(element) {
+        element.getAnimations().forEach((animation) => animation.cancel());
+      }
+
+      class NumericText extends HTMLElement {
+        constructor() {
+          super();
+          const root = this.attachShadow({ mode: "open" });
+          const style = document.createElement("style");
+          style.textContent = `
+            :host { position: relative; display: inline-flex; white-space: nowrap !important; isolation: isolate; }
+            span { margin: 0 !important; padding: 0 !important; transform-origin: center; }
+            [inert] { position: absolute !important; display: inline-flex !important; will-change: transform; z-index: 0; }
+            .section { position: relative !important; display: inline-flex !important; will-change: transform; z-index: 1; }
+            .char { display: inline-block !important; white-space: pre !important; }
+          `;
+          this.prefixGroup = createNumericElement("section");
+          this.middleGroup = createNumericElement("section");
+          this.suffixGroup = createNumericElement("section");
+          root.append(style, this.prefixGroup, this.middleGroup, this.suffixGroup);
+          this.characters = [];
+          this.exitingGroups = [];
+          this.currentValue = "";
+          this.previousValue = "";
+        }
+
+        connectedCallback() {
+          this.render(false);
+        }
+
+        reset(value) {
+          this.shadowRoot.querySelectorAll("*").forEach(cancelElementAnimations);
+          this.exitingGroups.forEach(([group]) => group.remove());
+          this.exitingGroups = [];
+          this.characters = [];
+          this.currentValue = "";
+          this.previousValue = "";
+          this.prefixGroup.replaceChildren();
+          this.middleGroup.replaceChildren();
+          this.suffixGroup.replaceChildren();
+          this.update(value, false);
+        }
+
+        update(value, animated = true) {
+          const nextValue = String(value);
+          if (nextValue === this.currentValue) return;
+          this.previousValue = this.currentValue;
+          this.currentValue = nextValue;
+          this.setAttribute("role", "img");
+          this.setAttribute("aria-label", nextValue);
+          this.render(animated && !window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+        }
+
+        diff() {
+          const next = numericCharacters(this.currentValue);
+          let prefixCount = 0;
+          while (
+            prefixCount < this.characters.length &&
+            prefixCount < next.length &&
+            this.characters[prefixCount].textContent === next[prefixCount]
+          ) {
+            prefixCount += 1;
+          }
+
+          let suffixCount = 0;
+          const maxSuffix = Math.min(this.characters.length - prefixCount, next.length - prefixCount);
+          while (
+            suffixCount < maxSuffix &&
+            this.characters[this.characters.length - 1 - suffixCount].textContent === next[next.length - 1 - suffixCount]
+          ) {
+            suffixCount += 1;
+          }
+
+          return {
+            prefixCount,
+            suffixCount,
+            middleLabels: next.slice(prefixCount, next.length - suffixCount),
+          };
+        }
+
+        stagger(nodes) {
+          const count = nodes.filter((node) => node.textContent !== "\u00a0").length || 1;
+          return (NUMERIC_DURATION_MS * NUMERIC_CONFIG.stagger) / count;
+        }
+
+        animateCharacter(element, exiting, delay, onFinish) {
+          if (element.textContent === "\u00a0") {
+            if (exiting && onFinish) window.setTimeout(onFinish, NUMERIC_DURATION_MS + delay);
+            return;
+          }
+
+          const direction = exiting ? -1 : 1;
+          const transform = `translateY(${direction * NUMERIC_CONFIG.y}em) scale(${NUMERIC_CONFIG.scale}) rotateZ(${NUMERIC_CONFIG.rotate}deg)`;
+          const filter = `blur(${NUMERIC_CONFIG.blur}em)`;
+          const keyframes = {
+            opacity: exiting ? [1, 0] : [0, 1],
+            transform: exiting ? ["none", transform] : [transform, "none"],
+            filter: exiting ? ["blur(0)", filter] : [filter, "blur(0)"],
+          };
+          let animation;
+          try {
+            animation = element.animate(keyframes, {
+              duration: NUMERIC_DURATION_MS,
+              easing: NUMERIC_EASING,
+              fill: "both",
+              delay,
+            });
+          } catch (_error) {
+            animation = element.animate(keyframes, {
+              duration: NUMERIC_DURATION_MS,
+              easing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+              fill: "both",
+              delay,
+            });
+          }
+          if (onFinish) animation.onfinish = onFinish;
+        }
+
+        flip(element, deltaX) {
+          if (!deltaX) return;
+          cancelElementAnimations(element);
+          element.animate(
+            { transform: [`translateX(${deltaX}px)`, "translateX(0)"] },
+            { duration: NUMERIC_DURATION_MS, easing: NUMERIC_EASING, fill: "both" }
+          );
+        }
+
+        edgeDelta(oldRect, newRect, oldMiddleRect, prefix) {
+          const oldEdge = prefix
+            ? (oldRect.width ? oldRect.left : oldMiddleRect.left)
+            : (oldRect.width ? oldRect.right : oldMiddleRect.right);
+          const newEdge = prefix ? newRect.left : newRect.right;
+          return oldEdge - newEdge;
+        }
+
+        render(animated) {
+          const { prefixCount, suffixCount, middleLabels } = this.diff();
+          const oldSuffixStart = this.characters.length - suffixCount;
+          const nextLength = prefixCount + middleLabels.length + suffixCount;
+
+          if (!animated) {
+            const nextCharacters = new Array(nextLength);
+            const nextSuffixStart = prefixCount + middleLabels.length;
+            for (let index = 0; index < prefixCount; index += 1) nextCharacters[index] = this.characters[index];
+            for (let index = 0; index < middleLabels.length; index += 1) {
+              nextCharacters[prefixCount + index] = createNumericElement("char", middleLabels[index]);
+            }
+            for (let index = 0; index < suffixCount; index += 1) {
+              nextCharacters[nextSuffixStart + index] = this.characters[oldSuffixStart + index];
+            }
+            this.prefixGroup.replaceChildren(...nextCharacters.slice(0, prefixCount));
+            this.middleGroup.replaceChildren(...nextCharacters.slice(prefixCount, nextSuffixStart));
+            this.suffixGroup.replaceChildren(...nextCharacters.slice(nextSuffixStart));
+            this.characters = nextCharacters;
+            return;
+          }
+
+          const oldPrefixRect = this.prefixGroup.getBoundingClientRect();
+          const oldMiddleRect = this.middleGroup.getBoundingClientRect();
+          const oldSuffixRect = this.suffixGroup.getBoundingClientRect();
+          let exitingX = 0;
+          if (prefixCount < oldSuffixStart) {
+            const anchor = this.characters[prefixCount];
+            const parentRect = anchor.parentElement === this.prefixGroup
+              ? oldPrefixRect
+              : anchor.parentElement === this.suffixGroup
+                ? oldSuffixRect
+                : oldMiddleRect;
+            exitingX = parentRect.left + anchor.offsetLeft;
+          }
+
+          const nextCharacters = new Array(nextLength);
+          const exitingNodes = [];
+          for (let index = 0; index < prefixCount; index += 1) nextCharacters[index] = this.characters[index];
+          for (let index = prefixCount; index < oldSuffixStart; index += 1) exitingNodes.push(this.characters[index]);
+
+          const newMiddleNodes = middleLabels.map((label, index) => {
+            const element = createNumericElement("char", label);
+            nextCharacters[prefixCount + index] = element;
+            return element;
+          });
+          const nextSuffixStart = prefixCount + middleLabels.length;
+          for (let index = 0; index < suffixCount; index += 1) {
+            nextCharacters[nextSuffixStart + index] = this.characters[oldSuffixStart + index];
+          }
+
+          if (exitingNodes.length) {
+            const group = createNumericElement();
+            group.toggleAttribute("inert", true);
+            exitingNodes.forEach((node) => group.appendChild(node));
+            const entry = [group, exitingX];
+            this.exitingGroups.push(entry);
+            this.shadowRoot.appendChild(group);
+            let active = exitingNodes.length;
+            const delayStep = this.stagger(exitingNodes);
+            exitingNodes.forEach((node, index) => {
+              this.animateCharacter(node, true, index * delayStep, () => {
+                node.remove();
+                active -= 1;
+                if (active === 0) {
+                  group.remove();
+                  this.exitingGroups = this.exitingGroups.filter((item) => item !== entry);
+                }
+              });
+            });
+          }
+
+          this.prefixGroup.replaceChildren(...nextCharacters.slice(0, prefixCount));
+          this.middleGroup.replaceChildren(...newMiddleNodes);
+          this.suffixGroup.replaceChildren(...nextCharacters.slice(nextSuffixStart));
+          this.characters = nextCharacters;
+
+          cancelElementAnimations(this.prefixGroup);
+          cancelElementAnimations(this.suffixGroup);
+          const newPrefixRect = this.prefixGroup.getBoundingClientRect();
+          const newSuffixRect = this.suffixGroup.getBoundingClientRect();
+          const exitingEdge = newPrefixRect.left;
+          this.exitingGroups.forEach(([group, x]) => {
+            group.style.transform = `translateX(${x - exitingEdge}px)`;
+          });
+
+          const delayStep = this.stagger(newMiddleNodes);
+          newMiddleNodes.forEach((node, index) => this.animateCharacter(node, false, index * delayStep));
+          this.flip(this.prefixGroup, this.edgeDelta(oldPrefixRect, newPrefixRect, oldMiddleRect, true));
+          this.flip(this.suffixGroup, this.edgeDelta(oldSuffixRect, newSuffixRect, oldMiddleRect, false));
+        }
+      }
+
+      if (!customElements.get("numeric-text")) {
+        customElements.define("numeric-text", NumericText);
+      }
+
+      const numericNodes = [...document.querySelectorAll(".numeric")];
+
+      function clearTimeline() {
+        timers.forEach(window.clearTimeout);
+        timers = [];
+        document.getAnimations().forEach((animation) => animation.cancel());
+      }
+
+      function prepareNumbers() {
+        numericNodes.forEach((node) => {
+          const initialValue = (node.dataset.value || "").includes(":") ? "00:00" : "0";
+          node.reset(initialValue);
+        });
+      }
+
+      function revealNumbers() {
+        numericNodes.forEach((node) => {
+          node.update(node.dataset.value || "0", true);
+        });
+      }
+
+      function replay() {
+        clearTimeline();
+        resultScreen.classList.remove("is-current", "is-ready");
+        preScreen.classList.remove("is-leaving");
+        preScreen.classList.add("is-current");
+        prepareNumbers();
+        later(showResult, PRE_PAGE_HOLD_MS);
+      }
+
+      closeButton.addEventListener("click", replay);
+      prepareNumbers();
+    </script>
+  </body>
+</html>

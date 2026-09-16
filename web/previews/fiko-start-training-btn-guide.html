@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Miko 开始训练按钮引导</title>
+    <style>
+      :root {
+        --phone-width: 393px;
+        --phone-height: 852px;
+        --reveal-duration: 900ms;
+        --reveal-ease: cubic-bezier(0.65, 0, 0.35, 1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        position: relative;
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background: #111;
+        font-family: "STBaoYuan-SC", "Yuanti SC", "PingFang SC", sans-serif;
+      }
+
+      button {
+        padding: 0;
+        border: 0;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      img {
+        display: block;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .phone {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: var(--phone-width);
+        height: var(--phone-height);
+        overflow: hidden;
+        border: 1px solid #d7d7d7;
+        border-radius: 32px;
+        background: #fff;
+        transform: translate(-50%, -50%) scale(var(--phone-scale, 1));
+        transform-origin: 50% 50%;
+      }
+
+      .page-bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .start-button {
+        position: absolute;
+        left: 86.5px;
+        top: 726px;
+        width: 220px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border-radius: 26px;
+        background: #000;
+        translate: 0 0;
+        scale: 1;
+        transform-origin: center;
+        transition: transform 100ms cubic-bezier(0.2, 0, 0.2, 1);
+      }
+
+      .start-button:active {
+        transform: scale(0.96);
+      }
+
+      .play-icon {
+        width: 14.856px;
+        height: 16.748px;
+        object-fit: contain;
+        flex: 0 0 auto;
+      }
+
+      .reveal-label {
+        width: 80px;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        overflow: visible;
+        color: #fff;
+        font-size: 20px;
+        line-height: 28px;
+        font-weight: 700;
+        letter-spacing: 0;
+        white-space: nowrap;
+      }
+
+      .char-slot {
+        position: relative;
+        width: 1em;
+        height: 28px;
+        overflow: visible;
+        flex: 0 0 1em;
+      }
+
+      .char {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+      }
+
+      .start-button.is-floating {
+        animation: button-float var(--reveal-duration) var(--reveal-ease) both;
+      }
+
+      @keyframes button-float {
+        0% {
+          translate: 0 0;
+          scale: 1;
+        }
+        38% {
+          translate: 0 -6px;
+          scale: 1.05;
+        }
+        72% {
+          translate: 0 2px;
+          scale: 1;
+        }
+        100% {
+          translate: 0 0;
+          scale: 1;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .start-button {
+          animation: none !important;
+          translate: 0 0;
+          scale: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" aria-label="开始训练按钮引导动画预览">
+      <img class="page-bg" src="/assets/7459d041e3576928d8b35de914bd888141e76a0b0fc11c31b107fd565a165306.png" alt="" />
+      <button class="start-button" type="button" aria-label="开始训练">
+        <img class="play-icon" src="/assets/eaad99e6451a040b48447163d8e3cc82e84ce9e3de7755151c7611a8678c6c24.png" alt="" />
+        <span class="reveal-label" aria-hidden="true">
+          <span class="char-slot">
+            <span class="char">开</span>
+          </span>
+          <span class="char-slot">
+            <span class="char">始</span>
+          </span>
+          <span class="char-slot">
+            <span class="char">训</span>
+          </span>
+          <span class="char-slot">
+            <span class="char">练</span>
+          </span>
+        </span>
+      </button>
+    </main>
+
+    <script>const embeddedAssetMap={"assets/Polygon 1.png":"/assets/eaad99e6451a040b48447163d8e3cc82e84ce9e3de7755151c7611a8678c6c24.png","assets/bg.png":"/assets/7459d041e3576928d8b35de914bd888141e76a0b0fc11c31b107fd565a165306.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const button = document.querySelector(".start-button");
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const initialHoldMs = 1100;
+      const transitionWindowMs = 1140;
+      const stableHoldMs = 1100;
+      let floatTimer = 0;
+      let cycleTimer = 0;
+      let restartFrame = 0;
+
+      function fitPhone() {
+        const scale = Math.min(1, window.innerWidth / 393, window.innerHeight / 852);
+        document.documentElement.style.setProperty("--phone-scale", scale.toFixed(4));
+      }
+
+      function queueFloat(delay = stableHoldMs) {
+        window.clearTimeout(floatTimer);
+        if (!reducedMotion.matches) floatTimer = window.setTimeout(runFloat, delay);
+      }
+
+      function runFloat() {
+        if (reducedMotion.matches) return;
+        button.classList.add("is-floating");
+        cycleTimer = window.setTimeout(() => {
+          button.classList.remove("is-floating");
+          button.getBoundingClientRect();
+          queueFloat();
+        }, transitionWindowMs);
+      }
+
+      function restartLoop() {
+        window.clearTimeout(floatTimer);
+        window.clearTimeout(cycleTimer);
+        window.cancelAnimationFrame(restartFrame);
+        button.classList.remove("is-floating");
+        button.getBoundingClientRect();
+        if (reducedMotion.matches) return;
+        restartFrame = window.requestAnimationFrame(() => {
+          restartFrame = 0;
+          queueFloat(160);
+        });
+      }
+
+      button.addEventListener("click", restartLoop);
+      reducedMotion.addEventListener("change", restartLoop);
+      window.addEventListener("resize", fitPhone);
+      fitPhone();
+      queueFloat(initialHoldMs);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fiko 设置页彩蛋</title>
+    <style>
+      :root {
+        --phone-width: 393px;
+        --phone-height: 852px;
+        --ink: #050505;
+        --soft: cubic-bezier(0.4, 0, 0.2, 1);
+        --scatter: cubic-bezier(0.22, 0.74, 0.24, 1);
+        --font-rounded: "Yuanti SC", "YouYuan", "Arial Rounded MT Bold", "PingFang SC", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background: #111;
+        color: var(--ink);
+        font-family: var(--font-rounded);
+      }
+
+      button {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        font: inherit;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100vw, var(--phone-width));
+        height: min(100vh, var(--phone-height));
+        aspect-ratio: 393 / 852;
+        overflow: hidden;
+        border-radius: 32px;
+        background: #fff;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+        isolation: isolate;
+      }
+
+      .sticker-wall {
+        position: absolute;
+        z-index: 1;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+      }
+
+      .action-sticker {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: var(--size);
+        height: var(--size);
+        object-fit: contain;
+        opacity: 0;
+        transform: translate3d(-200px, -200px, 0);
+        transform-origin: 50% 50%;
+        filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.05));
+        will-change: transform, opacity;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .ui-layer {
+        position: absolute;
+        z-index: 3;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .status-bar {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 393px;
+        height: 44px;
+        object-fit: cover;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .back-button {
+        position: absolute;
+        left: 16px;
+        top: 57px;
+        width: 40px;
+        height: 40px;
+        border-radius: 15px;
+        cursor: pointer;
+        pointer-events: auto;
+        transform-origin: 50% 50%;
+        transition:
+          transform 90ms var(--soft),
+          filter 90ms ease;
+      }
+
+      .back-button img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        pointer-events: none;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .app-trigger {
+        position: absolute;
+        left: 146.5px;
+        top: 207px;
+        width: 100px;
+        height: 100px;
+        border-radius: 27px;
+        cursor: pointer;
+        pointer-events: auto;
+        transform-origin: 50% 50%;
+        transition:
+          transform 90ms var(--soft),
+          filter 90ms ease;
+      }
+
+      .app-trigger::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: rgba(0, 0, 0, 0.035);
+        opacity: 0;
+        transition: opacity 90ms ease;
+        pointer-events: none;
+      }
+
+      .app-trigger img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        pointer-events: none;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .pressable.is-pressing {
+        transform: translateY(1.5px) scale(0.955);
+        filter: brightness(0.96);
+      }
+
+      .pressable.is-pressing::after {
+        opacity: 1;
+      }
+
+      .pressable.is-releasing {
+        animation: pressRelease 320ms var(--soft) both;
+      }
+
+      .app-trigger.is-celebrating {
+        animation: iconBurstLaunch 620ms var(--soft) both;
+      }
+
+      .settings-card {
+        position: absolute;
+        left: 16px;
+        top: 319px;
+        width: 361px;
+        height: 326px;
+        object-fit: contain;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .footer-copy {
+        position: absolute;
+        left: 47.5px;
+        top: 765px;
+        width: 298px;
+        height: 28px;
+        object-fit: contain;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .home-indicator {
+        position: absolute;
+        left: 126.5px;
+        bottom: 8px;
+        width: 140px;
+        height: 5px;
+        border-radius: 999px;
+        background: #000;
+      }
+
+      @keyframes pressRelease {
+        from {
+          transform: translateY(1.5px) scale(0.955);
+          filter: brightness(0.96);
+        }
+        to {
+          transform: translateY(0) scale(1);
+          filter: brightness(1);
+        }
+      }
+
+      @keyframes iconBurstLaunch {
+        0%,
+        100% {
+          transform: translateY(0) scale(1);
+        }
+        20% {
+          transform: translateY(2px) scale(1.08, 0.86);
+        }
+        46% {
+          transform: translateY(-2px) scale(0.93, 1.09);
+        }
+        72% {
+          transform: translateY(0) scale(1.025, 0.985);
+        }
+      }
+
+      @media (max-width: 420px) {
+        body {
+          background: #fff;
+        }
+
+        .phone {
+          width: 100vw;
+          height: 100vh;
+          border-radius: 0;
+          box-shadow: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 1ms !important;
+          transition-duration: 1ms !important;
+          transition-delay: 0ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" id="phone" aria-label="Fiko 设置页彩蛋交互">
+      <div class="sticker-wall" id="stickerWall" aria-hidden="true"></div>
+
+      <section class="ui-layer" aria-label="设置页">
+        <img class="status-bar" src="/assets/15445b8fb05cd08205210ff9a6c41cdc79d943e36054b48561e089de057a7b33.png" alt="" />
+
+        <button class="back-button pressable" type="button" aria-label="返回">
+          <img src="/assets/11e016b60e975f75c12de1ebe34e6775c472a638d611dc0b03f8ffcea2e1c4d7.png" alt="" />
+        </button>
+
+        <button
+          class="app-trigger pressable"
+          id="appTrigger"
+          type="button"
+          aria-label="打开设置页彩蛋"
+          aria-pressed="false"
+        >
+          <img src="/assets/f011e580d996e4b0fc6a186ee96abfd53814d8911d7d2a25f5b3b16032954403.png" alt="Miko App Icon" />
+        </button>
+
+        <img class="settings-card" src="/assets/e3dab50bbc0dd5d5f4cd5fb51334176d3228e2af8c15f0b65ebcd8bf1748b299.png" alt="设置选项" />
+        <img class="footer-copy" src="/assets/4a19fc720cf280076d67ec6fea0d53029d030739be7fddf03a647030e27d9b7c.png" alt="" />
+        <div class="home-indicator" aria-hidden="true"></div>
+      </section>
+    </main>
+
+    <script>const embeddedAssetMap={"assets/appicon.png":"/assets/f011e580d996e4b0fc6a186ee96abfd53814d8911d7d2a25f5b3b16032954403.png","assets/动作贴纸01.png":"/assets/b3cbeaaa79b3d71cce4d73479a8db09f374f4964a14df1d16db6df1dccc221d3.png","assets/动作贴纸02.png":"/assets/56db941b2a593c36cc3e271e2f6a766f6058a8c6975ac5fd30ca38624cf18106.png","assets/动作贴纸03.png":"/assets/6eaa7f026f35444d534cf8cc0cc2162c5424e7e4d792fca2345d71674a0ba41a.png","assets/动作贴纸04.png":"/assets/01b8a8db61094588cc869eac642f229e35983d434abfe7d36c624e02a24e3873.png","assets/动作贴纸05.png":"/assets/6f2efc83ff6ff15675571a0885438ac9aa6e325606177e94a3afc588bc4bbbb7.png","assets/动作贴纸06.png":"/assets/6ee39c7a8b656e03b5a7cf771e45cea242a465a3a18756074c1b9e96bc34a085.png","assets/动作贴纸07.png":"/assets/58bb0dd6b5e5a0e15062ab0e8674998e5f3d4245773dd4c7d5424d9afd6275f6.png","assets/动作贴纸08.png":"/assets/86e36542538ffdca7f8bcd2f6bec4270cdded224d68519fa3d6708a0efaf03f4.png","assets/动作贴纸09.png":"/assets/6cba4f975a19903e6d07a40e11f6f108034be1910b9874a1c070e1497c74fcc7.png","assets/动作贴纸10.png":"/assets/ade9eaa210648528b239b66e3e418de59dd66fae0f055999cd45b9c8c7470735.png","assets/动作贴纸11.png":"/assets/b0f1b6a0b347756c8ad1a2b5ab11b5e208e20796ba5606bf2f49ef62a975dde2.png","assets/动作贴纸12.png":"/assets/b35531f8a1b663638d64919e83248b359353826b1f7d254977b9ed2578c451c6.png","assets/动作贴纸13.png":"/assets/531dc0b148abe721e4f5e73833b9b6726dfa5c588f6286a9ae70f70889d33cca.png","assets/动作贴纸14.png":"/assets/41096b10827a428091664a660c0a3664dd0c0667b13e9077dca587e52806871f.png","assets/动作贴纸15.png":"/assets/abe79518b415dcd04fb8a55825ce619c1b8df80fcd4f4c73e4478744954c63a2.png","assets/动作贴纸16.png":"/assets/760c758d7bd4099785945aeb79d2c548554b61a9e6c2a425a8d4ac949b8afc2e.png","assets/动作贴纸17.png":"/assets/b5d8db684acc577fcde130a3870bea6358e10fdb03f43f28c495fc6ebd8a1b72.png","assets/动作贴纸18.png":"/assets/c58b51019c0ba39c8de6829587c79bc4892fc163c6714340fc0b19d04c2533f8.png","assets/动作贴纸19.png":"/assets/7c799e714697e3297fa6bf70c609dcc90737f4e7c5594abe541be3bb8952c87c.png","assets/动作贴纸20.png":"/assets/fd531898f72f70bad0f2ddb1725b79faa5fba2bcb0e6313eed5a3ebc7a3771b0.png","assets/动作贴纸21.png":"/assets/46ce78b73990a55f7a39876770827f9b474dbe8d650c83793a762d5e08da62be.png","assets/动作贴纸22.png":"/assets/1e2247e0724a8131455134f70516fca00c88a121d0688b06b4e00a79078e157b.png","assets/动作贴纸23.png":"/assets/b1e97fe372ada4fe345576731e82d6dec882ae86664b44d26acc585d2c03cfad.png","assets/动作贴纸24.png":"/assets/3fe33ecfeb78eea1df2c83d95a42a71c32a59585ffa9c1e9488f42491f1aced8.png","assets/动作贴纸25.png":"/assets/45a027860233b3bd9072d2ce8ceca8dc04c490b4897bbe6a62395117651db6ba.png","assets/动作贴纸26.png":"/assets/ac96f2cd122196f1f69f564b9411ba27b0767ea4f92f2705547248e9a838097b.png","assets/动作贴纸27.png":"/assets/dfa6cb1c4e28e2e103d6c3911784fe201c24f19d2b8f86199de5cdcea0b5496e.png","assets/动作贴纸28.png":"/assets/70fc3ace94e99095e36c5d370f56b7df236b0bbdb96d5d64a29df6954ac4ae60.png","assets/动作贴纸29.png":"/assets/6377ae49cde650cc7cbcab6faf42b9b21af9e579855d9b4672b44452bf013078.png","assets/动作贴纸30.png":"/assets/f4297c34b2452d9ece3f08662b0be06c522768a0e3aedd6aa094953e5cd1d1a2.png","assets/动作贴纸31.png":"/assets/1f53be52fd09d79adf4eb4f052ee9104d09b42107d1a673fdf02ae23b4b618a3.png","assets/动作贴纸32.png":"/assets/4888ddb2261260bbc71bfe281126d9b25da8c31582df3237c8ab62aadde01856.png","assets/动作贴纸33.png":"/assets/6352c86879e1e6f00cb5c736b9860db240060242232e5c8bf1f430ac4b85b376.png","assets/动作贴纸34.png":"/assets/95d3166ac5e8f4dfc300ecfcf177d2df3d9f31a74dec473838fbb97441f63845.png","assets/动作贴纸35.png":"/assets/9a0e2cde9821470f61910aa3868f10ea36656b56e37aab54fb063a2516f182da.png","assets/动作贴纸36.png":"/assets/405e0d20e95035eca08d87702f06a6c3428fc51776d8d40625b52ac1be035f35.png","assets/文字贴图.png":"/assets/4a19fc720cf280076d67ec6fea0d53029d030739be7fddf03a647030e27d9b7c.png","assets/状态栏.png":"/assets/15445b8fb05cd08205210ff9a6c41cdc79d943e36054b48561e089de057a7b33.png","assets/组件贴图.png":"/assets/e3dab50bbc0dd5d5f4cd5fb51334176d3228e2af8c15f0b65ebcd8bf1748b299.png","assets/返回.png":"/assets/11e016b60e975f75c12de1ebe34e6775c472a638d611dc0b03f8ffcea2e1c4d7.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const phone = document.querySelector("#phone");
+      const appTrigger = document.querySelector("#appTrigger");
+      const stickerWall = document.querySelector("#stickerWall");
+      const stickerCount = 36;
+      const stickerElements = [];
+      const burstLayout = {
+        width: 393,
+        height: 852,
+        originX: 196.5,
+        originY: 257,
+        columns: 6,
+        rows: 6,
+      };
+      let stickerAnimations = [];
+
+      function randomBetween(min, max) {
+        return min + Math.random() * (max - min);
+      }
+
+      function shuffle(values) {
+        for (let index = values.length - 1; index > 0; index -= 1) {
+          const target = Math.floor(Math.random() * (index + 1));
+          [values[index], values[target]] = [values[target], values[index]];
+        }
+        return values;
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function buildStickerWall() {
+        const fragment = document.createDocumentFragment();
+
+        for (let index = 0; index < stickerCount; index += 1) {
+          const sticker = document.createElement("img");
+
+          sticker.className = "action-sticker";
+          sticker.alt = "";
+          sticker.src = resolveAsset(`assets/动作贴纸${String(index + 1).padStart(2, "0")}.png`);
+          fragment.appendChild(sticker);
+          stickerElements.push(sticker);
+        }
+
+        stickerWall.appendChild(fragment);
+      }
+
+      function clearStickerAnimations() {
+        stickerAnimations.forEach((animation) => animation.cancel());
+        stickerAnimations = [];
+      }
+
+      function makeTransform(x, y, rotation, scaleX = 1, scaleY = scaleX) {
+        return `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) rotate(${rotation.toFixed(2)}deg) scale(${scaleX}, ${scaleY})`;
+      }
+
+      function createBurstPlans() {
+        const cells = shuffle(Array.from({ length: stickerCount }, (_, index) => index));
+        const releaseOrder = shuffle(Array.from({ length: stickerCount }, (_, index) => index));
+
+        return stickerElements.map((sticker, index) => {
+          const cell = cells[index];
+          const row = Math.floor(cell / burstLayout.columns);
+          const column = cell % burstLayout.columns;
+          const size = randomBetween(46, 104);
+          const targetCenterX = clamp(
+            (column + 0.5) * (burstLayout.width / burstLayout.columns) +
+              randomBetween(-22, 22),
+            size * 0.28,
+            burstLayout.width - size * 0.28
+          );
+          const targetCenterY = clamp(
+            34 + (row + 0.5) * ((burstLayout.height - 50) / burstLayout.rows) +
+              randomBetween(-30, 30),
+            size * 0.28,
+            burstLayout.height - size * 0.28
+          );
+          const startX = burstLayout.originX - size / 2;
+          const startY = burstLayout.originY - size / 2;
+          const targetX = targetCenterX - size / 2;
+          const targetY = targetCenterY - size / 2;
+          const deltaX = targetX - startX;
+          const deltaY = targetY - startY;
+          const distance = Math.hypot(deltaX, deltaY) || 1;
+          const normalX = deltaX / distance;
+          const normalY = deltaY / distance;
+          const perpendicularX = -normalY;
+          const perpendicularY = normalX;
+          const curve = randomBetween(-72, 72);
+          const finalRotation = randomBetween(-24, 24);
+          const startRotation = finalRotation + randomBetween(-150, 150);
+          const midRotation = finalRotation + randomBetween(-58, 58);
+          const overshoot = randomBetween(5, 11);
+          const alpha = randomBetween(0.78, 0.96);
+          sticker.style.setProperty("--size", `${size.toFixed(1)}px`);
+          sticker.style.opacity = "0";
+
+          return {
+            node: sticker,
+            size,
+            alpha,
+            startX,
+            startY,
+            targetX,
+            targetY,
+            finalRotation,
+            startRotation,
+            midRotation,
+            launchX: startX + deltaX * 0.2 + perpendicularX * curve * 0.34,
+            launchY: startY + deltaY * 0.2 + perpendicularY * curve * 0.34,
+            curveX: startX + deltaX * 0.68 + perpendicularX * curve,
+            curveY: startY + deltaY * 0.68 + perpendicularY * curve,
+            nearX: startX + deltaX * 0.92 + perpendicularX * curve * 0.2,
+            nearY: startY + deltaY * 0.92 + perpendicularY * curve * 0.2,
+            overshootX: targetX + normalX * overshoot,
+            overshootY: targetY + normalY * overshoot,
+            duration: Math.round(randomBetween(850, 1250)),
+            delay: Math.round(100 + releaseOrder[index] * 9 + randomBetween(0, 70)),
+          };
+        });
+      }
+
+      function hideStickerWall() {
+        const fades = stickerElements.map((sticker) => {
+          const style = getComputedStyle(sticker);
+          return sticker.animate(
+            [
+              { opacity: style.opacity, transform: style.transform },
+              { opacity: 0, transform: style.transform },
+            ],
+            {
+              duration: 220,
+              easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+              fill: "forwards",
+            }
+          );
+        });
+
+        clearStickerAnimations();
+        stickerAnimations = fades;
+      }
+
+      function startStickerBurst() {
+        clearStickerAnimations();
+        const plans = createBurstPlans();
+
+        stickerAnimations = plans.map((plan) =>
+          plan.node.animate(
+            [
+              {
+                offset: 0,
+                opacity: 0,
+                transform: makeTransform(
+                  plan.startX,
+                  plan.startY,
+                  plan.startRotation,
+                  0.08
+                ),
+                easing: "cubic-bezier(0.12, 0.76, 0.18, 1)",
+              },
+              {
+                offset: 0.1,
+                opacity: plan.alpha,
+                transform: makeTransform(
+                  plan.startX,
+                  plan.startY,
+                  plan.startRotation,
+                  0.22
+                ),
+              },
+              {
+                offset: 0.28,
+                opacity: plan.alpha,
+                transform: makeTransform(
+                  plan.launchX,
+                  plan.launchY,
+                  plan.midRotation,
+                  0.58
+                ),
+              },
+              {
+                offset: 0.68,
+                opacity: plan.alpha,
+                transform: makeTransform(
+                  plan.curveX,
+                  plan.curveY,
+                  plan.finalRotation + randomBetween(-18, 18),
+                  0.94
+                ),
+                easing: "cubic-bezier(0.22, 0.72, 0.24, 1)",
+              },
+              {
+                offset: 0.87,
+                opacity: plan.alpha,
+                transform: makeTransform(
+                  plan.overshootX,
+                  plan.overshootY,
+                  plan.finalRotation,
+                  1.035,
+                  0.975
+                ),
+                easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+              },
+              {
+                offset: 1,
+                opacity: plan.alpha,
+                transform: makeTransform(
+                  plan.targetX,
+                  plan.targetY,
+                  plan.finalRotation,
+                  1
+                ),
+              },
+            ],
+            {
+              duration: plan.duration,
+              delay: plan.delay,
+              fill: "both",
+            }
+          )
+        );
+      }
+
+      function bindPressable(button) {
+        let releasingTimer = 0;
+
+        const press = () => {
+          window.clearTimeout(releasingTimer);
+          button.classList.remove("is-releasing");
+          button.classList.add("is-pressing");
+        };
+
+        const release = () => {
+          if (!button.classList.contains("is-pressing")) return;
+          button.classList.remove("is-pressing");
+          button.classList.add("is-releasing");
+          releasingTimer = window.setTimeout(() => button.classList.remove("is-releasing"), 340);
+        };
+
+        button.addEventListener("pointerdown", press);
+        button.addEventListener("pointerup", release);
+        button.addEventListener("pointercancel", release);
+        button.addEventListener("pointerleave", release);
+      }
+
+      function toggleEasterEgg() {
+        const isOpen = !phone.classList.contains("is-easter");
+
+        if (isOpen) {
+          phone.classList.add("is-easter");
+          startStickerBurst();
+        } else {
+          phone.classList.remove("is-easter");
+          hideStickerWall();
+        }
+
+        appTrigger.setAttribute("aria-pressed", String(isOpen));
+        appTrigger.setAttribute("aria-label", isOpen ? "收起设置页彩蛋" : "打开设置页彩蛋");
+        appTrigger.classList.remove("is-celebrating");
+
+        if (isOpen) {
+          void appTrigger.offsetWidth;
+          appTrigger.classList.add("is-celebrating");
+          window.setTimeout(() => appTrigger.classList.remove("is-celebrating"), 640);
+        }
+      }
+
+      buildStickerWall();
+      document.querySelectorAll(".pressable").forEach(bindPressable);
+      appTrigger.addEventListener("click", toggleEasterEgg);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Miko 连胜页火苗动画</title>
+    <style>
+      * { box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+      body { background: #fff; }
+      .phone {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 393px;
+        height: 852px;
+        overflow: hidden;
+        border-radius: 32px;
+        outline: 1px solid #dedede;
+        background: #fff;
+        transform: translate(-50%, -50%) scale(var(--phone-scale, 1));
+        transform-origin: center;
+      }
+      .page { display: block; width: 393px; height: 852px; user-select: none; -webkit-user-drag: none; }
+      .flame {
+        position: absolute;
+        left: 254px;
+        top: 126px;
+        width: 100px;
+        height: 100px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .flame:focus-visible { outline: 2px solid #287aff; outline-offset: 3px; }
+      .flame img, .flame video { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+      .flame video { opacity: 0; }
+      .flame.has-frame video { opacity: 1; }
+      .flame.has-frame img { visibility: hidden; }
+    </style>
+  </head>
+  <body>
+    <main class="phone" aria-label="连胜页火苗动画预览">
+      <img class="page" src="/assets/5487148921359938a319ac9eb241cdd259b2a68e6fd89c3c30647513a3e89649.png" alt="连胜日历：连胜天数 186 天，补练小鱼干 2/3，下方为六月打卡日历和运动统计" />
+      <button class="flame" type="button" aria-label="暂停火苗动画" title="暂停火苗动画">
+        <img src="/assets/c0e4f358099267802ffc61a5296462499d1bfac8dabcc630cf68b01a937d2ea0.png" alt="" />
+        <video id="flameVideo" src="/assets/caafc73f6bad06f902a13ae1bcadcc83c903ed719a9f082fac8fabe38263244d.webm" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>
+      </button>
+    </main>
+    <script>const embeddedAssetMap={"assets/flame-loop.webm":"/assets/caafc73f6bad06f902a13ae1bcadcc83c903ed719a9f082fac8fabe38263244d.webm","assets/flame-poster.png":"/assets/c0e4f358099267802ffc61a5296462499d1bfac8dabcc630cf68b01a937d2ea0.png","assets/page.png":"/assets/5487148921359938a319ac9eb241cdd259b2a68e6fd89c3c30647513a3e89649.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>
+      const video = document.querySelector("#flameVideo");
+      const flame = document.querySelector(".flame");
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      let userPaused = reducedMotion.matches;
+
+      function fitPhone() {
+        const scale = Math.min(1, window.innerWidth / 393, window.innerHeight / 852);
+        document.documentElement.style.setProperty("--phone-scale", String(scale));
+      }
+
+      function updateControl() {
+        const label = video.paused ? "播放火苗动画" : "暂停火苗动画";
+        flame.setAttribute("aria-label", label);
+        flame.title = label;
+      }
+
+      function syncPlayback() {
+        if (document.hidden || userPaused) {
+          video.pause();
+          updateControl();
+          return;
+        }
+        video.play().catch(updateControl);
+      }
+
+      video.muted = true;
+      video.autoplay = !userPaused;
+      video.addEventListener("playing", () => {
+        flame.classList.add("has-frame");
+        updateControl();
+      });
+      video.addEventListener("pause", updateControl);
+      video.addEventListener("canplay", syncPlayback);
+      video.addEventListener("error", () => {
+        flame.classList.remove("has-frame");
+        updateControl();
+      });
+      flame.addEventListener("click", () => {
+        userPaused = !video.paused;
+        syncPlayback();
+      });
+      reducedMotion.addEventListener("change", () => {
+        userPaused = reducedMotion.matches;
+        video.autoplay = !userPaused;
+        syncPlayback();
+      });
+      document.addEventListener("visibilitychange", syncPlayback);
+      window.addEventListener("pagehide", () => video.pause());
+      window.addEventListener("pageshow", syncPlayback);
+      window.addEventListener("resize", fitPhone);
+      fitPhone();
+      syncPlayback();
+    </script>
+  </body>
+</html>
