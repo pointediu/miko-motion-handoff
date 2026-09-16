@@ -33,7 +33,7 @@
       .streak-number { position: absolute; left: 34px; top: 6px; width: 17px; height: 24px; color: #000; font-size: 16px; font-weight: 700; line-height: 24px; text-align: center; }
       .activity-label { position: absolute; left: 64px; top: 8px; width: 53px; height: 20px; opacity: 0; }
       .label-shine {
-        --label-mask: url("/assets/9eac8ce54b67e5c562c64595c21052213db0d0016a9b835f48d32c60796d77aa.png");
+        --label-mask: url("../assets/9eac8ce54b67e5c562c64595c21052213db0d0016a9b835f48d32c60796d77aa.png");
         position: absolute; left: 64px; top: 8px; width: 53px; height: 20px;
         opacity: 0; pointer-events: none;
         background: linear-gradient(110deg, transparent 42%, #fff 50%, transparent 58%) 100% 0 / 300% 100% no-repeat;
@@ -47,23 +47,23 @@
   <body>
     <main class="phone" data-state="calendar" aria-label="21天活动首页入口引导">
       <section class="screen home" aria-label="首页" aria-hidden="true" inert>
-        <img class="screen-image" src="/assets/6921183573838b05d2f2f81256489fcba4d4f2917bb3a322f864e31b70f0709d.png" alt="Miko 首页，训练计划与本周打卡日历" />
+        <img class="screen-image" src="../assets/6921183573838b05d2f2f81256489fcba4d4f2917bb3a322f864e31b70f0709d.png" alt="Miko 首页，训练计划与本周打卡日历" />
         <div class="entry" aria-label="连胜与活动入口">
           <button class="streak-button" type="button" aria-label="打开连胜日历，连胜27天" title="打开连胜日历">
-            <img class="flame" src="/assets/1838af132c3d89f5a5df5dacc5c6d248a81fc559f0e490ed7ea9e882c44fb514.png" alt="" />
+            <img class="flame" src="../assets/1838af132c3d89f5a5df5dacc5c6d248a81fc559f0e490ed7ea9e882c44fb514.png" alt="" />
             <span class="streak-number" aria-hidden="true">27</span>
           </button>
-          <img class="activity-label" src="/assets/9eac8ce54b67e5c562c64595c21052213db0d0016a9b835f48d32c60796d77aa.png" alt="养人计划" aria-hidden="true" />
+          <img class="activity-label" src="../assets/9eac8ce54b67e5c562c64595c21052213db0d0016a9b835f48d32c60796d77aa.png" alt="养人计划" aria-hidden="true" />
           <span class="label-shine" aria-hidden="true"></span>
         </div>
       </section>
       <section class="screen previous" aria-label="前置连胜日历页">
-        <img class="screen-image" src="/assets/a4e7994fc6e41e44cc89c8dd7de6ab8175b9c1ccbe2385ef9dd8fd25733ee714.png" alt="连胜日历，Miko养人计划活动入口，连胜186天" />
+        <img class="screen-image" src="../assets/a4e7994fc6e41e44cc89c8dd7de6ab8175b9c1ccbe2385ef9dd8fd25733ee714.png" alt="连胜日历，Miko养人计划活动入口，连胜186天" />
         <button class="back" type="button" aria-label="返回首页" title="返回首页"></button>
       </section>
       <div class="sr-only" role="status" aria-live="polite"></div>
     </main>
-    <script>const embeddedAssetMap={"assets/activity-label.png":"/assets/9eac8ce54b67e5c562c64595c21052213db0d0016a9b835f48d32c60796d77aa.png","assets/flame.png":"/assets/1838af132c3d89f5a5df5dacc5c6d248a81fc559f0e490ed7ea9e882c44fb514.png","assets/home.png":"/assets/6921183573838b05d2f2f81256489fcba4d4f2917bb3a322f864e31b70f0709d.png","assets/previous.png":"/assets/a4e7994fc6e41e44cc89c8dd7de6ab8175b9c1ccbe2385ef9dd8fd25733ee714.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>const embeddedAssetMap={"assets/activity-label.png":"../assets/9eac8ce54b67e5c562c64595c21052213db0d0016a9b835f48d32c60796d77aa.png","assets/flame.png":"../assets/1838af132c3d89f5a5df5dacc5c6d248a81fc559f0e490ed7ea9e882c44fb514.png","assets/home.png":"../assets/6921183573838b05d2f2f81256489fcba4d4f2917bb3a322f864e31b70f0709d.png","assets/previous.png":"../assets/a4e7994fc6e41e44cc89c8dd7de6ab8175b9c1ccbe2385ef9dd8fd25733ee714.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
     <script>
       const phone = document.querySelector(".phone");
       const previous = document.querySelector(".previous");

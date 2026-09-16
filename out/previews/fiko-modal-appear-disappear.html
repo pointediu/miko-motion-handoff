@@ -291,7 +291,7 @@
   </head>
   <body>
     <main class="phone" aria-label="弹窗出现与消失动画预览">
-      <img class="page-bg" src="/assets/9437609aa0792ca1f748610de3eeb224b91e8e1f17aef0b2789cf078b8a3864c.png" alt="" />
+      <img class="page-bg" src="../assets/9437609aa0792ca1f748610de3eeb224b91e8e1f17aef0b2789cf078b8a3864c.png" alt="" />
       <button class="close-trigger" id="closeTrigger" type="button" aria-label="关闭编辑面板">
         <span class="sr-only">打开退出确认弹窗</span>
       </button>
@@ -299,14 +299,14 @@
       <section class="modal-layer" id="modalLayer" aria-hidden="true">
         <button class="scrim" id="scrim" type="button" aria-label="关闭弹窗"></button>
         <div class="modal-card" role="dialog" aria-modal="true" aria-label="确认退出吗">
-          <img src="/assets/c4be0cf664792bc7d3cbd7a76b096cfa993087ef5a6cc1bc4d431220d0a6f97d.png" alt="" />
+          <img src="../assets/c4be0cf664792bc7d3cbd7a76b096cfa993087ef5a6cc1bc4d431220d0a6f97d.png" alt="" />
           <button class="modal-hit cancel" data-close-modal type="button" aria-label="取消"></button>
           <button class="modal-hit save" data-close-modal type="button" aria-label="保存并退出"></button>
         </div>
       </section>
     </main>
 
-    <script>const embeddedAssetMap={"assets/bg.png":"/assets/9437609aa0792ca1f748610de3eeb224b91e8e1f17aef0b2789cf078b8a3864c.png","assets/modal.png":"/assets/c4be0cf664792bc7d3cbd7a76b096cfa993087ef5a6cc1bc4d431220d0a6f97d.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>const embeddedAssetMap={"assets/bg.png":"../assets/9437609aa0792ca1f748610de3eeb224b91e8e1f17aef0b2789cf078b8a3864c.png","assets/modal.png":"../assets/c4be0cf664792bc7d3cbd7a76b096cfa993087ef5a6cc1bc4d431220d0a6f97d.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
     <script>
       const modalLayer = document.querySelector("#modalLayer");
       const closeTrigger = document.querySelector("#closeTrigger");

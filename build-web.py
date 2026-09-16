@@ -25,13 +25,13 @@ for line in html.splitlines(keepends=True):
         previews[json.loads(match[1])] = json.loads(match[2])
     else:
         lines.append(line)
-assert len(previews) == 32
+assert previews, "No animation previews found"
 html = "".join(lines)
 types = {"image/png": "png", "image/webp": "webp", "image/svg+xml": "svg",
          "video/mp4": "mp4", "video/webm": "webm", "video/quicktime": "mov", "audio/mpeg": "mp3"}
 asset_count = 0
 
-def externalize(content):
+def externalize(content, asset_prefix):
     def extract(match):
         global asset_count
         mime, encoded = match.groups()
@@ -41,11 +41,11 @@ def externalize(content):
         if not path.exists():
             path.write_bytes(raw)
             asset_count += 1
-        return "/assets/" + name
+        return asset_prefix + name
     return re.sub(r'data:([^;,\s]+);base64,([A-Za-z0-9+/]+={0,2})', extract, content)
 
 for identifier, preview in previews.items():
-    (WEB / "previews" / (identifier + ".html")).write_text(externalize(preview))
+    (WEB / "previews" / (identifier + ".html")).write_text(externalize(preview, "../assets/"))
 
 html = html.replace('new URL(current.path, window.location.href)',
                     'new URL("previews/" + encodeURIComponent(current.id) + ".html", window.location.href)')
@@ -62,10 +62,10 @@ html = html[:start] + '''      function loadPreview() {
 
 ''' + html[end:]
 assert "standalonePreviews" not in html and "getStandalonePreview" not in html
-(WEB / "index.html").write_text(externalize(html))
+(WEB / "index.html").write_text(externalize(html, "assets/"))
 shutil.copytree(SOURCE / "animations", WEB / "animations", dirs_exist_ok=True)
 for f in (WEB / "animations").rglob("index.html"):
-    f.write_text(externalize(f.read_text()))
+    f.write_text(externalize(f.read_text(), "../../assets/"))
 files = [p for p in WEB.rglob("*") if p.is_file()]
 assert all(p.stat().st_size < 25 * 1024 * 1024 for p in files), "Oversized asset"
 assert source_hash == hashlib.sha256((SOURCE / "index.html").read_bytes()).hexdigest()

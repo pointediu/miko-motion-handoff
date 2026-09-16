@@ -68,27 +68,27 @@
   <body>
     <main class="phone" data-phase="home" aria-label="补签动画预览">
       <section id="home" class="home" aria-label="首页">
-        <img class="home-image" src="/assets/0529bdb22278fed21b6ced975b2b25882a108b133098a12d085772cbdbfde400.png" alt="Miko 首页，连胜 27 天，今日训练计划" />
+        <img class="home-image" src="../assets/0529bdb22278fed21b6ced975b2b25882a108b133098a12d085772cbdbfde400.png" alt="Miko 首页，连胜 27 天，今日训练计划" />
         <button id="recordButton" class="record-button" type="button" aria-label="查看补签记录" title="查看补签记录"></button>
       </section>
       <button id="scrim" class="scrim" type="button" tabindex="-1" aria-label="关闭补签结果" hidden></button>
       <section id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" aria-describedby="sheetDescription" tabindex="-1" hidden inert>
-        <img class="sheet-bg" src="/assets/3866284309a4b13fb6b7d7bc02c89c5e1e3e00b1706a1270f9aec10fbd482018.png" alt="" />
-        <img class="illustration" src="/assets/1d329d4823ad7a0c4adc9d7885b39a624266eecedff7160b389cbf8121ea47ce.png" alt="" />
+        <img class="sheet-bg" src="../assets/3866284309a4b13fb6b7d7bc02c89c5e1e3e00b1706a1270f9aec10fbd482018.png" alt="" />
+        <img class="illustration" src="../assets/1d329d4823ad7a0c4adc9d7885b39a624266eecedff7160b389cbf8121ea47ce.png" alt="" />
         <div class="copy">
           <h1 id="sheetTitle">补签成功</h1>
           <p id="sheetDescription">Hi 阿蛋，昨天忘了打卡了吧。Miko使用小鱼干，帮你打了，懒鬼！</p>
         </div>
         <div id="calendarCard" class="calendar" role="group" aria-label="本周打卡记录">
           <div class="week">
-            <div class="day" aria-label="周一，已打卡"><span class="day-label" aria-hidden="true">一</span><span id="mondayMark" class="mark"><img src="/assets/eebce0a3d4eb2edd9b9cce275a3bdeea961c6ccdd41b63c33e5bcd48b47ea0d0.png" alt="" /></span></div>
-            <div class="day" aria-label="周二，已补签"><span class="day-label" aria-hidden="true">二</span><span id="tuesdayMark" class="mark"><img src="/assets/ebda376b07897147d105ca53b2562345e09334836024929cbeb041e3237c94b7.png" alt="" /></span></div>
-            <div class="day" aria-label="周三，已打卡"><span class="day-label" aria-hidden="true">三</span><span id="wednesdayMark" class="mark"><img src="/assets/eebce0a3d4eb2edd9b9cce275a3bdeea961c6ccdd41b63c33e5bcd48b47ea0d0.png" alt="" /></span></div>
+            <div class="day" aria-label="周一，已打卡"><span class="day-label" aria-hidden="true">一</span><span id="mondayMark" class="mark"><img src="../assets/eebce0a3d4eb2edd9b9cce275a3bdeea961c6ccdd41b63c33e5bcd48b47ea0d0.png" alt="" /></span></div>
+            <div class="day" aria-label="周二，已补签"><span class="day-label" aria-hidden="true">二</span><span id="tuesdayMark" class="mark"><img src="../assets/ebda376b07897147d105ca53b2562345e09334836024929cbeb041e3237c94b7.png" alt="" /></span></div>
+            <div class="day" aria-label="周三，已打卡"><span class="day-label" aria-hidden="true">三</span><span id="wednesdayMark" class="mark"><img src="../assets/eebce0a3d4eb2edd9b9cce275a3bdeea961c6ccdd41b63c33e5bcd48b47ea0d0.png" alt="" /></span></div>
             <div id="thursday" class="day" aria-label="周四，待补签">
               <span class="day-label" aria-hidden="true">四</span><span id="thursdayDot" class="dot"></span>
               <span id="fishStamp" class="mark fish-stamp" aria-hidden="true">
-                <img id="stampLight" class="stamp-light" src="/assets/ebda376b07897147d105ca53b2562345e09334836024929cbeb041e3237c94b7.png" alt="" />
-                <img id="stampDark" class="stamp-dark" src="/assets/ebda376b07897147d105ca53b2562345e09334836024929cbeb041e3237c94b7.png" alt="" />
+                <img id="stampLight" class="stamp-light" src="../assets/ebda376b07897147d105ca53b2562345e09334836024929cbeb041e3237c94b7.png" alt="" />
+                <img id="stampDark" class="stamp-dark" src="../assets/ebda376b07897147d105ca53b2562345e09334836024929cbeb041e3237c94b7.png" alt="" />
               </span>
             </div>
             <div class="day today" aria-label="今天，周五，未打卡"><span class="day-label" aria-hidden="true">今</span><span id="fridayMark" class="dot"></span></div>
@@ -101,7 +101,7 @@
       <div id="homeIndicator" class="home-indicator" hidden></div>
       <span id="announcement" class="sr-only" role="status" aria-live="polite"></span>
     </main>
-    <script>const embeddedAssetMap={"assets/cat.png":"/assets/eebce0a3d4eb2edd9b9cce275a3bdeea961c6ccdd41b63c33e5bcd48b47ea0d0.png","assets/fish.png":"/assets/ebda376b07897147d105ca53b2562345e09334836024929cbeb041e3237c94b7.png","assets/home.png":"/assets/0529bdb22278fed21b6ced975b2b25882a108b133098a12d085772cbdbfde400.png","assets/illustration.png":"/assets/1d329d4823ad7a0c4adc9d7885b39a624266eecedff7160b389cbf8121ea47ce.png","assets/sheet.png":"/assets/3866284309a4b13fb6b7d7bc02c89c5e1e3e00b1706a1270f9aec10fbd482018.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
+    <script>const embeddedAssetMap={"assets/cat.png":"../assets/eebce0a3d4eb2edd9b9cce275a3bdeea961c6ccdd41b63c33e5bcd48b47ea0d0.png","assets/fish.png":"../assets/ebda376b07897147d105ca53b2562345e09334836024929cbeb041e3237c94b7.png","assets/home.png":"../assets/0529bdb22278fed21b6ced975b2b25882a108b133098a12d085772cbdbfde400.png","assets/illustration.png":"../assets/1d329d4823ad7a0c4adc9d7885b39a624266eecedff7160b389cbf8121ea47ce.png","assets/sheet.png":"../assets/3866284309a4b13fb6b7d7bc02c89c5e1e3e00b1706a1270f9aec10fbd482018.png"};function resolveAsset(assetPath){return embeddedAssetMap[assetPath]||assetPath;}</script>
     <script>
       const TIMING = { home: 1000, sheet: 520, stamp: 640, dismiss: 360 };
       const SHEET_HIDDEN = "translateY(490px)";
