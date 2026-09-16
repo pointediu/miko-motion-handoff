@@ -1,0 +1,264 @@
+{
+  "id": "fiko-21day-reward-popup-v5",
+  "durationMs": 1500,
+  "figmaNode": "37:28417",
+  "canvas": {
+    "widthPt": 393,
+    "heightPt": 852
+  },
+  "layout": {
+    "card": {
+      "x": 36.5,
+      "y": 219,
+      "width": 321,
+      "height": 415,
+      "radius": 32
+    },
+    "heading": {
+      "x": 76.5,
+      "y": 251,
+      "width": 241,
+      "height": 24
+    },
+    "title": {
+      "x": 76.5,
+      "y": 283,
+      "width": 241,
+      "height": 36
+    },
+    "stage": {
+      "x": 97,
+      "y": 335,
+      "width": 200,
+      "height": 200,
+      "radius": 26.556
+    },
+    "prize": {
+      "x": 107.283203125,
+      "y": 345,
+      "width": 180,
+      "height": 180
+    },
+    "button": {
+      "x": 88,
+      "y": 554,
+      "width": 220,
+      "height": 60,
+      "radius": 26
+    },
+    "close": {
+      "x": 301.5,
+      "y": 235,
+      "width": 40,
+      "height": 40
+    }
+  },
+  "easing": {
+    "name": "easeOutCubic",
+    "formula": "1 - (1 - progress)^3",
+    "swiftUI": "Animation.timingCurve(0.333333, 1, 0.666667, 1, duration: seconds)"
+  },
+  "tracks": {
+    "maskOpacity": [
+      [
+        0,
+        0
+      ],
+      [
+        240,
+        0.5
+      ]
+    ],
+    "cardOpacity": [
+      [
+        0,
+        0
+      ],
+      [
+        160,
+        1
+      ]
+    ],
+    "cardX": [
+      [
+        0,
+        -46
+      ],
+      [
+        480,
+        0
+      ]
+    ],
+    "cardY": [
+      [
+        0,
+        -128
+      ],
+      [
+        480,
+        0
+      ]
+    ],
+    "cardScale": [
+      [
+        0,
+        1.08
+      ],
+      [
+        480,
+        1
+      ]
+    ],
+    "cardRotation": [
+      [
+        0,
+        -11
+      ],
+      [
+        480,
+        0
+      ]
+    ],
+    "adhesion": [
+      [
+        0,
+        0
+      ],
+      [
+        480,
+        0
+      ],
+      [
+        620,
+        0.06
+      ],
+      [
+        1080,
+        0.72
+      ],
+      [
+        1380,
+        1
+      ]
+    ],
+    "curlAngle": [
+      [
+        0,
+        74
+      ],
+      [
+        480,
+        74
+      ],
+      [
+        920,
+        60
+      ],
+      [
+        1180,
+        38
+      ],
+      [
+        1380,
+        0
+      ]
+    ],
+    "shadowOpacity": [
+      [
+        0,
+        0.19
+      ],
+      [
+        480,
+        0.16
+      ],
+      [
+        1020,
+        0.12
+      ],
+      [
+        1380,
+        0
+      ]
+    ],
+    "shadowBlur": [
+      [
+        0,
+        22
+      ],
+      [
+        480,
+        16
+      ],
+      [
+        1080,
+        8
+      ],
+      [
+        1380,
+        0
+      ]
+    ],
+    "shadowY": [
+      [
+        0,
+        22
+      ],
+      [
+        480,
+        14
+      ],
+      [
+        1080,
+        7
+      ],
+      [
+        1380,
+        0
+      ]
+    ]
+  },
+  "confetti": {
+    "count": 0
+  },
+  "interaction": {
+    "autoplay": true,
+    "replay": "交付页「重播 / 刷新」；关闭后点击原活动页礼物入口",
+    "closeDurationMs": 160,
+    "buttonPress": {
+      "downMs": 90,
+      "releaseMs": 200,
+      "scale": 0.97,
+      "translateYPt": 1.5
+    },
+    "viewPrize": "dispatch reward:view-prize; production navigation supplied by host",
+    "buttonReadyMs": 1380
+  },
+  "reducedMotion": {
+    "durationMs": 180,
+    "particles": false,
+    "scale": false,
+    "rotation": false,
+    "translation": false
+  },
+  "haptics": {
+    "recommendedTimeMs": 1380,
+    "type": "light impact, once",
+    "enabledInWebPreview": false
+  },
+  "sourceOfValues": {
+    "layout": "Figma 37:28417",
+    "animation": "V5: entire modal is one flexible sticker; top edge touches first, rolling contact advances down, no independent content motion."
+  },
+  "version": 5,
+  "name": "整张弹窗贴合",
+  "sticker": {
+    "sizePt": 415,
+    "widthPt": 321,
+    "stripCount": 160,
+    "depthXFactor": 0.1,
+    "linearTracks": [
+      "adhesion"
+    ]
+  }
+}

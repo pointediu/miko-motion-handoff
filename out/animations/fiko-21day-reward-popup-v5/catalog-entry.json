@@ -1,0 +1,392 @@
+{
+  "id": "fiko-21day-reward-popup-v5",
+  "title": "领奖弹窗 · V5 整张弹窗贴合",
+  "group": "21天活动",
+  "path": "animations/fiko-21day-reward-popup-v5/index.html",
+  "status": "待确认",
+  "description": "整张领奖弹窗像一张柔软贴纸，从左上方倾斜靠近；上缘先贴住，下缘仍翘起，再从上到下压平，投影随贴合收拢。文字、奖品和按钮随同一张纸弯曲，最终回到原稿布局。",
+  "tags": [
+    "V5",
+    "整张贴纸",
+    "卷曲贴合",
+    "1.5秒"
+  ],
+  "sections": [
+    {
+      "title": "触发与交互",
+      "rows": [
+        [
+          "自动播放",
+          "选择此动效后，素材载入完成时播放一次；完成后停在原稿状态。"
+        ],
+        [
+          "重播",
+          "交付页「重播 / 刷新」；关闭后点活动页顶部礼物入口。"
+        ],
+        [
+          "关闭",
+          "点击右上角关闭或 Esc，160ms 淡出；背景恢复。"
+        ],
+        [
+          "查看奖品",
+          "保留按钮点击反馈，派发 reward:view-prize 回调；奖品详情跳转由业务接入。"
+        ]
+      ]
+    },
+    {
+      "title": "入场时间轴",
+      "rows": [
+        [
+          "0–480ms",
+          "整张弹窗从左上方（−46 / −128pt）、−11°、1.08 倍靠近；上缘落在最终位置。"
+        ],
+        [
+          "480–620ms",
+          "上缘先接触，贴合线从 0 推进到 6%，下缘保持翘起。"
+        ],
+        [
+          "620–1380ms",
+          "贴合线自上而下推进；卷曲角从 74° 收到 0°，悬空投影同步消失。"
+        ],
+        [
+          "1380–1500ms",
+          "停在原稿终态；按钮与关闭入口可操作。"
+        ],
+        [
+          "内容策略",
+          "所有内容印在同一张纸上，随整张弹窗一起形变，不做独立弹跳或彩纸。"
+        ]
+      ]
+    },
+    {
+      "title": "原稿最终布局",
+      "rows": [
+        [
+          "原型节点",
+          "CjLvBzUqSgYA2qFWtGYxOs / 37:28417"
+        ],
+        [
+          "画布",
+          "393 × 852pt"
+        ],
+        [
+          "弹窗",
+          "x 36.5 / y 219 / 321 × 415pt / 圆角 32pt"
+        ],
+        [
+          "贴纸区域",
+          "x 97 / y 335 / 200 × 200pt / 圆角 26.556pt / #F1F7FF"
+        ],
+        [
+          "贴纸图层",
+          "x 107.2832 / y 345 / 180 × 180pt；使用原稿透明切图。"
+        ],
+        [
+          "主按钮",
+          "x 88 / y 554 / 220 × 60pt / 圆角 26pt"
+        ],
+        [
+          "标题与素材",
+          "STBaoYuan-SC Bold：说明 16pt / 行高 24pt，奖品名 28pt / 行高 36pt，居中；文字切图保留 241pt 宽文字框及透明留白，禁止裁切后拉伸。"
+        ]
+      ]
+    },
+    {
+      "title": "SwiftUI 实现",
+      "rows": [
+        [
+          "参数",
+          "RewardPopupV5Parameters.swift：时间秒 / 距离 pt / 角度 °；JSON 时间 ms。"
+        ],
+        [
+          "绘制方式",
+          "先将完整 321 × 415pt 弹窗渲染为纹理，沿高度分成 160 条；按 project / strips 投影绘制。"
+        ],
+        [
+          "固定贴合区",
+          "sourceY ≤ 415 × adhesion 的区域不形变；其余沿圆柱弧卷曲。"
+        ],
+        [
+          "变换锚点",
+          "弹窗上缘中心（160.5, 0）；外层先平移、旋转、缩放，内部绘制条带。"
+        ],
+        [
+          "缓动",
+          "adhesion 分段线性；其余轨道 easeOutCubic。"
+        ],
+        [
+          "终态交互",
+          "1380ms 切回同布局的真实按钮与文本；动画图层不拦截点击。"
+        ],
+        [
+          "减少动态效果",
+          "180ms 淡入完整弹窗，跳过位移、旋转、缩放及卷曲。"
+        ]
+      ]
+    }
+  ],
+  "spec": {
+    "id": "fiko-21day-reward-popup-v5",
+    "durationMs": 1500,
+    "figmaNode": "37:28417",
+    "canvas": {
+      "widthPt": 393,
+      "heightPt": 852
+    },
+    "layout": {
+      "card": {
+        "x": 36.5,
+        "y": 219,
+        "width": 321,
+        "height": 415,
+        "radius": 32
+      },
+      "heading": {
+        "x": 76.5,
+        "y": 251,
+        "width": 241,
+        "height": 24
+      },
+      "title": {
+        "x": 76.5,
+        "y": 283,
+        "width": 241,
+        "height": 36
+      },
+      "stage": {
+        "x": 97,
+        "y": 335,
+        "width": 200,
+        "height": 200,
+        "radius": 26.556
+      },
+      "prize": {
+        "x": 107.283203125,
+        "y": 345,
+        "width": 180,
+        "height": 180
+      },
+      "button": {
+        "x": 88,
+        "y": 554,
+        "width": 220,
+        "height": 60,
+        "radius": 26
+      },
+      "close": {
+        "x": 301.5,
+        "y": 235,
+        "width": 40,
+        "height": 40
+      }
+    },
+    "easing": {
+      "name": "easeOutCubic",
+      "formula": "1 - (1 - progress)^3",
+      "swiftUI": "Animation.timingCurve(0.333333, 1, 0.666667, 1, duration: seconds)"
+    },
+    "tracks": {
+      "maskOpacity": [
+        [
+          0,
+          0
+        ],
+        [
+          240,
+          0.5
+        ]
+      ],
+      "cardOpacity": [
+        [
+          0,
+          0
+        ],
+        [
+          160,
+          1
+        ]
+      ],
+      "cardX": [
+        [
+          0,
+          -46
+        ],
+        [
+          480,
+          0
+        ]
+      ],
+      "cardY": [
+        [
+          0,
+          -128
+        ],
+        [
+          480,
+          0
+        ]
+      ],
+      "cardScale": [
+        [
+          0,
+          1.08
+        ],
+        [
+          480,
+          1
+        ]
+      ],
+      "cardRotation": [
+        [
+          0,
+          -11
+        ],
+        [
+          480,
+          0
+        ]
+      ],
+      "adhesion": [
+        [
+          0,
+          0
+        ],
+        [
+          480,
+          0
+        ],
+        [
+          620,
+          0.06
+        ],
+        [
+          1080,
+          0.72
+        ],
+        [
+          1380,
+          1
+        ]
+      ],
+      "curlAngle": [
+        [
+          0,
+          74
+        ],
+        [
+          480,
+          74
+        ],
+        [
+          920,
+          60
+        ],
+        [
+          1180,
+          38
+        ],
+        [
+          1380,
+          0
+        ]
+      ],
+      "shadowOpacity": [
+        [
+          0,
+          0.19
+        ],
+        [
+          480,
+          0.16
+        ],
+        [
+          1020,
+          0.12
+        ],
+        [
+          1380,
+          0
+        ]
+      ],
+      "shadowBlur": [
+        [
+          0,
+          22
+        ],
+        [
+          480,
+          16
+        ],
+        [
+          1080,
+          8
+        ],
+        [
+          1380,
+          0
+        ]
+      ],
+      "shadowY": [
+        [
+          0,
+          22
+        ],
+        [
+          480,
+          14
+        ],
+        [
+          1080,
+          7
+        ],
+        [
+          1380,
+          0
+        ]
+      ]
+    },
+    "confetti": {
+      "count": 0
+    },
+    "interaction": {
+      "autoplay": true,
+      "replay": "交付页「重播 / 刷新」；关闭后点击原活动页礼物入口",
+      "closeDurationMs": 160,
+      "buttonPress": {
+        "downMs": 90,
+        "releaseMs": 200,
+        "scale": 0.97,
+        "translateYPt": 1.5
+      },
+      "viewPrize": "dispatch reward:view-prize; production navigation supplied by host",
+      "buttonReadyMs": 1380
+    },
+    "reducedMotion": {
+      "durationMs": 180,
+      "particles": false,
+      "scale": false,
+      "rotation": false,
+      "translation": false
+    },
+    "haptics": {
+      "recommendedTimeMs": 1380,
+      "type": "light impact, once",
+      "enabledInWebPreview": false
+    },
+    "sourceOfValues": {
+      "layout": "Figma 37:28417",
+      "animation": "V5: entire modal is one flexible sticker; top edge touches first, rolling contact advances down, no independent content motion."
+    },
+    "version": 5,
+    "name": "整张弹窗贴合",
+    "sticker": {
+      "sizePt": 415,
+      "widthPt": 321,
+      "stripCount": 160,
+      "depthXFactor": 0.1,
+      "linearTracks": [
+        "adhesion"
+      ]
+    }
+  }
+}

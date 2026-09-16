@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>领奖弹窗 · V5 整张弹窗贴合</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#fff}body{display:grid;place-items:center}button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;cursor:pointer;border:0;padding:0;background:transparent}button:focus-visible{outline:2px solid #006dff;outline-offset:3px}[hidden]{display:none!important}.phone-wrap{position:relative;width:calc(393px * var(--scale,1));height:calc(852px * var(--scale,1))}.phone{position:absolute;left:0;top:0;width:393px;height:852px;transform:scale(var(--scale,1));transform-origin:top left;overflow:hidden;border-radius:32px;background:#fff}.art{position:absolute;display:block;pointer-events:none;user-select:none}.mask{position:absolute;inset:0;background:#000;opacity:0}.card{position:absolute;left:36.5px;top:219px;width:321px;height:415px;background:#fff;border-radius:32px;opacity:0;transform-origin:50% 50%}.heading{left:40px;top:32px;width:241px;height:24px}.title{left:40px;top:64px;width:241px;height:36px}.prize-stage{position:absolute;left:60.5px;top:116px;width:200px;height:200px;border-radius:26.556px;background:#f1f7ff;overflow:hidden}.prize{left:10.283203125px;top:10px;width:180px;height:180px;transform-origin:50% 50%}.close{position:absolute;left:265px;top:16px;width:40px;height:40px}.close img,.view-prize img{display:block;width:100%;height:100%;pointer-events:none}.view-prize{position:absolute;left:51.5px;top:335px;width:220px;height:60px;border-radius:26px}.press-surface{display:block;width:100%;height:100%;transition:transform 200ms cubic-bezier(.4,0,.2,1)}button:active .press-surface{transform:translateY(1.5px) scale(.97);transition-duration:90ms}.confetti{position:absolute;inset:0;width:393px;height:852px;pointer-events:none}.gift-hotspot{position:absolute;left:288.5px;top:48px;width:40px;height:40px;border-radius:16px}.gift-hotspot:active{background:#0001}.sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0)}
+</style></head>
+<body><div class="phone-wrap" id="phoneWrap"><main class="phone" id="phone">
+<div id="backdrop" aria-hidden="true">
+<img class="art" src="../assets/2bed9085f0cca3df875142e5893f0e5c0d063315b4f726fa6eb340efaaf3dedf.png" alt="" style="left:0;top:0;width:393px;height:852px">
+<img class="art" src="../assets/475b8ef34dfc543b8dc00dfe27c5ce88d6bd8d86012511d5a15a296a1d9247b4.png" alt="" style="left:0;top:0;width:393px;height:44px">
+<img class="art" src="../assets/2fe44e2a5f069c2724e7f8cd1d8eda92acbd6a0787944ad45e644e5948152b76.png" alt="" style="left:.5px;top:44px;width:393px;height:48px">
+<img class="art" src="../assets/b5a319d1e1ffe9c39d86f86ddc83b948497bc467187c4ab42db498fe0213e3d1.png" alt="" style="left:0;top:136.54443359375px;width:54px;height:38px">
+<img class="art" src="../assets/440bf0de8e1177f3dafa02ec34a98b186361f6191618964b11efb99c81b7304e.png" alt="" style="left:0;top:179.54443359375px;width:393px;height:672.45556640625px">
+</div>
+<button class="gift-hotspot" id="openReward" aria-label="打开领奖弹窗" hidden></button>
+<div class="mask" id="mask" aria-hidden="true"></div>
+<section class="card" id="card" role="dialog" tabindex="-1" style="outline:none" aria-modal="true" aria-labelledby="rewardTitle">
+<h1 class="sr-only" id="rewardTitle">连续打卡已达标，Miko 实物贴纸</h1>
+<img class="art heading" id="heading" src="../assets/6a97f53f17fc14a63532933340f480277f9661909d7b9e44da277bd91dced919.png" alt="">
+<img class="art title" id="title" src="../assets/1a49ed1ecfff5ddf194a373b4fffbcc4faee0651cfa9cd9b57b14bc75b48736c.png" alt="">
+<div class="prize-stage"><img class="art prize" id="prize" src="../assets/9ddbe799ea7428dc11cefd6393c6bea138310b4fd9e20dc3c47436e10c6d0c76.png" alt="Miko 实物贴纸"></div>
+<button class="close" id="closeReward" aria-label="关闭领奖弹窗"><span class="press-surface"><img src="../assets/d9a3e110cb80a96d513f2724d2bd9cf066b31958eb5955c140c594e41781daa8.png" alt=""></span></button>
+<button class="view-prize" id="viewPrize" aria-label="查看奖品"><span class="press-surface"><img src="../assets/b9c14e13bff23d4f5f3e94474aa113d4fb79c395265ed5f6937852ed90ba8ec0.png" alt=""></span></button>
+</section><canvas class="confetti" id="confetti" width="786" height="1704" aria-hidden="true"></canvas>
+</main></div>
+<script>
+(function(root){
+'use strict';
+const spec={"id": "fiko-21day-reward-popup-v5", "durationMs": 1500, "figmaNode": "37:28417", "canvas": {"widthPt": 393, "heightPt": 852}, "layout": {"card": {"x": 36.5, "y": 219, "width": 321, "height": 415, "radius": 32}, "heading": {"x": 76.5, "y": 251, "width": 241, "height": 24}, "title": {"x": 76.5, "y": 283, "width": 241, "height": 36}, "stage": {"x": 97, "y": 335, "width": 200, "height": 200, "radius": 26.556}, "prize": {"x": 107.283203125, "y": 345, "width": 180, "height": 180}, "button": {"x": 88, "y": 554, "width": 220, "height": 60, "radius": 26}, "close": {"x": 301.5, "y": 235, "width": 40, "height": 40}}, "easing": {"name": "easeOutCubic", "formula": "1 - (1 - progress)^3", "swiftUI": "Animation.timingCurve(0.333333, 1, 0.666667, 1, duration: seconds)"}, "tracks": {"maskOpacity": [[0, 0], [240, 0.5]], "cardOpacity": [[0, 0], [160, 1]], "cardX": [[0, -46], [480, 0]], "cardY": [[0, -128], [480, 0]], "cardScale": [[0, 1.08], [480, 1]], "cardRotation": [[0, -11], [480, 0]], "adhesion": [[0, 0], [480, 0], [620, 0.06], [1080, 0.72], [1380, 1]], "curlAngle": [[0, 74], [480, 74], [920, 60], [1180, 38], [1380, 0]], "shadowOpacity": [[0, 0.19], [480, 0.16], [1020, 0.12], [1380, 0]], "shadowBlur": [[0, 22], [480, 16], [1080, 8], [1380, 0]], "shadowY": [[0, 22], [480, 14], [1080, 7], [1380, 0]]}, "confetti": {"count": 0}, "interaction": {"autoplay": true, "replay": "交付页「重播 / 刷新」；关闭后点击原活动页礼物入口", "closeDurationMs": 160, "buttonPress": {"downMs": 90, "releaseMs": 200, "scale": 0.97, "translateYPt": 1.5}, "viewPrize": "dispatch reward:view-prize; production navigation supplied by host", "buttonReadyMs": 1380}, "reducedMotion": {"durationMs": 180, "particles": false, "scale": false, "rotation": false, "translation": false}, "haptics": {"recommendedTimeMs": 1380, "type": "light impact, once", "enabledInWebPreview": false}, "sourceOfValues": {"layout": "Figma 37:28417", "animation": "V5: entire modal is one flexible sticker; top edge touches first, rolling contact advances down, no independent content motion."}, "version": 5, "name": "整张弹窗贴合", "sticker": {"sizePt": 415, "widthPt": 321, "stripCount": 160, "depthXFactor": 0.1, "linearTracks": ["adhesion"]}};
+const clamp=(x,min=0,max=1)=>Math.min(max,Math.max(min,x));
+const ease=p=>1-Math.pow(1-clamp(p),3);
+function sample(track,time,linear=false){
+ if(time<=track[0][0])return track[0][1];
+ for(let i=1;i<track.length;i++){const [end,to]=track[i],[start,from]=track[i-1];if(time<=end){const p=clamp((time-start)/(end-start));return from+(to-from)*(linear?p:ease(p));}}
+ return track.at(-1)[1];
+}
+function pose(time,reduced=false){
+ const t=clamp(Number(time)||0,0,spec.durationMs);
+ const result=Object.fromEntries(Object.entries(spec.tracks).map(([key,track])=>[key,sample(track,reduced?spec.durationMs:t,spec.sticker.linearTracks.includes(key))]));
+ if(reduced){const fade=clamp(t/spec.reducedMotion.durationMs);result.cardOpacity=fade;result.maskOpacity=.5*fade;}
+ return result;
+}
+function project(y,p){
+ const size=spec.sticker.sizePt,front=size*p.adhesion,angle=p.curlAngle*Math.PI/180;
+ if(y<=front||angle<.000001||front>=size)return {x:0,y,lift:0};
+ const radius=(size-front)/angle,theta=(y-front)/radius,lift=radius*(1-Math.cos(theta));
+ return {x:lift*spec.sticker.depthXFactor,y:front+radius*Math.sin(theta),lift};
+}
+function strips(time,reduced=false){
+ const p=pose(time,reduced),step=spec.sticker.sizePt/spec.sticker.stripCount;
+ return Array.from({length:spec.sticker.stripCount},(_,i)=>{
+  const y=i*step,a=project(y,p),b=project(y+step,p);
+  return {sourceY:y,sourceHeight:step,x:(a.x+b.x)/2,y:a.y,height:b.y-a.y,lift:(a.lift+b.lift)/2};
+ });
+}
+function particles(){return [];}
+const api={spec,sample,pose,particles,strips,project,ease};root.RewardPopupMotion=api;
+if(typeof module!=='undefined')module.exports=api;
+})(typeof window!=='undefined'?window:globalThis);
+
+</script>
+<script>
+(function(){
+'use strict';
+const M=window.RewardPopupMotion,$=id=>document.getElementById(id),canvas=$('confetti'),ctx=canvas.getContext('2d'),media=matchMedia('(prefers-reduced-motion: reduce)');
+// Bake the approved modal once; the entire sheet shares a single deformation.
+const sheet=document.createElement('canvas');sheet.width=642;sheet.height=830;
+const sheetContext=sheet.getContext('2d');
+const bent=document.createElement('canvas');bent.width=786;bent.height=900;
+const ink=bent.getContext('2d');
+function preparePaper(){
+ const g=sheetContext;g.setTransform(2,0,0,2,0,0);g.clearRect(0,0,321,415);
+ g.fillStyle='#fff';g.beginPath();g.roundRect(0,0,321,415,32);g.fill();
+ g.fillStyle='#f1f7ff';g.beginPath();g.roundRect(60.5,116,200,200,26.556);g.fill();
+ for(const [id,x,y,width,height] of [['heading',40,32,241,24],['title',40,64,241,36],['prize',70.783203125,126,180,180],['closeReward',265,16,40,40],['viewPrize',51.5,335,220,60]]){
+  const element=$(id);g.drawImage(element.tagName==='IMG'?element:element.querySelector('img'),x,y,width,height);
+ }
+}
+function drawPaper(p,flat){
+ ctx.setTransform(2,0,0,2,0,0);ctx.clearRect(0,0,393,852);
+ if(flat)return;
+ ink.setTransform(2,0,0,2,0,0);ink.clearRect(0,0,393,450);
+ const step=M.spec.sticker.sizePt/M.spec.sticker.stripCount;
+ for(let i=0;i<M.spec.sticker.stripCount;i++){
+  const y=i*step,a=M.project(y,p),b=M.project(y+step,p),h=b.y-a.y;
+  // Adjacent source rows use affine transforms; a tiny overlap prevents seams.
+  ink.drawImage(sheet,0,y*2,642,step*2,(a.x+b.x)/2,a.y,321,h+.07);
+ }
+ ctx.save();ctx.globalAlpha=p.cardOpacity;
+ ctx.translate(197+p.cardX,219+p.cardY);ctx.rotate(p.cardRotation*Math.PI/180);ctx.scale(p.cardScale,p.cardScale);ctx.translate(-160.5,0);
+ ctx.shadowColor=`rgba(25,39,61,${p.shadowOpacity})`;ctx.shadowBlur=p.shadowBlur*2;ctx.shadowOffsetY=p.shadowY*2;
+ ctx.drawImage(bent,0,0,393,450);ctx.restore();
+}
+
+let time=0,last=0,raf=0,phase='closed',paused=false,resumeOnVisible=false,reduced=media.matches,closeAt=0,closingPose=null;
+function fit(){document.documentElement.style.setProperty('--scale',Math.min(innerWidth/393,innerHeight/852).toFixed(5));}
+function render(at){
+ let p=M.pose(at,reduced);if(phase==='closing'){const f=1-Math.min(closeAt/M.spec.interaction.closeDurationMs,1);p={...closingPose,cardOpacity:closingPose.cardOpacity*f,maskOpacity:closingPose.maskOpacity*f};}
+ $('mask').style.opacity=p.maskOpacity;
+ const flat=reduced||p.adhesion>=1;
+ $('card').style.opacity=flat?p.cardOpacity:0;
+ $('card').style.transform='none';
+ $('closeReward').disabled=!flat||phase==='closing';$('viewPrize').disabled=!flat||phase==='closing';
+ drawPaper(p,flat);
+
+}
+function finishClose(){phase='closed';$('card').hidden=true;$('mask').hidden=true;$('openReward').hidden=false;$('openReward').focus();ctx.clearRect(0,0,393,852);}
+function step(now){raf=0;if(paused||document.hidden)return;const delta=last?Math.max(0,now-last):0;last=now;
+ if(phase==='closing'){closeAt+=delta;render(time);if(closeAt>=M.spec.interaction.closeDurationMs){finishClose();return;}}
+ else if(phase==='opening'){time=Math.min(time+delta,reduced?180:1500);render(time);if(time>=(reduced?180:1500)){phase='open';return;}}
+ else return;raf=requestAnimationFrame(step);
+}
+function play(){cancelAnimationFrame(raf);raf=0;last=0;paused=false;if(document.hidden){resumeOnVisible=true;return;}raf=requestAnimationFrame(step);}
+function replay(){cancelAnimationFrame(raf);phase='opening';time=0;closeAt=0;$('card').hidden=false;$('mask').hidden=false;$('openReward').hidden=true;render(0);$('card').focus({preventScroll:true});play();}
+function close(){if(!['opening','open'].includes(phase))return;closingPose=M.pose(time,reduced);phase='closing';closeAt=0;play();}
+$('closeReward').addEventListener('click',close);$('openReward').addEventListener('click',replay);
+$('viewPrize').addEventListener('click',()=>{if(!$('viewPrize').disabled)window.dispatchEvent(new CustomEvent('reward:view-prize',{detail:{prize:'Miko 实物贴纸',source:'37:28417'}}));});
+document.addEventListener('keydown',event=>{if(phase==='closed')return;if(event.key==='Escape'){event.preventDefault();close();}if(event.key==='Tab'){const first=$('closeReward'),last=$('viewPrize');if(last.disabled){event.preventDefault();(first.disabled?$('card'):first).focus();}else if(event.shiftKey&&(document.activeElement===first||document.activeElement===$('card'))){event.preventDefault();last.focus();}else if(!event.shiftKey&&(document.activeElement===last||document.activeElement===$('card'))){event.preventDefault();first.focus();}}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){resumeOnVisible=['opening','closing'].includes(phase)&&!paused;paused=true;cancelAnimationFrame(raf);}else if(resumeOnVisible){resumeOnVisible=false;play();}});
+media.addEventListener('change',event=>{reduced=event.matches;if(phase!=='closed')replay();});window.addEventListener('resize',fit);window.addEventListener('pagehide',()=>{cancelAnimationFrame(raf);paused=true;});
+window.RewardPopupDemo={replay,close,seek(ms){cancelAnimationFrame(raf);paused=true;phase='open';time=Math.max(0,Math.min(1500,Number(ms)||0));$('card').hidden=false;$('mask').hidden=false;$('openReward').hidden=true;render(time);},state:()=>({time,phase,paused,reduced,particles:M.particles(time,reduced).length}),spec:M.spec};
+fit();Promise.allSettled([...document.images].map(img=>img.decode?img.decode():Promise.resolve())).then(()=>{preparePaper();replay();});
+})();
+</script></body></html>

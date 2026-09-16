@@ -38,7 +38,7 @@
 
 - 2026-09-16 用户明确要求部署，访问范围为有链接的人都能查看。复用现有 Sites project_id。
 - `dist/` 继续作为本机离线单文件版本；该目录不进入发布源仓库。
-- `python3 build-web.py` 从当前离线版生成 `out/`，保留全部 32 个动效、导航和参数面板。仅将内嵌预览改成同源 iframe 页面、将 base64 素材提取为去重文件；调试参数仍通过查询参数和 postMessage 同步。
+- `python3 build-web.py` 从当前离线版生成 `out/`，保留全部 33 个动效、导航和参数面板。仅将内嵌预览改成同源 iframe 页面、将 base64 素材提取为去重文件；调试参数仍通过查询参数和 postMessage 同步。
 - `.openai/hosting.json` 的 static.directory 为 `out`。`out/` 是完整、可直接发布且受 Git 管理的静态源文件，不依赖构建工具运行；后续本地修改后先重新生成 out，再提交发布。
 
 ## GitHub Pages 发布
@@ -46,3 +46,11 @@
 - 用户要求创建 `pointediu/miko-motion-handoff` 并配置 push 后自动上线。`.github/workflows/pages.yml` 将 main 分支的 out/ 发布至 GitHub Pages。
 - build-web.py 的资源路径现为相对路径，兼容 Pages 的仓库子目录及原 Sites 根目录。
 - GitHub 是后续主要发布目标；保留 Sites 已发布页面，除非用户要求同步，不自动更新 Sites。
+
+## 领奖弹窗 V5 整张贴纸
+
+- 用户要求整张弹窗像贴纸一样出现；新增 `fiko-21day-reward-popup-v5`，保留 V1–V4。
+- 源文件 `work/reward37-v5/build.py`、`renderer.js`、`parameters.json`；从工作区根目录运行 build.py，再运行项目 build-web.py。
+- 整张弹窗以同一张纹理卷曲：480ms 上缘接触，620–1380ms 贴平；1380ms 切回原稿真实按钮，1500ms 结束。总共 160 条带，无独立内容动画和彩纸。
+- Swift 参数提供同源轨道、pose 与 strips / project；减少动态效果时 180ms 淡入终态。
+- 后续发布到已配置的 GitHub Pages。

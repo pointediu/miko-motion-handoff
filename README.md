@@ -32,6 +32,6 @@ git commit -m "Update motion previews"
 git push origin main
 ```
 
-从 GitHub 克隆的新环境可直接编辑 `out/`，不需要 `dist/`。修改独立预览时，同步首页相应的参数描述；V1–V4 的独立页及参数也保存在 `out/animations/`。
+从 GitHub 克隆的新环境可直接编辑 `out/`，不需要 `dist/`。修改独立预览时，同步首页相应的参数描述；V1–V5 的独立页及参数也保存在 `out/animations/`。
 
 GitHub 发布只更新 GitHub Pages；原 Sites 链接保留上次发布的内容，需单独发布才会同步。
