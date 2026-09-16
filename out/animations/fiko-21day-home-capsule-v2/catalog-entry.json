@@ -1,0 +1,350 @@
+{
+  "id": "fiko-21day-home-capsule-v2",
+  "title": "首页胶囊 · 分体展开",
+  "group": "21天活动",
+  "path": "animations/fiko-21day-home-capsule-v2/index.html",
+  "status": "待确认",
+  "description": "保留左侧 36pt 白色火苗底座，右侧浅蓝标签；胶囊从 60pt 向左展开到 109pt，文字位置按新稿收紧。",
+  "tags": [
+    "109pt",
+    "分体白底",
+    "轻回弹"
+  ],
+  "sections": [
+    {
+      "title": "触发与交互",
+      "rows": [
+        [
+          "首次进入",
+          "未展开态停留 600ms → 展开 → 停留 2.2 秒 → 自动收起；只演示一轮。"
+        ],
+        [
+          "点击胶囊",
+          "随时展开 / 收起；连续点击从当前画面接续，不跳回起点。"
+        ],
+        [
+          "重播",
+          "使用页面上方「重播 / 刷新」；Esc 可收起。"
+        ]
+      ]
+    },
+    {
+      "title": "展开时间轴",
+      "rows": [
+        [
+          "0–100ms",
+          "数字 27 淡出并上移 4pt。"
+        ],
+        [
+          "0–380ms",
+          "右边缘固定，宽度 60→112pt；火苗随左侧白色底座向左移动。"
+        ],
+        [
+          "150–340ms",
+          "原稿「养人计划」图片从右侧 8pt 淡入；左侧底座收为 36 × 36pt。"
+        ],
+        [
+          "380–520ms",
+          "宽度 112→109pt，轻轻回落 3pt；头像和页面始终固定。"
+        ],
+        [
+          "收起 360ms",
+          "标签先退场、宽度收回 60pt；160ms 起数字 27 回来。"
+        ]
+      ]
+    },
+    {
+      "title": "原稿尺寸",
+      "rows": [
+        [
+          "未展开态",
+          "沿用 60 × 36pt 火苗 + 27；右边缘固定 x 332pt。"
+        ],
+        [
+          "展开态",
+          "109 × 36pt，圆角 14pt；文字 x 42 / y 7pt，58 × 22pt。"
+        ],
+        [
+          "底座与描边",
+          "36pt 白色底座，8% 黑色描边。"
+        ],
+        [
+          "原型",
+          "展开态 62:28991；头像保持 x 340 / y 54。"
+        ]
+      ]
+    },
+    {
+      "title": "SwiftUI 实现",
+      "rows": [
+        [
+          "参数文件",
+          "HomeCapsuleV2Parameters.swift；JSON 用 ms，Swift 用秒 / pt。"
+        ],
+        [
+          "锚点",
+          "右侧对齐，宽度动画只推动左边缘；不缩放整张胶囊以避免文字变形。"
+        ],
+        [
+          "轨道",
+          "统一 elapsed 采样；每次点击以当前 pose 作为新起点。"
+        ],
+        [
+          "减少动态效果",
+          "直接切换宽度和位置，仅 120ms 内容交叉淡入；取消回弹。"
+        ],
+        [
+          "说明",
+          "原型没有配置动画轨道；本版时序为新设计。"
+        ],
+        [
+          "skin 轨道",
+          "220ms 切换火苗素材；plateOpacity = 1。"
+        ]
+      ]
+    }
+  ],
+  "spec": {
+    "id": "fiko-21day-home-capsule-v2",
+    "figma": {
+      "collapsed": "61:20694",
+      "expanded": "62:28991",
+      "collapsedCapsule": "61:22770",
+      "expandedCapsule": "62:29016"
+    },
+    "canvas": {
+      "widthPt": 393,
+      "heightPt": 852
+    },
+    "layout": {
+      "topPt": 54,
+      "rightPt": 61,
+      "heightPt": 36,
+      "radiusPt": 14,
+      "collapsedWidthPt": 60,
+      "expandedWidthPt": 109,
+      "expandedPlateWidthPt": 36,
+      "avatarFrame": {
+        "x": 340,
+        "y": 54,
+        "width": 36,
+        "height": 36
+      },
+      "expandedLabelXPt": 42,
+      "expandedPlateVisible": true,
+      "expandedBorder": "rgba(0,0,0,0.08)",
+      "expandedFill": "#F1F7FF",
+      "expandedFlameFill": "#FFFFFF"
+    },
+    "timing": {
+      "initialHoldMs": 600,
+      "expandMs": 520,
+      "expandedHoldMs": 2200,
+      "collapseMs": 360,
+      "demoDurationMs": 3680
+    },
+    "expansion": {
+      "width": [
+        [
+          0,
+          60
+        ],
+        [
+          380,
+          112
+        ],
+        [
+          520,
+          109
+        ]
+      ],
+      "plateWidth": [
+        [
+          0,
+          60
+        ],
+        [
+          300,
+          36
+        ]
+      ],
+      "flameLocalX": [
+        [
+          0,
+          8
+        ],
+        [
+          300,
+          6
+        ]
+      ],
+      "countOpacity": [
+        [
+          0,
+          1
+        ],
+        [
+          100,
+          0
+        ]
+      ],
+      "countY": [
+        [
+          0,
+          0
+        ],
+        [
+          120,
+          -4
+        ]
+      ],
+      "labelOpacity": [
+        [
+          0,
+          0
+        ],
+        [
+          150,
+          0
+        ],
+        [
+          340,
+          1
+        ]
+      ],
+      "labelX": [
+        [
+          0,
+          8
+        ],
+        [
+          130,
+          8
+        ],
+        [
+          340,
+          0
+        ]
+      ],
+      "skin": [
+        [
+          0,
+          0
+        ],
+        [
+          220,
+          1
+        ]
+      ]
+    },
+    "collapse": {
+      "width": [
+        [
+          0,
+          109
+        ],
+        [
+          360,
+          60
+        ]
+      ],
+      "plateWidth": [
+        [
+          0,
+          36
+        ],
+        [
+          300,
+          60
+        ]
+      ],
+      "flameLocalX": [
+        [
+          0,
+          6
+        ],
+        [
+          300,
+          8
+        ]
+      ],
+      "labelOpacity": [
+        [
+          0,
+          1
+        ],
+        [
+          100,
+          0
+        ]
+      ],
+      "labelX": [
+        [
+          0,
+          0
+        ],
+        [
+          120,
+          8
+        ]
+      ],
+      "countOpacity": [
+        [
+          0,
+          0
+        ],
+        [
+          160,
+          0
+        ],
+        [
+          320,
+          1
+        ]
+      ],
+      "countY": [
+        [
+          0,
+          -4
+        ],
+        [
+          140,
+          -4
+        ],
+        [
+          320,
+          0
+        ]
+      ],
+      "skin": [
+        [
+          0,
+          1
+        ],
+        [
+          220,
+          0
+        ]
+      ]
+    },
+    "easing": {
+      "name": "easeOutCubic",
+      "formula": "1-(1-p)^3",
+      "swiftUI": "Animation.timingCurve(1/3, 1, 2/3, 1, duration: seconds)"
+    },
+    "reducedMotion": {
+      "durationMs": 120,
+      "behavior": "Direct geometry change; only count and label crossfade; no translation or overshoot."
+    },
+    "interaction": {
+      "autoplay": "Collapsed 600ms, expand 520ms, hold 2200ms, collapse 360ms; once.",
+      "tap": "Toggle from the current sampled pose; cancel automatic demo; supports interruption.",
+      "escape": "Collapse",
+      "hitHeightPt": 44
+    },
+    "sourceOfValues": {
+      "layout": "Figma source nodes, exact exported artwork",
+      "animation": "New transition with the same timing as original capsule; source artwork and expanded geometry from 62:28991"
+    }
+  }
+}

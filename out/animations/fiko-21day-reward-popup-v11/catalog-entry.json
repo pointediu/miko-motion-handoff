@@ -1,14 +1,14 @@
 {
-  "id": "fiko-21day-reward-popup-v3",
-  "title": "领奖弹窗 · V3 淡入缩放",
+  "id": "fiko-21day-reward-popup-v11",
+  "title": "领奖弹窗 · 手绘闪光",
   "group": "21天活动",
-  "path": "animations/fiko-21day-reward-popup-v3/index.html",
+  "path": "animations/fiko-21day-reward-popup-v11/index.html",
   "status": "待确认",
-  "description": "完整弹窗轻柔淡入并由 94% 放大到 100%；两行文字依次轻移显现，按钮稍后落定。图片只随容器显现，不做独立动效。",
+  "description": "遮罩先淡入，40ms后弹窗开始弹出；接近最大尺寸时白色粗短线迸出，在峰值附近形成漫画强调。按钮在回落开始后淡入轻抬，与弹窗680ms一起停稳；按钮不再额外回弹，线条略提前收尾。",
   "tags": [
-    "V3",
-    "Fade in & Scale",
-    "图片静止"
+    "整图动画",
+    "手绘线条",
+    "1.1秒"
   ],
   "sections": [
     {
@@ -28,7 +28,7 @@
         ],
         [
           "查看奖品",
-          "保留按钮点击反馈，派发 reward:view-prize 回调；奖品详情跳转由业务接入。"
+          "查看奖品按钮独立淡入并轻抬，680ms 启用，派发 reward:view-prize 回调；奖品详情跳转由业务接入。"
         ]
       ]
     },
@@ -36,24 +36,32 @@
       "title": "入场时间轴",
       "rows": [
         [
-          "0–420ms",
-          "遮罩淡入；弹窗透明度 0→1，整体缩放 0.94→1，无回弹。"
+          "0–120ms",
+          "遮罩先渐暗，提前建立层次。"
         ],
         [
-          "100–500ms",
-          "说明先上移 6pt 显现，奖品名错后 80ms、上移 8pt 显现。"
+          "40–280ms",
+          "弹窗快速弹出至1.10倍、Y−24pt。"
         ],
         [
-          "340–680ms",
-          "按钮淡入，上移 10pt，缩放 0.98→1 后停稳。"
+          "210–296ms",
+          "6根粗白线在弹窗接近峰值时迸出，强调同一个发力点。"
         ],
         [
-          "图片",
-          "原图位置、尺寸、角度不单独变化；只随整个弹窗淡入缩放。"
+          "280–680ms",
+          "弹窗只回落一次，平滑回到原位。"
         ],
         [
-          "总时长",
-          "1500ms；680ms 视觉落定，余下时间停留。"
+          "360–680ms",
+          "按钮稍后淡入、上移10pt、缩放0.98→1，与弹窗一起停稳，不另做回弹。"
+        ],
+        [
+          "约290–630ms",
+          "白线向外缩短、变细并消失，略早于主体落定。"
+        ],
+        [
+          "680–1100ms",
+          "完整终态停留。"
         ]
       ]
     },
@@ -94,35 +102,35 @@
       "title": "SwiftUI 实现",
       "rows": [
         [
+          "入场与按钮",
+          "整图280ms达到峰值、680ms停稳；按钮360–680ms独立淡入轻抬，无额外回弹。"
+        ],
+        [
+          "手绘线条",
+          "6条稀疏径向直线，28/36pt交错短线、10pt圆头笔画；起点固定在峰值轮廓外4pt，不跟随回落向内移动。"
+        ],
+        [
+          "时序",
+          "210ms起，3组错开8ms、70ms迸出；各条80ms后开始缩短，630ms全部消失。"
+        ],
+        [
+          "颜色",
+          "白色10pt圆头粗直线，随消散趋近0；无光晕、圆环、矩形描边、彩纸或星星。"
+        ],
+        [
           "参数",
-          "RewardPopupV3Parameters.swift，秒 / pt；页面复制 JSON 使用 ms。"
-        ],
-        [
-          "缓动",
-          "普通轨道使用 easeOutCubic；V4 容器展开使用 easeInOutCubic。"
-        ],
-        [
-          "弹跳物理",
-          "V4：mass 1、stiffness 360、damping 25；统一时钟采样欠阻尼弹簧，520ms 精确归位。"
-        ],
-        [
-          "图片约束",
-          "保持原图与 180 × 180pt 图层尺寸；不添加独立图片动画。"
+          "RewardPopupV11Parameters.swift 与 JSON handDrawn；描线路径见独立页源码。"
         ],
         [
           "减少动态效果",
-          "180ms 淡入完整终态；跳过弹跳、缩放、展开和文字位移。"
-        ],
-        [
-          "生命周期",
-          "复用暂停恢复、重播重置、关闭淡出；正式奖品跳转由业务接入。"
+          "180ms淡入终态，不显示手绘装饰。"
         ]
       ]
     }
   ],
   "spec": {
-    "id": "fiko-21day-reward-popup-v3",
-    "durationMs": 1500,
+    "id": "fiko-21day-reward-popup-v11",
+    "durationMs": 1100,
     "figmaNode": "37:28417",
     "canvas": {
       "widthPt": 393,
@@ -187,7 +195,7 @@
           0
         ],
         [
-          220,
+          120,
           0.5
         ]
       ],
@@ -197,109 +205,125 @@
           0
         ],
         [
-          280,
+          40,
+          0
+        ],
+        [
+          150,
           1
         ]
       ],
-      "cardScale": [
+      "cardX": [
         [
           0,
-          0.94
-        ],
-        [
-          420,
-          1
+          0
         ]
       ],
       "cardY": [
         [
           0,
+          56
+        ],
+        [
+          40,
+          56
+        ],
+        [
+          280,
+          -24
+        ],
+        [
+          680,
           0
         ]
       ],
-      "shellWidth": [
+      "cardScale": [
         [
           0,
-          321
+          0.56
+        ],
+        [
+          40,
+          0.56
+        ],
+        [
+          280,
+          1.1
+        ],
+        [
+          680,
+          1
         ]
       ],
-      "shellHeight": [
+      "cardRotation": [
         [
           0,
-          415
+          0
         ]
       ],
-      "shellRadius": [
-        [
-          0,
-          32
-        ]
-      ],
-      "contentOpacity": [
+      "adhesion": [
         [
           0,
           1
         ]
       ],
-      "toastOpacity": [
+      "curlAngle": [
         [
           0,
           0
         ]
       ],
-      "headingOpacity": [
+      "shadowOpacity": [
         [
           0,
-          0
+          0.18
         ],
         [
-          100,
+          680,
           0
+        ]
+      ],
+      "shadowBlur": [
+        [
+          0,
+          22
         ],
         [
-          340,
+          680,
+          0
+        ]
+      ],
+      "shadowY": [
+        [
+          0,
+          16
+        ],
+        [
+          680,
+          0
+        ]
+      ],
+      "reveal": [
+        [
+          0,
           1
         ]
       ],
-      "headingY": [
+      "lineOpacity": [
         [
           0,
-          6
-        ],
-        [
-          100,
-          6
-        ],
-        [
-          380,
           0
         ]
       ],
-      "titleOpacity": [
+      "glow": [
         [
           0,
           0
-        ],
-        [
-          180,
-          0
-        ],
-        [
-          460,
-          1
         ]
       ],
-      "titleY": [
+      "spark": [
         [
           0,
-          8
-        ],
-        [
-          180,
-          8
-        ],
-        [
-          500,
           0
         ]
       ],
@@ -309,7 +333,7 @@
           0
         ],
         [
-          340,
+          360,
           0
         ],
         [
@@ -323,7 +347,7 @@
           10
         ],
         [
-          340,
+          360,
           10
         ],
         [
@@ -337,31 +361,25 @@
           0.98
         ],
         [
-          340,
+          360,
           0.98
         ],
         [
           680,
           1
         ]
-      ],
-      "closeOpacity": [
-        [
-          0,
-          0
-        ],
-        [
-          260,
-          0
-        ],
-        [
-          460,
-          1
-        ]
       ]
     },
     "confetti": {
-      "count": 0
+      "count": 0,
+      "startMs": 280,
+      "lifetimeMs": 2320,
+      "seed": 37,
+      "colors": [
+        "#A9D1FF",
+        "#F6D998",
+        "#F4C4C8"
+      ]
     },
     "interaction": {
       "autoplay": true,
@@ -374,7 +392,8 @@
         "translateYPt": 1.5
       },
       "viewPrize": "dispatch reward:view-prize; production navigation supplied by host",
-      "buttonReadyMs": 440
+      "buttonReadyMs": 680,
+      "cardSettledMs": 680
     },
     "reducedMotion": {
       "durationMs": 180,
@@ -384,17 +403,61 @@
       "translation": false
     },
     "haptics": {
-      "enabledInWebPreview": false,
-      "recommendation": "optional, supplied by host"
+      "recommendedTimeMs": 280,
+      "type": "light impact, once",
+      "enabledInWebPreview": false
     },
     "sourceOfValues": {
       "layout": "Figma 37:28417",
-      "animation": "Authored V3 fade and scale, staggered text and button; image static within container."
+      "animation": "遮罩先淡入，40ms后弹窗开始弹出；接近最大尺寸时白色粗短线迸出，在峰值附近形成漫画强调。按钮在回落开始后淡入轻抬，与弹窗680ms一起停稳；按钮不再额外回弹，线条略提前收尾。"
     },
-    "version": 3,
-    "name": "淡入缩放",
-    "imagePolicy": "No independent image transform, fade, curl or particles. Original image is fixed in the content group and only revealed by its parent.",
-    "curveByTrack": {},
-    "spring": null
+    "version": 11,
+    "name": "手绘闪光",
+    "imagePolicy": "All modal content is baked once into one immutable 642x830 bitmap at 2x. The primary CTA is excluded from the bitmap and reveals independently during the card return, settling together at 680ms; heading and prize remain baked in.",
+    "sticker": {
+      "sizePt": 415,
+      "widthPt": 321,
+      "stripCount": 160,
+      "depthXFactor": 0.1,
+      "linearTracks": [
+        "adhesion",
+        "reveal"
+      ]
+    },
+    "atmosphere": {
+      "type": "hand-drawn strokes",
+      "border": false,
+      "filledStars": false
+    },
+    "reference": {
+      "url": "https://dribbble.com/shots/27222091-Cartoon-Lightning-Icon-Power-Flash-Burst",
+      "adaptation": "Radial hand-drawn entrance rays around the modal, then outward dissolution; no rings."
+    },
+    "handDrawn": {
+      "startMs": 210,
+      "rayCount": 6,
+      "anglesDeg": [
+        -125,
+        -90,
+        -55,
+        55,
+        90,
+        125
+      ],
+      "staggerMs": 8,
+      "drawMs": 70,
+      "holdMs": 80,
+      "driftPt": 28,
+      "lifeMs": 404,
+      "endMs": 630,
+      "strokeColor": "#FFFFFF",
+      "lineWidthPt": 10,
+      "shadowBlurPt": 0
+    },
+    "returnEasing": {
+      "startMs": 280,
+      "endMs": 680,
+      "formula": "Single monotonic return uses (1-cos(pi*p))/2; no secondary overshoot."
+    }
   }
 }

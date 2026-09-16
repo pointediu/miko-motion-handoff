@@ -5,8 +5,10 @@ import hashlib
 import json
 import re
 import shutil
+import runpy
 
 ROOT = Path(__file__).resolve().parent
+runpy.run_path(str(ROOT / "normalize-catalog.py"))
 SOURCE = ROOT / "dist"
 WEB = ROOT / "out"
 WEB.mkdir(exist_ok=True)

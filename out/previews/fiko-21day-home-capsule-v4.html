@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>首页胶囊 · 保留天数</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:white}body{display:grid;place-items:center}.phone-wrap{position:relative;width:calc(393px * var(--scale,1));height:calc(852px * var(--scale,1))}.phone{position:absolute;width:393px;height:852px;overflow:hidden;border-radius:32px;transform:scale(var(--scale,1));transform-origin:top left;background:#fff}.scene{position:absolute;inset:0;width:393px;height:852px;pointer-events:none;user-select:none}.repair{position:absolute;left:271px;top:53px;width:62px;height:38px;overflow:hidden;pointer-events:none}.repair img{position:absolute;left:-271px;top:-53px;width:393px;height:344px;max-width:none}.capsule-hit{position:absolute;right:61px;top:50px;width:60px;height:44px;padding:0;border:0;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}.capsule{position:absolute;inset:4px 0;width:100%;height:36px;border:1px solid #00000014;border-radius:14px;background:#f1f7ff;overflow:hidden;transform-origin:right center}.plate{position:absolute;left:-1px;top:-1px;height:36px;width:60px;background:#fff;border:1px solid #00000014;border-radius:14px;z-index:2}.flame{position:absolute;left:7px;top:5.03125px;width:24px;height:24px;z-index:4}.count{position:absolute;left:33.5px;top:11.03125px;width:16px;height:12px;z-index:3}.label{position:absolute;left:43px;top:6px;width:58px;height:22px;opacity:0;z-index:1}.capsule img{pointer-events:none;user-select:none}.capsule-hit:focus-visible{outline:2px solid #7ba9ec;outline-offset:3px;border-radius:15px}.capsule-hit:active .capsule{filter:brightness(.97)}
+.capsule{background:#fff;border-color:rgba(0,0,0,.08);isolation:isolate}.plate{display:none}.label{left:62px;top:6px;mix-blend-mode:multiply}.badge{position:absolute;right:2px;top:2px;width:0;height:30px;border-radius:12px;background:rgba(228,239,255,.8);opacity:0}</style></head><body><div class="phone-wrap"><main class="phone" aria-label="Miko 首页胶囊动效预览">
+<img class="scene" src="../assets/1fdc57b8f93450c5c5c87bf2d2b8d1f3df494f3f346e6079213650038a77523a.png" alt="Miko 首页，训练计划与右上角个人头像">
+<div class="repair" aria-hidden="true"><img src="../assets/e1bf852c96373a524b0c8804d2d7242edd86d50ddefcbd579361359f61b9122d.png" alt=""></div>
+<button class="capsule-hit" id="capsuleToggle" aria-label="展开养人计划胶囊" aria-expanded="false"><span class="capsule"><span id="badge" class="badge"></span><img class="label" id="label" src="../assets/a5bf8af9435474f7a1bc046668e1bf666cf869009a5dd42bd95df6fcd1048d2c.png" alt="养人计划"><span class="plate" id="plate"></span><img class="count" id="count" src="../assets/6b871ac6ab8d4ccdf212753eeacabbea90e6a1a33d5e9de4f4e3701d5db36212.png" alt="连续打卡 27 天"><img class="flame" id="flame" src="../assets/a2759cd049746b357d8972d22c5289d7f626ed57a004422449bc10fd8f0a5cf2.png" alt=""></span></button>
+</main></div>
+<script>(function(root){'use strict';
+const spec={"id": "fiko-21day-home-capsule-v4", "figma": {"collapsed": "61:20694", "expanded": "61:18617", "collapsedCapsule": "61:22770", "expandedCapsule": "61:20685"}, "canvas": {"widthPt": 393, "heightPt": 852}, "layout": {"topPt": 54, "rightPt": 61, "heightPt": 36, "radiusPt": 14, "collapsedWidthPt": 60, "expandedWidthPt": 134, "expandedPlateWidthPt": 36, "avatarFrame": {"x": 340, "y": 54, "width": 36, "height": 36}, "expandedPlateVisible": false, "expandedFill": "#FFFFFF", "expandedBorder": "rgba(0,0,0,0.08)", "expandedCountXPt": 30, "expandedLabelFrame": {"x": 63, "y": 7, "width": 58, "height": 22}, "badge": {"right": 3, "top": 3, "width": 79, "height": 30, "radius": 12, "fill": "rgba(228,239,255,0.8)"}}, "timing": {"initialHoldMs": 600, "expandMs": 520, "expandedHoldMs": 2200, "collapseMs": 360, "demoDurationMs": 3680}, "expansion": {"width": [[0, 60], [380, 137], [520, 134]], "plateWidth": [[0, 0]], "flameLocalX": [[0, 8], [380, 6], [520, 6]], "countOpacity": [[0, 1]], "countY": [[0, 0]], "labelOpacity": [[0, 0], [380, 1], [520, 1]], "labelX": [[0, 8], [380, 0], [520, 0]], "countX": [[0, 34], [380, 30], [520, 30]], "badgeOpacity": [[0, 0], [380, 1], [520, 1]], "badgeWidth": [[0, 0], [380, 82.20270270270271], [520, 79]]}, "collapse": {"width": [[0, 134], [360, 60]], "plateWidth": [[0, 0]], "flameLocalX": [[0, 6], [360, 8]], "labelOpacity": [[0, 1], [360, 0]], "labelX": [[0, 0], [360, 8]], "countOpacity": [[0, 1]], "countY": [[0, 0]], "countX": [[0, 30], [360, 34]], "badgeOpacity": [[0, 1], [360, 0]], "badgeWidth": [[0, 79], [360, 0]]}, "easing": {"name": "easeOutCubic", "formula": "1-(1-p)^3", "swiftUI": "Animation.timingCurve(1/3, 1, 2/3, 1, duration: seconds)"}, "reducedMotion": {"durationMs": 120, "behavior": "Direct geometry change; only count and label crossfade; no translation or overshoot."}, "interaction": {"autoplay": "Collapsed 600ms, expand 520ms, hold 2200ms, collapse 360ms; once.", "tap": "Toggle from the current sampled pose; cancel automatic demo; supports interruption.", "escape": "Collapse", "hitHeightPt": 44}, "sourceOfValues": {"layout": "Figma source nodes, exact exported artwork", "animation": "Newly authored transition; Figma motion context returned no animation tracks."}, "labelCompositing": {"web": "mix-blend-mode: multiply", "swiftUI": "Image.blendMode(.multiply)", "scope": "Isolate the capsule compositing group; white source pixels reveal the blue badge."}, "synchronization": {"progress": "(width - 60) / 74", "badgeWidth": "79 * progress", "badgeOpacity": "clamp(progress, 0, 1)", "description": "Both shells share the same start, easing, overshoot and finish, including interrupted reversal."}};
+const clamp=x=>Math.min(1,Math.max(0,x)),out=x=>1-(1-clamp(x))**3;
+const mix=(a,b,p)=>a+(b-a)*p;
+function rest(open){return {width:open?134:60,plateWidth:0,flameX:open?6:8,countOpacity:1,countY:0,countX:open?30:34,badgeOpacity:open?1:0,badgeWidth:open?79:0,labelOpacity:open?1:0,labelX:open?0:8};}
+function sample(from,open,ms,reduced=false){
+ const to=rest(open),p={...from};
+ if(reduced){const f=clamp(ms/spec.reducedMotion.durationMs);return {...to,badgeOpacity:mix(from.badgeOpacity,to.badgeOpacity,f),countOpacity:mix(from.countOpacity,to.countOpacity,f),labelOpacity:mix(from.labelOpacity,to.labelOpacity,f)};}
+ if(open){
+  const peak=134+3*clamp((134-from.width)/74);
+  p.width=ms<380?mix(from.width,peak,out(ms/380)):mix(peak,134,out((ms-380)/140));
+  p.plateWidth=0;p.flameX=mix(from.flameX,6,out(ms/300));
+  p.countX=mix(from.countX,30,out(ms/300));p.badgeOpacity=mix(from.badgeOpacity,1,out((ms-130)/210));p.badgeWidth=mix(from.badgeWidth,79,out((ms-80)/300));
+  p.labelOpacity=mix(from.labelOpacity,1,out((ms-150)/190));p.labelX=mix(from.labelX,0,out((ms-130)/210));
+ }else{
+  p.width=mix(from.width,60,out(ms/360));p.plateWidth=0;p.flameX=mix(from.flameX,8,out(ms/300));
+  p.labelOpacity=mix(from.labelOpacity,0,out(ms/100));p.labelX=mix(from.labelX,8,out(ms/120));
+  p.countX=mix(from.countX,34,out(ms/300));p.badgeOpacity=mix(from.badgeOpacity,0,out(ms/120));p.badgeWidth=mix(from.badgeWidth,0,out(ms/280));
+ }
+ const progress=(p.width-60)/74, visible=clamp(progress);p.badgeWidth=79*progress;p.badgeOpacity=visible;p.labelOpacity=visible;p.labelX=8*(1-visible);p.countX=34-4*visible;p.flameX=8-2*visible;return p;
+}
+const api={spec,rest,sample};root.CapsuleMotion=api;if(typeof module!=='undefined')module.exports=api;
+})(typeof window!=='undefined'?window:globalThis);
+</script>
+<script>
+(()=>{'use strict';
+const M=window.CapsuleMotion,button=document.getElementById('capsuleToggle'),plate=document.getElementById('plate'),flame=document.getElementById('flame'),count=document.getElementById('count'),label=document.getElementById('label'),media=matchMedia('(prefers-reduced-motion: reduce)');
+let pose=M.rest(false),target=false,raf=0,elapsed=0,last=0,transition=null,auto=true,timeline=0,expandedTriggered=false,collapsedTriggered=false;
+function render(){count.style.left=(pose.countX-.5)+'px';document.getElementById('badge').style.width=pose.badgeWidth+'px';document.getElementById('badge').style.opacity=pose.badgeOpacity;button.style.width=pose.width+'px';plate.style.width=pose.plateWidth+'px';flame.style.left=(pose.flameX-1)+'px';count.style.opacity=pose.countOpacity;count.style.transform=`translateY(${pose.countY}px)`;label.style.opacity=pose.labelOpacity;label.style.transform=`translateX(${pose.labelX}px)`;button.setAttribute('aria-expanded',String(target));button.setAttribute('aria-label',target?'收起养人计划胶囊':'展开养人计划胶囊');}
+function begin(open){target=open;transition={from:{...pose},open};elapsed=0;}
+function tick(now){raf=0;if(document.hidden)return;const dt=last?Math.min(64,Math.max(0,now-last)):0;last=now;
+ if(auto){timeline+=dt;if(!expandedTriggered&&timeline>=600){expandedTriggered=true;begin(true);}if(!collapsedTriggered&&timeline>=3320){collapsedTriggered=true;begin(false);}if(timeline>=3680)auto=false;}
+ if(transition){elapsed+=dt;pose=M.sample(transition.from,transition.open,elapsed,media.matches);if(elapsed>=(media.matches?M.spec.reducedMotion.durationMs:(transition.open?520:360))){pose=M.rest(transition.open);transition=null;}render();}
+ if(auto||transition)raf=requestAnimationFrame(tick);
+}
+function play(){cancelAnimationFrame(raf);last=0;if(!document.hidden)raf=requestAnimationFrame(tick);}
+function toggle(){auto=false;begin(!target);play();}
+function replay(){auto=true;timeline=0;expandedTriggered=false;collapsedTriggered=false;transition=null;target=false;pose=M.rest(false);render();play();}
+button.addEventListener('click',toggle);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&target){auto=false;begin(false);play();}});
+document.addEventListener('visibilitychange',()=>{cancelAnimationFrame(raf);raf=0;last=0;if(!document.hidden&&(auto||transition))play();});window.addEventListener('pagehide',()=>cancelAnimationFrame(raf));media.addEventListener('change',()=>{pose=M.rest(target);transition=null;render();});
+function fit(){document.documentElement.style.setProperty('--scale',Math.min(innerWidth/393,innerHeight/852).toFixed(6));}window.addEventListener('resize',fit);fit();render();
+window.CapsuleDemo={replay,state:()=>({target,pose:{...pose},auto,timeline}),spec:M.spec};
+Promise.allSettled([...document.images].map(img=>img.decode())).then(replay);
+})();
+</script></body></html>

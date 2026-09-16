@@ -1,14 +1,14 @@
 {
-  "id": "fiko-21day-reward-popup-v2",
-  "title": "领奖弹窗 · 奖品贴纸贴合",
+  "id": "fiko-21day-reward-popup-v9",
+  "title": "领奖弹窗 · 轻弹星光",
   "group": "21天活动",
-  "path": "animations/fiko-21day-reward-popup-v2/index.html",
+  "path": "animations/fiko-21day-reward-popup-v9/index.html",
   "status": "待确认",
-  "description": "奖品从更远的左上方靠近，上缘先贴住并稍作停顿，再从上往下压平；纸边卷曲与悬空投影更明显，贴合后收拢消失。1.5 秒后回到已确认的原稿布局。",
+  "description": "整张弹窗图片更缓慢地弹出，幅度略增，800ms 轻轻回落；随后周围显现淡蓝色光晕和白色小星星，无矩形描边或礼花。 底部按钮不包含在整图中，320ms 开始独立淡入轻抬并微回弹，800ms 与弹窗同时停稳，随后出现光晕和星星；蓝光与白星略增强。",
   "tags": [
-    "贴纸贴合",
-    "无彩纸",
-    "1.5秒"
+    "整图动画",
+    "轻弹 · 蓝光白星",
+    "2.8秒"
   ],
   "sections": [
     {
@@ -28,7 +28,7 @@
         ],
         [
           "查看奖品",
-          "保留按钮点击反馈，派发 reward:view-prize 回调；奖品详情跳转由业务接入。"
+          "查看奖品按钮独立淡入并轻抬回弹，800ms 启用，派发 reward:view-prize 回调；奖品详情跳转由业务接入。"
         ]
       ]
     },
@@ -36,36 +36,24 @@
       "title": "入场时间轴",
       "rows": [
         [
-          "总时长",
-          "1500ms，播放一次；1320ms 奖品贴平，1400ms 按钮落定。"
+          "0–800ms",
+          "整图缩放 0.56→1.075（440ms）→0.985（650ms）→1（800ms）；Y 48→−9→2→0pt。"
         ],
         [
-          "0–420ms",
-          "沿用已确认版的遮罩、弹窗和文字入场。"
+          "800–1300ms",
+          "图片已落定，淡蓝光晕与白色星星缓慢显现。"
         ],
         [
-          "300–600ms",
-          "贴纸由 −12°、上移 18pt、左移 40pt、1.12 倍逐渐靠近，600ms 上缘落到原稿位置。"
+          "1300–2000ms",
+          "柔和停留，星星轻微明暗变化，无矩形描边。"
         ],
         [
-          "600–720ms",
-          "上缘先接触并稍作停顿，贴合进度仅 0→4%，纸边保持 88° 翘起。"
+          "2000–2800ms",
+          "光晕与星星缓慢淡出，回到原稿终态。"
         ],
         [
-          "720–1320ms",
-          "贴合进度 4%→84%（1160ms）→100%（1320ms）；已贴区域固定，下缘逐步压平。"
-        ],
-        [
-          "1160–1320ms",
-          "下缘卷曲角度 70°→0°，悬空阴影逐渐收拢并消失。"
-        ],
-        [
-          "1080–1400ms",
-          "查看奖品按钮淡入并上移 8pt 落定。"
-        ],
-        [
-          "彩纸",
-          "0 片；仪式感来自贴合、纸边卷曲和收拢的投影。"
+          "320–800ms",
+          "查看奖品按钮透明度0→1，Y16→−2→0pt，缩放0.94→1.025→1；完成后可点击。"
         ]
       ]
     },
@@ -106,43 +94,39 @@
       "title": "SwiftUI 实现",
       "rows": [
         [
-          "时间单位",
-          "JSON 使用 ms；RewardPopupStickerParameters.swift 使用秒。"
-        ],
-        [
-          "缓动",
-          "贴合线分段线性推进：先停留、再压平；其他轨道使用 easeOutCubic。"
-        ],
-        [
-          "奖品绘制",
-          "Canvas 将透明原稿图分成 60 条，按卷曲投影绘制；完全贴平时直接绘制完整原图。"
+          "整张静态图",
+          "完整 321 × 415pt 弹窗先合成为 2x 图片，包含文字与奖品，不含底部查看奖品按钮；按钮保持独立图层。"
         ],
         [
           "参数文件",
-          "同目录提供 RewardPopupStickerParameters.swift 与 StickerApplyArtwork.swift，可直接用于 SwiftUI 的奖品图层。"
+          "RewardPopupV9Parameters.swift；JSON 使用 ms，Swift 使用秒。"
+        ],
+        [
+          "统一采样",
+          "全部轨道共用 elapsed；adhesion 和 reveal 线性，其他轨道 easeOutCubic。"
+        ],
+        [
+          "实现方式",
+          "整张静态图片使用中心锚点 scale + offset + rotation；文字与奖品一起移动；按钮于320–800ms独立淡入、上移16pt、轻微回弹。"
+        ],
+        [
+          "氛围",
+          "两版使用同一套淡蓝径向光晕和 10 颗白色星星，无矩形描边；800ms 后出现，2800ms 归零。"
+        ],
+        [
+          "交互",
+          "弹窗800ms落定，关闭按钮可操作；查看奖品按钮800ms动画完成后启用。"
         ],
         [
           "减少动态效果",
-          "180ms 淡入终态，跳过卷曲、位移、缩放和彩纸。"
-        ],
-        [
-          "触感建议",
-          "1320ms 一次轻触感，网页不触发。"
-        ],
-        [
-          "生命周期",
-          "统一 elapsed 时钟；后台暂停、重播重置、关闭淡出。"
-        ],
-        [
-          "依据",
-          "沿用已确认的 Figma 静态布局；贴纸贴合动作为本次新方案。"
+          "180ms 淡入终态；跳过位移、缩放、卷曲、打印和装饰。"
         ]
       ]
     }
   ],
   "spec": {
-    "id": "fiko-21day-reward-popup-v2",
-    "durationMs": 1500,
+    "id": "fiko-21day-reward-popup-v9",
+    "durationMs": 2800,
     "figmaNode": "37:28417",
     "canvas": {
       "widthPt": 393,
@@ -207,7 +191,7 @@
           0
         ],
         [
-          180,
+          200,
           0.5
         ]
       ],
@@ -217,247 +201,87 @@
           0
         ],
         [
-          200,
+          140,
           1
         ]
       ],
-      "cardScale": [
+      "cardX": [
         [
           0,
-          0.94
-        ],
-        [
-          260,
-          1.018
-        ],
-        [
-          420,
-          1
+          0
         ]
       ],
       "cardY": [
         [
           0,
-          18
+          48
         ],
         [
-          360,
+          440,
+          -9
+        ],
+        [
+          650,
+          2
+        ],
+        [
+          800,
           0
         ]
       ],
-      "headingOpacity": [
+      "cardScale": [
         [
           0,
-          0
+          0.56
         ],
         [
-          120,
-          0
+          440,
+          1.075
         ],
         [
-          320,
+          650,
+          0.985
+        ],
+        [
+          800,
           1
         ]
       ],
-      "titleOpacity": [
+      "cardRotation": [
         [
           0,
-          0
-        ],
-        [
-          180,
-          0
-        ],
-        [
-          400,
-          1
-        ]
-      ],
-      "prizeOpacity": [
-        [
-          0,
-          0
-        ],
-        [
-          300,
-          0
-        ],
-        [
-          450,
-          1
-        ]
-      ],
-      "prizeScale": [
-        [
-          0,
-          1.12
-        ],
-        [
-          360,
-          1.12
-        ],
-        [
-          600,
-          1
-        ]
-      ],
-      "prizeY": [
-        [
-          0,
-          -18
-        ],
-        [
-          360,
-          -18
-        ],
-        [
-          600,
-          0
-        ]
-      ],
-      "prizeRotation": [
-        [
-          0,
-          -12
-        ],
-        [
-          360,
-          -12
-        ],
-        [
-          600,
-          0
-        ]
-      ],
-      "buttonOpacity": [
-        [
-          0,
-          0
-        ],
-        [
-          1080,
-          0
-        ],
-        [
-          1380,
-          1
-        ]
-      ],
-      "buttonY": [
-        [
-          0,
-          8
-        ],
-        [
-          1080,
-          8
-        ],
-        [
-          1400,
-          0
-        ]
-      ],
-      "closeOpacity": [
-        [
-          0,
-          0
-        ],
-        [
-          320,
-          0
-        ],
-        [
-          520,
-          1
-        ]
-      ],
-      "prizeX": [
-        [
-          0,
-          -40
-        ],
-        [
-          360,
-          -40
-        ],
-        [
-          600,
           0
         ]
       ],
       "adhesion": [
         [
           0,
-          0
-        ],
-        [
-          600,
-          0
-        ],
-        [
-          720,
-          0.04
-        ],
-        [
-          1160,
-          0.84
-        ],
-        [
-          1320,
           1
         ]
       ],
       "curlAngle": [
         [
           0,
-          88
-        ],
-        [
-          720,
-          88
-        ],
-        [
-          1160,
-          70
-        ],
-        [
-          1320,
           0
         ]
       ],
       "shadowOpacity": [
         [
           0,
-          0.22
+          0.16
         ],
         [
-          600,
-          0.22
-        ],
-        [
-          1160,
-          0.1
-        ],
-        [
-          1320,
+          800,
           0
         ]
       ],
       "shadowBlur": [
         [
           0,
-          10
+          20
         ],
         [
-          600,
-          10
-        ],
-        [
-          1160,
-          3
-        ],
-        [
-          1320,
+          800,
           0
         ]
       ],
@@ -467,21 +291,127 @@
           14
         ],
         [
-          600,
-          14
-        ],
-        [
-          1160,
-          4
-        ],
-        [
-          1320,
+          800,
           0
+        ]
+      ],
+      "reveal": [
+        [
+          0,
+          1
+        ]
+      ],
+      "lineOpacity": [
+        [
+          0,
+          0
+        ]
+      ],
+      "glow": [
+        [
+          0,
+          0
+        ],
+        [
+          800,
+          0
+        ],
+        [
+          1250,
+          0.75
+        ],
+        [
+          2000,
+          0.75
+        ],
+        [
+          2800,
+          0
+        ]
+      ],
+      "spark": [
+        [
+          0,
+          0
+        ],
+        [
+          800,
+          0
+        ],
+        [
+          1240,
+          0.75
+        ],
+        [
+          2000,
+          0.75
+        ],
+        [
+          2800,
+          0
+        ]
+      ],
+      "buttonOpacity": [
+        [
+          0,
+          0
+        ],
+        [
+          320,
+          0
+        ],
+        [
+          600,
+          1
+        ]
+      ],
+      "buttonY": [
+        [
+          0,
+          16
+        ],
+        [
+          320,
+          16
+        ],
+        [
+          620,
+          -2
+        ],
+        [
+          800,
+          0
+        ]
+      ],
+      "buttonScale": [
+        [
+          0,
+          0.94
+        ],
+        [
+          320,
+          0.94
+        ],
+        [
+          620,
+          1.025
+        ],
+        [
+          800,
+          1
         ]
       ]
     },
     "confetti": {
-      "count": 0
+      "count": 0,
+      "startMs": 280,
+      "lifetimeMs": 2320,
+      "seed": 37,
+      "colors": [
+        "#A9D1FF",
+        "#F6D998",
+        "#F4C4C8"
+      ]
     },
     "interaction": {
       "autoplay": true,
@@ -494,7 +424,8 @@
         "translateYPt": 1.5
       },
       "viewPrize": "dispatch reward:view-prize; production navigation supplied by host",
-      "buttonReadyMs": 1080
+      "buttonReadyMs": 800,
+      "cardSettledMs": 800
     },
     "reducedMotion": {
       "durationMs": 180,
@@ -504,26 +435,42 @@
       "translation": false
     },
     "haptics": {
-      "recommendedTimeMs": 1320,
+      "recommendedTimeMs": 800,
       "type": "light impact, once",
       "enabledInWebPreview": false
     },
     "sourceOfValues": {
       "layout": "Figma 37:28417",
-      "animation": "V2 refined: farther upper-left arrival, stronger paper curl, brief upper-edge contact, progressive adhesion with collapsing shadow."
+      "animation": "整张弹窗图片更缓慢地弹出，幅度略增，800ms 轻轻回落；随后周围显现淡蓝色光晕和白色小星星，无矩形描边或礼花。 底部按钮不包含在整图中，320ms 开始独立淡入轻抬并微回弹，800ms 与弹窗同时停稳，随后出现光晕和星星；蓝光与白星略增强。"
     },
+    "version": 9,
+    "name": "轻弹 · 蓝光白星",
+    "imagePolicy": "All modal content is baked once into one immutable 642x830 bitmap at 2x. The primary CTA is excluded from the bitmap and animates independently after the card settles; heading and prize remain baked in.",
     "sticker": {
-      "direction": "top-to-bottom",
-      "stripCount": 60,
-      "sizePt": 180,
-      "depthXFactor": 0.11,
-      "contactStartMs": 600,
-      "contactEndMs": 1320,
-      "flatMs": 1320,
+      "sizePt": 415,
+      "widthPt": 321,
+      "stripCount": 160,
+      "depthXFactor": 0.1,
       "linearTracks": [
-        "adhesion"
+        "adhesion",
+        "reveal"
+      ]
+    },
+    "atmosphere": {
+      "glowColor": "#A8D0FF",
+      "glowPeakOpacity": 0.75,
+      "gradientAlphaStops": [
+        0.46,
+        0.26,
+        0
       ],
-      "geometry": "For y above contactFront use y. Below it, R=(180-contactFront)/angle; projectedY=front+R*sin((y-front)/R); lift=R*(1-cos((y-front)/R)); x=lift*0.11. Angle is in radians."
+      "starColor": "#FFFFFF",
+      "starCount": 10,
+      "starPeakOpacity": 0.75,
+      "border": false,
+      "startMs": 800,
+      "holdUntilMs": 2000,
+      "endMs": 2800
     }
   }
 }

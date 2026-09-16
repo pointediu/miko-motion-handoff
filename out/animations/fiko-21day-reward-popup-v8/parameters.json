@@ -1,0 +1,383 @@
+{
+  "id": "fiko-21day-reward-popup-v8",
+  "durationMs": 3400,
+  "figmaNode": "37:28417",
+  "canvas": {
+    "widthPt": 393,
+    "heightPt": 852
+  },
+  "layout": {
+    "card": {
+      "x": 36.5,
+      "y": 219,
+      "width": 321,
+      "height": 415,
+      "radius": 32
+    },
+    "heading": {
+      "x": 76.5,
+      "y": 251,
+      "width": 241,
+      "height": 24
+    },
+    "title": {
+      "x": 76.5,
+      "y": 283,
+      "width": 241,
+      "height": 36
+    },
+    "stage": {
+      "x": 97,
+      "y": 335,
+      "width": 200,
+      "height": 200,
+      "radius": 26.556
+    },
+    "prize": {
+      "x": 107.283203125,
+      "y": 345,
+      "width": 180,
+      "height": 180
+    },
+    "button": {
+      "x": 88,
+      "y": 554,
+      "width": 220,
+      "height": 60,
+      "radius": 26
+    },
+    "close": {
+      "x": 301.5,
+      "y": 235,
+      "width": 40,
+      "height": 40
+    }
+  },
+  "easing": {
+    "name": "easeOutCubic",
+    "formula": "1 - (1 - progress)^3",
+    "swiftUI": "Animation.timingCurve(0.333333, 1, 0.666667, 1, duration: seconds)"
+  },
+  "tracks": {
+    "maskOpacity": [
+      [
+        0,
+        0
+      ],
+      [
+        200,
+        0.5
+      ]
+    ],
+    "cardOpacity": [
+      [
+        0,
+        0
+      ],
+      [
+        140,
+        1
+      ]
+    ],
+    "cardX": [
+      [
+        0,
+        -34
+      ],
+      [
+        420,
+        0
+      ]
+    ],
+    "cardY": [
+      [
+        0,
+        -100
+      ],
+      [
+        420,
+        0
+      ]
+    ],
+    "cardScale": [
+      [
+        0,
+        1.06
+      ],
+      [
+        420,
+        1
+      ]
+    ],
+    "cardRotation": [
+      [
+        0,
+        -9
+      ],
+      [
+        420,
+        0
+      ]
+    ],
+    "adhesion": [
+      [
+        0,
+        0
+      ],
+      [
+        420,
+        0
+      ],
+      [
+        600,
+        0.05
+      ],
+      [
+        1050,
+        0.66
+      ],
+      [
+        1280,
+        0.91
+      ],
+      [
+        1400,
+        1
+      ]
+    ],
+    "curlAngle": [
+      [
+        0,
+        72
+      ],
+      [
+        600,
+        72
+      ],
+      [
+        1050,
+        50
+      ],
+      [
+        1400,
+        0
+      ]
+    ],
+    "shadowOpacity": [
+      [
+        0,
+        0.18
+      ],
+      [
+        600,
+        0.15
+      ],
+      [
+        1400,
+        0
+      ]
+    ],
+    "shadowBlur": [
+      [
+        0,
+        22
+      ],
+      [
+        600,
+        16
+      ],
+      [
+        1400,
+        0
+      ]
+    ],
+    "shadowY": [
+      [
+        0,
+        20
+      ],
+      [
+        600,
+        14
+      ],
+      [
+        1400,
+        0
+      ]
+    ],
+    "reveal": [
+      [
+        0,
+        1
+      ]
+    ],
+    "lineOpacity": [
+      [
+        0,
+        0
+      ]
+    ],
+    "glow": [
+      [
+        0,
+        0
+      ],
+      [
+        1400,
+        0
+      ],
+      [
+        1850,
+        0.6
+      ],
+      [
+        2600,
+        0.6
+      ],
+      [
+        3400,
+        0
+      ]
+    ],
+    "spark": [
+      [
+        0,
+        0
+      ],
+      [
+        1400,
+        0
+      ],
+      [
+        1840,
+        0.6
+      ],
+      [
+        2600,
+        0.6
+      ],
+      [
+        3400,
+        0
+      ]
+    ],
+    "buttonOpacity": [
+      [
+        0,
+        0
+      ],
+      [
+        920,
+        0
+      ],
+      [
+        1200,
+        1
+      ]
+    ],
+    "buttonY": [
+      [
+        0,
+        16
+      ],
+      [
+        920,
+        16
+      ],
+      [
+        1220,
+        -2
+      ],
+      [
+        1400,
+        0
+      ]
+    ],
+    "buttonScale": [
+      [
+        0,
+        0.94
+      ],
+      [
+        920,
+        0.94
+      ],
+      [
+        1220,
+        1.025
+      ],
+      [
+        1400,
+        1
+      ]
+    ]
+  },
+  "confetti": {
+    "count": 0,
+    "startMs": 280,
+    "lifetimeMs": 2320,
+    "seed": 37,
+    "colors": [
+      "#A9D1FF",
+      "#F6D998",
+      "#F4C4C8"
+    ]
+  },
+  "interaction": {
+    "autoplay": true,
+    "replay": "交付页「重播 / 刷新」；关闭后点击原活动页礼物入口",
+    "closeDurationMs": 160,
+    "buttonPress": {
+      "downMs": 90,
+      "releaseMs": 200,
+      "scale": 0.97,
+      "translateYPt": 1.5
+    },
+    "viewPrize": "dispatch reward:view-prize; production navigation supplied by host",
+    "buttonReadyMs": 1400,
+    "cardSettledMs": 1400
+  },
+  "reducedMotion": {
+    "durationMs": 180,
+    "particles": false,
+    "scale": false,
+    "rotation": false,
+    "translation": false
+  },
+  "haptics": {
+    "recommendedTimeMs": 1400,
+    "type": "light impact, once",
+    "enabledInWebPreview": false
+  },
+  "sourceOfValues": {
+    "layout": "Figma 37:28417",
+    "animation": "贴纸保持原有贴合动作；按钮在贴平前480ms开始淡入、轻抬回弹，与贴纸同时停稳，然后柔和的蓝光和白星显现、停留、淡出。节奏参考轻弹星光，特效更淡，无描边。"
+  },
+  "version": 8,
+  "name": "贴纸揭晓",
+  "imagePolicy": "Modal artwork excluding the primary CTA is baked once at 2x; CTA independently fades and lifts during the final 480ms of sticker application.",
+  "sticker": {
+    "sizePt": 415,
+    "widthPt": 321,
+    "stripCount": 160,
+    "depthXFactor": 0.1,
+    "linearTracks": [
+      "adhesion",
+      "reveal"
+    ]
+  },
+  "atmosphere": {
+    "glowColor": "#A8D0FF",
+    "gradientAlphaStops": [
+      0.46,
+      0.26,
+      0
+    ],
+    "glowPeakOpacity": 0.6,
+    "starPeakOpacity": 0.6,
+    "startMs": 1400,
+    "holdUntilMs": 2600,
+    "endMs": 3400,
+    "border": false
+  }
+}

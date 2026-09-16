@@ -1,0 +1,378 @@
+{
+  "id": "fiko-21day-home-capsule-v4",
+  "title": "首页胶囊 · 保留天数",
+  "group": "21天活动",
+  "path": "animations/fiko-21day-home-capsule-v4/index.html",
+  "status": "待确认",
+  "description": "白色胶囊向左展开至 134pt，火苗和 27 始终保留，内外层胶囊共用同一进度同步展开、回落并显现养人计划；头像固定。",
+  "tags": [
+    "保留27",
+    "134pt",
+    "内嵌标签"
+  ],
+  "sections": [
+    {
+      "title": "触发与交互",
+      "rows": [
+        [
+          "首次进入",
+          "未展开态停留 600ms → 展开 → 停留 2.2 秒 → 自动收起；只演示一轮。"
+        ],
+        [
+          "点击胶囊",
+          "随时展开 / 收起；连续点击从当前画面接续，不跳回起点。"
+        ],
+        [
+          "重播",
+          "使用页面上方「重播 / 刷新」；Esc 可收起。"
+        ]
+      ]
+    },
+    {
+      "title": "展开与收起",
+      "rows": [
+        [
+          "展开 520ms",
+          "宽度 60→137→134pt，右边缘 x332 固定；数字持续可见，局部 x34→30。"
+        ],
+        [
+          "标签",
+          "内外层0ms同时开始，380ms一起达到峰值，520ms同时落定；内层宽度=79×(外层宽度−60)/74。"
+        ],
+        [
+          "收起 360ms",
+          "内外层按同一进度同步收回，标题同步隐去；火苗与27始终保留。"
+        ]
+      ]
+    },
+    {
+      "title": "原稿尺寸与颜色",
+      "rows": [
+        [
+          "展开态",
+          "61:18617 / 61:20685；134 × 36pt，圆角14，白底、1pt 黑色8%描边。"
+        ],
+        [
+          "内嵌浅蓝底",
+          "x52 / y3，79 × 30pt，圆角12；rgba(228,239,255,0.8)。"
+        ],
+        [
+          "标题",
+          "x63 / y7，58 × 22pt；使用原稿素材。"
+        ]
+      ]
+    },
+    {
+      "title": "SwiftUI 实现",
+      "rows": [
+        [
+          "参数",
+          "HomeCapsuleV4Parameters.swift；时间秒、距离pt，JSON以ms计。"
+        ],
+        [
+          "文字图片",
+          "原图含白底；Web 使用 multiply，SwiftUI Image 使用 .blendMode(.multiply)，与浅蓝底在同一合成组。"
+        ],
+        [
+          "交互",
+          "统一时钟，点击从当前pose接续；数字不消失。"
+        ],
+        [
+          "减少动态效果",
+          "直接切换布局，120ms 淡入标题与浅蓝底。"
+        ]
+      ]
+    }
+  ],
+  "spec": {
+    "id": "fiko-21day-home-capsule-v4",
+    "figma": {
+      "collapsed": "61:20694",
+      "expanded": "61:18617",
+      "collapsedCapsule": "61:22770",
+      "expandedCapsule": "61:20685"
+    },
+    "canvas": {
+      "widthPt": 393,
+      "heightPt": 852
+    },
+    "layout": {
+      "topPt": 54,
+      "rightPt": 61,
+      "heightPt": 36,
+      "radiusPt": 14,
+      "collapsedWidthPt": 60,
+      "expandedWidthPt": 134,
+      "expandedPlateWidthPt": 36,
+      "avatarFrame": {
+        "x": 340,
+        "y": 54,
+        "width": 36,
+        "height": 36
+      },
+      "expandedPlateVisible": false,
+      "expandedFill": "#FFFFFF",
+      "expandedBorder": "rgba(0,0,0,0.08)",
+      "expandedCountXPt": 30,
+      "expandedLabelFrame": {
+        "x": 63,
+        "y": 7,
+        "width": 58,
+        "height": 22
+      },
+      "badge": {
+        "right": 3,
+        "top": 3,
+        "width": 79,
+        "height": 30,
+        "radius": 12,
+        "fill": "rgba(228,239,255,0.8)"
+      }
+    },
+    "timing": {
+      "initialHoldMs": 600,
+      "expandMs": 520,
+      "expandedHoldMs": 2200,
+      "collapseMs": 360,
+      "demoDurationMs": 3680
+    },
+    "expansion": {
+      "width": [
+        [
+          0,
+          60
+        ],
+        [
+          380,
+          137
+        ],
+        [
+          520,
+          134
+        ]
+      ],
+      "plateWidth": [
+        [
+          0,
+          0
+        ]
+      ],
+      "flameLocalX": [
+        [
+          0,
+          8
+        ],
+        [
+          380,
+          6
+        ],
+        [
+          520,
+          6
+        ]
+      ],
+      "countOpacity": [
+        [
+          0,
+          1
+        ]
+      ],
+      "countY": [
+        [
+          0,
+          0
+        ]
+      ],
+      "labelOpacity": [
+        [
+          0,
+          0
+        ],
+        [
+          380,
+          1
+        ],
+        [
+          520,
+          1
+        ]
+      ],
+      "labelX": [
+        [
+          0,
+          8
+        ],
+        [
+          380,
+          0
+        ],
+        [
+          520,
+          0
+        ]
+      ],
+      "countX": [
+        [
+          0,
+          34
+        ],
+        [
+          380,
+          30
+        ],
+        [
+          520,
+          30
+        ]
+      ],
+      "badgeOpacity": [
+        [
+          0,
+          0
+        ],
+        [
+          380,
+          1
+        ],
+        [
+          520,
+          1
+        ]
+      ],
+      "badgeWidth": [
+        [
+          0,
+          0
+        ],
+        [
+          380,
+          82.20270270270271
+        ],
+        [
+          520,
+          79
+        ]
+      ]
+    },
+    "collapse": {
+      "width": [
+        [
+          0,
+          134
+        ],
+        [
+          360,
+          60
+        ]
+      ],
+      "plateWidth": [
+        [
+          0,
+          0
+        ]
+      ],
+      "flameLocalX": [
+        [
+          0,
+          6
+        ],
+        [
+          360,
+          8
+        ]
+      ],
+      "labelOpacity": [
+        [
+          0,
+          1
+        ],
+        [
+          360,
+          0
+        ]
+      ],
+      "labelX": [
+        [
+          0,
+          0
+        ],
+        [
+          360,
+          8
+        ]
+      ],
+      "countOpacity": [
+        [
+          0,
+          1
+        ]
+      ],
+      "countY": [
+        [
+          0,
+          0
+        ]
+      ],
+      "countX": [
+        [
+          0,
+          30
+        ],
+        [
+          360,
+          34
+        ]
+      ],
+      "badgeOpacity": [
+        [
+          0,
+          1
+        ],
+        [
+          360,
+          0
+        ]
+      ],
+      "badgeWidth": [
+        [
+          0,
+          79
+        ],
+        [
+          360,
+          0
+        ]
+      ]
+    },
+    "easing": {
+      "name": "easeOutCubic",
+      "formula": "1-(1-p)^3",
+      "swiftUI": "Animation.timingCurve(1/3, 1, 2/3, 1, duration: seconds)"
+    },
+    "reducedMotion": {
+      "durationMs": 120,
+      "behavior": "Direct geometry change; only count and label crossfade; no translation or overshoot."
+    },
+    "interaction": {
+      "autoplay": "Collapsed 600ms, expand 520ms, hold 2200ms, collapse 360ms; once.",
+      "tap": "Toggle from the current sampled pose; cancel automatic demo; supports interruption.",
+      "escape": "Collapse",
+      "hitHeightPt": 44
+    },
+    "sourceOfValues": {
+      "layout": "Figma source nodes, exact exported artwork",
+      "animation": "Newly authored transition; Figma motion context returned no animation tracks."
+    },
+    "labelCompositing": {
+      "web": "mix-blend-mode: multiply",
+      "swiftUI": "Image.blendMode(.multiply)",
+      "scope": "Isolate the capsule compositing group; white source pixels reveal the blue badge."
+    },
+    "synchronization": {
+      "progress": "(width - 60) / 74",
+      "badgeWidth": "79 * progress",
+      "badgeOpacity": "clamp(progress, 0, 1)",
+      "description": "Both shells share the same start, easing, overshoot and finish, including interrupted reversal."
+    }
+  }
+}

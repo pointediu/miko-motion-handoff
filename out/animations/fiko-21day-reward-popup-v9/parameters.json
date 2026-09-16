@@ -1,6 +1,6 @@
 {
-  "id": "fiko-21day-reward-popup-v3",
-  "durationMs": 1500,
+  "id": "fiko-21day-reward-popup-v9",
+  "durationMs": 2800,
   "figmaNode": "37:28417",
   "canvas": {
     "widthPt": 393,
@@ -65,7 +65,7 @@
         0
       ],
       [
-        220,
+        200,
         0.5
       ]
     ],
@@ -75,109 +75,153 @@
         0
       ],
       [
-        280,
+        140,
         1
       ]
     ],
-    "cardScale": [
+    "cardX": [
       [
         0,
-        0.94
-      ],
-      [
-        420,
-        1
+        0
       ]
     ],
     "cardY": [
       [
         0,
+        48
+      ],
+      [
+        440,
+        -9
+      ],
+      [
+        650,
+        2
+      ],
+      [
+        800,
         0
       ]
     ],
-    "shellWidth": [
+    "cardScale": [
       [
         0,
-        321
+        0.56
+      ],
+      [
+        440,
+        1.075
+      ],
+      [
+        650,
+        0.985
+      ],
+      [
+        800,
+        1
       ]
     ],
-    "shellHeight": [
+    "cardRotation": [
       [
         0,
-        415
+        0
       ]
     ],
-    "shellRadius": [
-      [
-        0,
-        32
-      ]
-    ],
-    "contentOpacity": [
+    "adhesion": [
       [
         0,
         1
       ]
     ],
-    "toastOpacity": [
+    "curlAngle": [
       [
         0,
         0
       ]
     ],
-    "headingOpacity": [
+    "shadowOpacity": [
       [
         0,
-        0
+        0.16
       ],
       [
-        100,
+        800,
         0
+      ]
+    ],
+    "shadowBlur": [
+      [
+        0,
+        20
       ],
       [
-        340,
+        800,
+        0
+      ]
+    ],
+    "shadowY": [
+      [
+        0,
+        14
+      ],
+      [
+        800,
+        0
+      ]
+    ],
+    "reveal": [
+      [
+        0,
         1
       ]
     ],
-    "headingY": [
+    "lineOpacity": [
       [
         0,
-        6
-      ],
-      [
-        100,
-        6
-      ],
-      [
-        380,
         0
       ]
     ],
-    "titleOpacity": [
+    "glow": [
       [
         0,
         0
       ],
       [
-        180,
+        800,
         0
       ],
       [
-        460,
-        1
+        1250,
+        0.75
+      ],
+      [
+        2000,
+        0.75
+      ],
+      [
+        2800,
+        0
       ]
     ],
-    "titleY": [
+    "spark": [
       [
         0,
-        8
+        0
       ],
       [
-        180,
-        8
+        800,
+        0
       ],
       [
-        500,
+        1240,
+        0.75
+      ],
+      [
+        2000,
+        0.75
+      ],
+      [
+        2800,
         0
       ]
     ],
@@ -187,59 +231,61 @@
         0
       ],
       [
-        340,
+        320,
         0
       ],
       [
-        620,
+        600,
         1
       ]
     ],
     "buttonY": [
       [
         0,
-        10
+        16
       ],
       [
-        340,
-        10
+        320,
+        16
       ],
       [
-        680,
+        620,
+        -2
+      ],
+      [
+        800,
         0
       ]
     ],
     "buttonScale": [
       [
         0,
-        0.98
+        0.94
       ],
       [
-        340,
-        0.98
+        320,
+        0.94
       ],
       [
-        680,
-        1
-      ]
-    ],
-    "closeOpacity": [
-      [
-        0,
-        0
+        620,
+        1.025
       ],
       [
-        260,
-        0
-      ],
-      [
-        460,
+        800,
         1
       ]
     ]
   },
   "confetti": {
-    "count": 0
+    "count": 0,
+    "startMs": 280,
+    "lifetimeMs": 2320,
+    "seed": 37,
+    "colors": [
+      "#A9D1FF",
+      "#F6D998",
+      "#F4C4C8"
+    ]
   },
   "interaction": {
     "autoplay": true,
@@ -252,7 +298,8 @@
       "translateYPt": 1.5
     },
     "viewPrize": "dispatch reward:view-prize; production navigation supplied by host",
-    "buttonReadyMs": 440
+    "buttonReadyMs": 800,
+    "cardSettledMs": 800
   },
   "reducedMotion": {
     "durationMs": 180,
@@ -262,16 +309,41 @@
     "translation": false
   },
   "haptics": {
-    "enabledInWebPreview": false,
-    "recommendation": "optional, supplied by host"
+    "recommendedTimeMs": 800,
+    "type": "light impact, once",
+    "enabledInWebPreview": false
   },
   "sourceOfValues": {
     "layout": "Figma 37:28417",
-    "animation": "Authored V3 fade and scale, staggered text and button; image static within container."
+    "animation": "整张弹窗图片更缓慢地弹出，幅度略增，800ms 轻轻回落；随后周围显现淡蓝色光晕和白色小星星，无矩形描边或礼花。 底部按钮不包含在整图中，320ms 开始独立淡入轻抬并微回弹，800ms 与弹窗同时停稳，随后出现光晕和星星；蓝光与白星略增强。"
   },
-  "version": 3,
-  "name": "淡入缩放",
-  "imagePolicy": "No independent image transform, fade, curl or particles. Original image is fixed in the content group and only revealed by its parent.",
-  "curveByTrack": {},
-  "spring": null
+  "version": 9,
+  "name": "轻弹 · 蓝光白星",
+  "imagePolicy": "All modal content is baked once into one immutable 642x830 bitmap at 2x. The primary CTA is excluded from the bitmap and animates independently after the card settles; heading and prize remain baked in.",
+  "sticker": {
+    "sizePt": 415,
+    "widthPt": 321,
+    "stripCount": 160,
+    "depthXFactor": 0.1,
+    "linearTracks": [
+      "adhesion",
+      "reveal"
+    ]
+  },
+  "atmosphere": {
+    "glowColor": "#A8D0FF",
+    "glowPeakOpacity": 0.75,
+    "gradientAlphaStops": [
+      0.46,
+      0.26,
+      0
+    ],
+    "starColor": "#FFFFFF",
+    "starCount": 10,
+    "starPeakOpacity": 0.75,
+    "border": false,
+    "startMs": 800,
+    "holdUntilMs": 2000,
+    "endMs": 2800
+  }
 }

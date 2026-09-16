@@ -1,12 +1,11 @@
 {
   "id": "fiko-21day-reward-popup-v4",
-  "title": "领奖弹窗 · V4 弹跳展开",
+  "title": "领奖弹窗 · 短条弹跳展开",
   "group": "21天活动",
   "path": "animations/fiko-21day-reward-popup-v4/index.html",
   "status": "待确认",
   "description": "较短的白色圆角矩形弹跳入场，清晰展示「连续打卡已达标」并停留片刻；原文案随展开移到弹窗顶部，最后按钮轻抬并小幅回落。图片固定在内容区。",
   "tags": [
-    "V4",
     "Toast 弹跳",
     "展开弹窗",
     "图片静止"

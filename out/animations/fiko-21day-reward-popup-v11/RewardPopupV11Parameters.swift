@@ -1,12 +1,12 @@
 import SwiftUI
 
-/// V5 整张弹窗贴合。所有时间以秒计、距离以 pt 计，角度以度计。
-enum RewardPopupV5Parameters {
-    static let duration = 1.5
+/// V11 手绘闪光。所有时间以秒计、距离以 pt 计，角度以度计。
+enum RewardPopupV11Parameters {
+    static let duration = 1.1
     static let reducedMotionDuration = 0.18
     static let closeDuration = 0.16
-    static let buttonReadyTime = 1.38
-    static let recommendedHapticTime = 1.38
+    static let buttonReadyTime = 0.68
+    static let recommendedHapticTime = 0.28
     static let size = 415.0
     static let width = 321.0
     static let stripCount = 160
@@ -15,17 +15,24 @@ enum RewardPopupV5Parameters {
     static let particleCount = 0
     struct Keyframe { let time: Double; let value: Double }
     static let tracks: [String: [Keyframe]] = [
-        "maskOpacity": [.init(time: 0, value: 0), .init(time: 0.24, value: 0.5)],
-        "cardOpacity": [.init(time: 0, value: 0), .init(time: 0.16, value: 1)],
-        "cardX": [.init(time: 0, value: -46), .init(time: 0.48, value: 0)],
-        "cardY": [.init(time: 0, value: -128), .init(time: 0.48, value: 0)],
-        "cardScale": [.init(time: 0, value: 1.08), .init(time: 0.48, value: 1)],
-        "cardRotation": [.init(time: 0, value: -11), .init(time: 0.48, value: 0)],
-        "adhesion": [.init(time: 0, value: 0), .init(time: 0.48, value: 0), .init(time: 0.62, value: 0.06), .init(time: 1.08, value: 0.72), .init(time: 1.38, value: 1)],
-        "curlAngle": [.init(time: 0, value: 74), .init(time: 0.48, value: 74), .init(time: 0.92, value: 60), .init(time: 1.18, value: 38), .init(time: 1.38, value: 0)],
-        "shadowOpacity": [.init(time: 0, value: 0.19), .init(time: 0.48, value: 0.16), .init(time: 1.02, value: 0.12), .init(time: 1.38, value: 0)],
-        "shadowBlur": [.init(time: 0, value: 22), .init(time: 0.48, value: 16), .init(time: 1.08, value: 8), .init(time: 1.38, value: 0)],
-        "shadowY": [.init(time: 0, value: 22), .init(time: 0.48, value: 14), .init(time: 1.08, value: 7), .init(time: 1.38, value: 0)],
+        "maskOpacity": [.init(time: 0, value: 0), .init(time: 0.12, value: 0.5)],
+        "cardOpacity": [.init(time: 0, value: 0), .init(time: 0.04, value: 0), .init(time: 0.15, value: 1)],
+        "cardX": [.init(time: 0, value: 0)],
+        "cardY": [.init(time: 0, value: 56), .init(time: 0.04, value: 56), .init(time: 0.28, value: -24), .init(time: 0.68, value: 0)],
+        "cardScale": [.init(time: 0, value: 0.56), .init(time: 0.04, value: 0.56), .init(time: 0.28, value: 1.1), .init(time: 0.68, value: 1)],
+        "cardRotation": [.init(time: 0, value: 0)],
+        "adhesion": [.init(time: 0, value: 1)],
+        "curlAngle": [.init(time: 0, value: 0)],
+        "shadowOpacity": [.init(time: 0, value: 0.18), .init(time: 0.68, value: 0)],
+        "shadowBlur": [.init(time: 0, value: 22), .init(time: 0.68, value: 0)],
+        "shadowY": [.init(time: 0, value: 16), .init(time: 0.68, value: 0)],
+        "reveal": [.init(time: 0, value: 1)],
+        "lineOpacity": [.init(time: 0, value: 0)],
+        "glow": [.init(time: 0, value: 0)],
+        "spark": [.init(time: 0, value: 0)],
+        "buttonOpacity": [.init(time: 0, value: 0), .init(time: 0.36, value: 0), .init(time: 0.62, value: 1)],
+        "buttonY": [.init(time: 0, value: 10), .init(time: 0.36, value: 10), .init(time: 0.68, value: 0)],
+        "buttonScale": [.init(time: 0, value: 0.98), .init(time: 0.36, value: 0.98), .init(time: 0.68, value: 1)],
     ]
     static func clamp(_ p: Double) -> Double { min(1, max(0, p)) }
     static func easeOut(_ p: Double) -> Double { 1 - pow(1 - clamp(p), 3) }
@@ -36,7 +43,7 @@ enum RewardPopupV5Parameters {
             let a = frames[index - 1], b = frames[index]
             if time <= b.time {
                 let p = clamp((time - a.time) / (b.time - a.time))
-                return a.value + (b.value - a.value) * (linear ? p : easeOut(p))
+                return a.value + (b.value - a.value) * (linear ? p : (a.time >= 0.28 && b.time <= 0.68 && frames.count == 4 ? (1 - cos(Double.pi * p)) / 2 : easeOut(p)))
             }
         }
         return last.value
@@ -44,7 +51,7 @@ enum RewardPopupV5Parameters {
     static func pose(at time: Double, reducedMotion: Bool = false) -> [String: Double] {
         let t = reducedMotion ? duration : min(duration, max(0, time))
         var values = Dictionary(uniqueKeysWithValues: tracks.map { key, frames in
-            (key, sample(frames, at: t, linear: key == "adhesion"))
+            (key, sample(frames, at: t, linear: key == "adhesion" || key == "reveal"))
         })
         if reducedMotion {
             let fade = clamp(time / reducedMotionDuration)
