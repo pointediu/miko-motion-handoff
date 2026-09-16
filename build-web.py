@@ -8,7 +8,7 @@ import shutil
 
 ROOT = Path(__file__).resolve().parent
 SOURCE = ROOT / "dist"
-WEB = ROOT / "web"
+WEB = ROOT / "out"
 WEB.mkdir(exist_ok=True)
 (WEB / "previews").mkdir(exist_ok=True)
 (WEB / "assets").mkdir(exist_ok=True)

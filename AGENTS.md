@@ -38,5 +38,5 @@
 
 - 2026-09-16 用户明确要求部署，访问范围为有链接的人都能查看。复用现有 Sites project_id。
 - `dist/` 继续作为本机离线单文件版本；该目录不进入发布源仓库。
-- `python3 build-web.py` 从当前离线版生成 `web/`，保留全部 32 个动效、导航和参数面板。仅将内嵌预览改成同源 iframe 页面、将 base64 素材提取为去重文件；调试参数仍通过查询参数和 postMessage 同步。
-- `.openai/hosting.json` 的 static.directory 为 `web`。`web/` 是完整、可直接发布且受 Git 管理的静态源文件，不依赖构建工具运行；后续本地修改后先重新生成 web，再提交发布。
+- `python3 build-web.py` 从当前离线版生成 `out/`，保留全部 32 个动效、导航和参数面板。仅将内嵌预览改成同源 iframe 页面、将 base64 素材提取为去重文件；调试参数仍通过查询参数和 postMessage 同步。
+- `.openai/hosting.json` 的 static.directory 为 `out`。`out/` 是完整、可直接发布且受 Git 管理的静态源文件，不依赖构建工具运行；后续本地修改后先重新生成 out，再提交发布。
