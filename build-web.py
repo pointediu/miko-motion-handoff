@@ -30,7 +30,7 @@ for line in html.splitlines(keepends=True):
 assert previews, "No animation previews found"
 html = "".join(lines)
 types = {"image/png": "png", "image/webp": "webp", "image/svg+xml": "svg",
-         "video/mp4": "mp4", "video/webm": "webm", "video/quicktime": "mov", "audio/mpeg": "mp3"}
+         "video/mp4": "mp4", "video/webm": "webm", "video/quicktime": "mov", "audio/mpeg": "mp3", "font/ttf": "ttf"}
 asset_count = 0
 
 def externalize(content, asset_prefix):

@@ -1,0 +1,155 @@
+{
+  "canvas": {
+    "widthPt": 393,
+    "heightPt": 852
+  },
+  "figma": {
+    "fileKey": "YWjVv4Ppxzn5IHDl0FHZ7D",
+    "nodes": [
+      "1433:37922",
+      "1433:38017",
+      "1489:189931",
+      "1540:183102",
+      "1540:174526"
+    ]
+  },
+  "timingSource": "沿用现有 OB2期迭代 的逐字文字、猫咪说话、共享猫咪过渡与页面进出规范；盖章及卡片展开保留本流程动作。",
+  "stamp": {
+    "durationMs": 600,
+    "contactMs": 220,
+    "travelYPt": -64
+  },
+  "pageTransition": {
+    "enterMs": 680,
+    "exitMs": 240,
+    "enterYPt": 40,
+    "exitYPt": -20,
+    "backwardDirection": "Y反向",
+    "mode": "退出完成再进入"
+  },
+  "selection": {
+    "durationMs": 520,
+    "topFromPt": 269,
+    "topToPt": 226,
+    "expandedHeightPt": 312,
+    "collapsedHeightPt": 58,
+    "gapPt": 10,
+    "fadeSmallIllustrationMs": 140,
+    "videoStartsAfterMs": 520
+  },
+  "easing": [
+    0.4,
+    0,
+    0.2,
+    1
+  ],
+  "video": {
+    "source": "用户提供 女.mp4",
+    "loop": true,
+    "muted": true,
+    "playsInline": true,
+    "fit": "contain",
+    "slotPt": [
+      220,
+      220
+    ],
+    "pauseOnHidden": true,
+    "pauseOnLeave": true
+  },
+  "reducedMotion": "直接呈现完整文字，跳过空间运动与嘴部/关键词循环；视频默认静止，可点卡片播放。",
+  "finalActions": {
+    "try": "displayOnly",
+    "defer": "displayOnly",
+    "tryAppearance": {
+      "unselected": "disabledGray",
+      "selected": "enabledBlack",
+      "whileSwitchingPosture": "keepEnabledBlack"
+    }
+  },
+  "collapsedStandingLabel": "伸个懒腰",
+  "postures": [
+    "standing",
+    "sitting",
+    "lying"
+  ],
+  "videoReuse": "三个选项按要求使用同一条用户提供的女.mp4，无声循环，只有当前展开项播放。",
+  "scope": "四页原稿布局；站姿展开按原稿，坐姿/躺姿沿用同一展开结构。三项使用用户提供的女.mp4，切换后从头循环。站姿未选中时显示“伸个懒腰”。末页去试试和现在不方便仅展示，无点击交互。 邀请页完整出字后停留900ms自动继续，计划盖章与姿势选择仍手动。选择与展开属于同一环节，两种状态点击返回都直接显示指定首页。首页只作为返回落点展示。",
+  "native": {
+    "minimumIOS": "17.0",
+    "project": "SwiftUI/MikoFirstWorkoutDemo.xcodeproj",
+    "view": "SwiftUI/MikoFirstWorkoutDemo/FirstWorkoutView.swift",
+    "motion": "SwiftUI/MikoFirstWorkoutDemo/FirstWorkoutMotion.swift",
+    "frameworks": [
+      "SwiftUI",
+      "AVFoundation"
+    ],
+    "durationUnit": "seconds"
+  },
+  "headerText": {
+    "font": "STBaoYuan-SC Bold",
+    "fontWeight": 400,
+    "guideStartMs": 130,
+    "guideCharacterGapMs": 42,
+    "guideCharacterRevealMs": 130,
+    "introStartMs": 650,
+    "introCharacterGapMs": 82,
+    "introCharacterRevealMs": 180,
+    "secondLinePauseMs": 220,
+    "subtitleGapMs": 72,
+    "subtitleRevealMs": 170,
+    "keywordWobbleMs": 960
+  },
+  "mascot": {
+    "mouthPeriodMs": 190,
+    "mouthEasing": "steps(2,end)",
+    "sharedMoveMs": 760,
+    "sharedExitMs": 180,
+    "sharedArrivalPauseMs": 40,
+    "stopSpeaking": "文字全部出现后停止"
+  },
+  "autoplay": false,
+  "interactionMode": "manualWithAutomaticInvitation",
+  "invitation": {
+    "autoAdvance": true,
+    "holdAfterTextMs": 900,
+    "tapRequired": false
+  },
+  "press": {
+    "source": "Miko MVP动画 / Btn 点击规范",
+    "downMs": 90,
+    "releaseMs": 320,
+    "downEase": [
+      0.2,
+      0,
+      0.2,
+      1
+    ],
+    "releaseEase": [
+      0.4,
+      0,
+      0.2,
+      1
+    ],
+    "icon": {
+      "scale": 0.93,
+      "yPt": 1
+    },
+    "card": {
+      "scale": 0.972,
+      "yPt": 2
+    },
+    "stamp": {
+      "scale": 0.965,
+      "yPt": 1
+    },
+    "brightness": 0.96
+  },
+  "navigation": {
+    "invitationBackButton": false,
+    "selectionAndExpansion": "同一个页面内的状态，展开不入返回栈",
+    "selectionBack": "home",
+    "expandedBack": "home",
+    "homeFigmaNode": "1540:174526",
+    "homeControls": "静态展示"
+  }
+}

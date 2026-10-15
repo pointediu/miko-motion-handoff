@@ -1,0 +1,164 @@
+{
+  "canvas": {
+    "widthPt": 393,
+    "heightPt": 852
+  },
+  "figma": {
+    "fileKey": "YWjVv4Ppxzn5IHDl0FHZ7D",
+    "nodes": [
+      "1540:179029",
+      "1522:173078",
+      "1544:131642"
+    ]
+  },
+  "easing": [
+    0.4,
+    0,
+    0.2,
+    1
+  ],
+  "timingSource": "沿用 OB2 的文字与缓动规范；本次为首页卡片插入与底部弹层设计时序。",
+  "headerText": {
+    "startMs": 130,
+    "characterGapMs": 42,
+    "characterRevealMs": 130,
+    "mouthPeriodMs": 190
+  },
+  "sheet": {
+    "enterMs": 520,
+    "exitMs": 360,
+    "scrimEnterMs": 280,
+    "scrimExitMs": 0,
+    "topPt": 53,
+    "heightPt": 799,
+    "scrimOpacity": 0.32
+  },
+  "addition": {
+    "recommendationExitMs": 220,
+    "cardEnterMs": 520,
+    "cardStaggerMs": 160,
+    "cardTravelYPt": -6,
+    "cardReveal": "topToBottomStaggeredFade",
+    "cardOpacity": [
+      0,
+      1
+    ],
+    "cardEasing": [
+      0.22,
+      0.61,
+      0.36,
+      1
+    ],
+    "cardHeightPt": [
+      106,
+      106
+    ],
+    "contentScale": 1,
+    "buttonDelayAfterCardEntryMs": 700,
+    "buttonEnterMs": 360,
+    "buttonScale": [
+      0.88,
+      1.035,
+      1
+    ],
+    "buttonYPt": [
+      10,
+      -2,
+      0
+    ],
+    "buttonPeakMs": 245,
+    "totalMs": 1280,
+    "onlyOnce": true
+  },
+  "autoplay": false,
+  "interactionMode": "manual",
+  "scope": "推荐卡片可打开动作列表；关闭后回到首页。添加一次后替换为原稿中的开肩展背、摸肩转肩两张卡片；继续训练只展示。弹层滚动列表保留原稿的6张展示卡和8个动作标签，不补画未提供的动作。",
+  "reducedMotion": "手动流程，100ms淡入切换，跳过位移和说话循环，完整呈现文字。",
+  "native": {
+    "minimumIOS": "17.0",
+    "project": "SwiftUI/MikoHomeAddDemo.xcodeproj",
+    "view": "SwiftUI/MikoHomeAddDemo/HomeAddView.swift",
+    "motion": "SwiftUI/MikoHomeAddDemo/HomeAddMotion.swift",
+    "durationUnit": "seconds"
+  },
+  "layout": {
+    "referenceNode": "1540:179029",
+    "sharedAcrossAddition": true,
+    "planTopPt": 298,
+    "energyXY": [
+      24,
+      319
+    ],
+    "meterXY": [
+      156,
+      319
+    ],
+    "rewardXY": [
+      312.65,
+      306.6
+    ],
+    "headingFrame": [
+      24,
+      371,
+      345,
+      50
+    ],
+    "scrollFrame": [
+      16,
+      427,
+      361,
+      425
+    ],
+    "cardHeightPt": 106,
+    "cardGapPt": 10,
+    "existingCardYPt": [
+      427,
+      543
+    ],
+    "newCardYPt": [
+      659,
+      775
+    ],
+    "note": "添加前后共用下半部分布局，标题、进度条及已有卡片位置保持不变，仅新增内容渐显。"
+  },
+  "press": {
+    "source": "Miko MVP动画 / Btn 点击规范",
+    "downMs": 90,
+    "releaseMs": 320,
+    "downEase": [
+      0.2,
+      0,
+      0.2,
+      1
+    ],
+    "releaseEase": [
+      0.4,
+      0,
+      0.2,
+      1
+    ],
+    "default": {
+      "scale": 0.965,
+      "yPt": 1.5
+    },
+    "icon": {
+      "scale": 0.93,
+      "yPt": 1
+    },
+    "card": {
+      "scale": 0.972,
+      "yPt": 2
+    },
+    "brightness": 0.96
+  },
+  "typography": {
+    "family": "STBaoYuan-SC",
+    "style": "Bold",
+    "weight": 400,
+    "explicit700": [
+      "initialGreeting",
+      "weekdayLabels"
+    ],
+    "source": "Figma text node fontWeight verified 2026-10-15"
+  }
+}
