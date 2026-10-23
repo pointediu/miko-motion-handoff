@@ -37,7 +37,7 @@
         ],
         [
           "猫咪衔接",
-          "文字出现时190ms节奏说话，字出完停嘴；邀请猫咪760ms移动到选择页左上角，抵达后再出文字。"
+          "盖章后，同一个小猫头保持可见，760ms从左上角移至中间并放大；与旧页退出同步开始，随后出现邀请文字。邀请结束后760ms回到选择页左上角，抵达后出字。说话周期190ms。"
         ],
         [
           "统一缓动",
@@ -199,6 +199,29 @@
       "sharedMoveMs": 760,
       "sharedExitMs": 180,
       "sharedArrivalPauseMs": 40,
+      "planToInvitation": {
+        "durationMs": 760,
+        "startsWith": "planExit",
+        "fromXY": [
+          18.4,
+          130.6
+        ],
+        "toXY": [
+          124.62,
+          404.63
+        ],
+        "fromScaleXY": [
+          1,
+          1
+        ],
+        "toScaleXY": [
+          1.92015,
+          1.925
+        ],
+        "opacity": 1,
+        "preserveSameMascot": true,
+        "firstInvitationCharacterAtMs": 890
+      },
       "stopSpeaking": "文字全部出现后停止"
     },
     "autoplay": false,

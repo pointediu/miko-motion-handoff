@@ -217,8 +217,15 @@ struct FirstWorkoutView: View {
     }
     private func move(to next: Screen, backwards: Bool = false) async throws {
         video.pause(); speaking = false; busy = true
-        let shared = screen == .invitation && next == .selection
-        let exit = reduceMotion ? 0.12 : (shared ? 0.18 : FirstWorkoutMotion.exitDuration)
+        let toInvitation = screen == .plan && next == .invitation
+        let shared = toInvitation || (screen == .invitation && next == .selection)
+        // Preserve this TalkingCat instance and begin its move with the outgoing page.
+        if toInvitation {
+            withAnimation(FirstWorkoutMotion.ease(reduceMotion ? 0.12 : FirstWorkoutMotion.sharedCatDuration)) {
+                catPosition(next); catOpacity = 1
+            }
+        }
+        let exit = reduceMotion ? 0.12 : (shared && !toInvitation ? 0.18 : FirstWorkoutMotion.exitDuration)
         withAnimation(FirstWorkoutMotion.ease(exit)) {
             pageOpacity = 0; pageY = reduceMotion ? 0 : (backwards ? 20 : -20)
             if !shared { catOpacity = 0 }
@@ -229,10 +236,12 @@ struct FirstWorkoutView: View {
         if !shared { catPosition(next); if next == .invitation && !reduceMotion { catY += 40 } }
         try await delay(0.02)
         withAnimation(FirstWorkoutMotion.ease(reduceMotion ? 0.12 : FirstWorkoutMotion.pageDuration)) { pageOpacity = 1; pageY = 0 }
-        withAnimation(FirstWorkoutMotion.ease(reduceMotion ? 0.12 : (shared ? FirstWorkoutMotion.sharedCatDuration : FirstWorkoutMotion.pageDuration))) {
-            catPosition(next); catOpacity = next == .home ? 0 : 1
+        if !toInvitation {
+            withAnimation(FirstWorkoutMotion.ease(reduceMotion ? 0.12 : (shared ? FirstWorkoutMotion.sharedCatDuration : FirstWorkoutMotion.pageDuration))) {
+                catPosition(next); catOpacity = next == .home ? 0 : 1
+            }
         }
-        if shared { try await delay(reduceMotion ? 0.12 : 0.8) }
+        if shared && !toInvitation { try await delay(reduceMotion ? 0.12 : 0.8) }
         busy = false
         try await typeHeader()
     }

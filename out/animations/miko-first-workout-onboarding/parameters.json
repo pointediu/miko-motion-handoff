@@ -105,6 +105,29 @@
     "sharedMoveMs": 760,
     "sharedExitMs": 180,
     "sharedArrivalPauseMs": 40,
+    "planToInvitation": {
+      "durationMs": 760,
+      "startsWith": "planExit",
+      "fromXY": [
+        18.4,
+        130.6
+      ],
+      "toXY": [
+        124.62,
+        404.63
+      ],
+      "fromScaleXY": [
+        1,
+        1
+      ],
+      "toScaleXY": [
+        1.92015,
+        1.925
+      ],
+      "opacity": 1,
+      "preserveSameMascot": true,
+      "firstInvitationCharacterAtMs": 890
+    },
     "stopSpeaking": "文字全部出现后停止"
   },
   "autoplay": false,
